@@ -21,6 +21,8 @@
         // Add your subclass-specific initialization here.
 		header = [[NSString allocWithZone:[self zone]] init];
 		outFile = [NSString allocWithZone:[self zone]];
+		graphFile = [NSString allocWithZone:[self zone]];
+        completeMsg = [[NSString allocWithZone:[self zone]] init];
 
         // If an error occurs here, send a [self release] message and return nil.
 
@@ -32,6 +34,8 @@
 {
     [header release];
     [outFile release];
+    [graphFile release];
+    [completeMsg release];
     [super dealloc];
 }
 
@@ -70,10 +74,10 @@
         }
         [contents appendFormat:@"%c", 10];
     }
-	if (params.iry) {
+	if (params.iry && !params.imv) {
         for (int i = 0; i < params.nvals; i += 10) {
             for (int j = i; j < i + 10 && j < params.nvals; j++) {
-                [contents appendFormat:@"%f, ", params.r[j]];
+                [contents appendFormat:@"%f, ", params.angle[j]];
             }
             [contents appendFormat:@"%c", 10];
         }
@@ -105,6 +109,13 @@
         outFile = [outFile stringByAppendingPathExtension:@"results"];
     }
     [outFile retain];
+
+    graphFile = [[[self fileName] stringByDeletingPathExtension] stringByAppendingPathExtension:@"graphData"];
+    if ([graphFile isEqualToString:[self fileName]]) {
+        graphFile = [graphFile stringByAppendingPathExtension:@"graphData"];
+    }
+    [graphFile retain];
+
     return YES;
 }
 
@@ -115,16 +126,27 @@
 
 - (void)calculate
 {
-    NSLog(@"Calculating to %@", outFile);
+    NSLog(@"Calculating to %@ and %@", outFile, graphFile);
     const char * hdr = [header UTF8String];
     const char * out = [outFile UTF8String];
+    const char * graph = [graphFile UTF8String];
     unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:outFile]);
+    unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:graphFile]);
 
     params.iprint = iprint;
     params.jprint = jprint;
     params.ishow = ishow;
     params.maxjb = maxjb;
-    calculate_density(&params, hdr, out, strlen(hdr), strlen(out));
+    params.complete = 0;
+    calculate_density(&params, hdr, out, graph, strlen(hdr), strlen(out), strlen(graph));
+    NSString *message;
+    if (params.complete) {
+        message = [NSString stringWithFormat:@"Calculation complete:%c%cDensity estimate: %3g Standard error: %3g%c%cDetailed results in %@ and %CgraphData",
+            10, 10, params.estden, params.sden, 10, 10, outFile, 0x2026];
+    } else {
+        message = [NSString stringWithFormat:@"Calculation failed: Detailed results in %@", outFile];
+    }
+    [self setValue:message forKey:@"completeMsg"];
 }
 
 - (BOOL)parseInputSpaces:(NSString *)input
