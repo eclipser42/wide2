@@ -22,6 +22,7 @@
 		header = [[NSString allocWithZone:[self zone]] init];
 		outFile = [NSString allocWithZone:[self zone]];
 		graphFile = [NSString allocWithZone:[self zone]];
+        calculationTimer = nil;
         completeMsg = [[NSString allocWithZone:[self zone]] init];
 
         // If an error occurs here, send a [self release] message and return nil.
@@ -42,7 +43,8 @@
 - (NSString *)windowNibName
 {
     // Override returning the nib file name of the document
-    // If you need to use a subclass of NSWindowController or if your document supports multiple NSWindowControllers, you should remove this method and override -makeWindowControllers instead.
+    // If you need to use a subclass of NSWindowController or if your document supports multiple NSWindowControllers,
+    // you should remove this method and override -makeWindowControllers instead.
     return @"Density";
 }
 
@@ -69,7 +71,8 @@
 
 - (BOOL)loadDataRepresentation:(NSData *)data ofType:(NSString *)aType
 {
-    // Insert code here to read your document from the given data.  You can also choose to override -loadFileWrapperRepresentation:ofType: or -readFromFile:ofType: instead.
+    // Insert code here to read your document from the given data.
+    // You can also choose to override -loadFileWrapperRepresentation:ofType: or -readFromFile:ofType: instead.
 	NSString *contents = [NSString allocWithZone:[self zone]];
     contents = [contents initWithData:data encoding:NSUTF8StringEncoding];
 
@@ -106,31 +109,6 @@
 - (int)nvals
 {
     return params.nvals;
-}
-
-- (void)calculate
-{
-    NSLog(@"Calculating to %@ and %@", outFile, graphFile);
-    const char * hdr = [header UTF8String];
-    const char * out = [outFile UTF8String];
-    const char * graph = [graphFile UTF8String];
-    unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:outFile]);
-    unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:graphFile]);
-
-    params.iprint = iprint;
-    params.jprint = jprint;
-    params.ishow = ishow;
-    params.maxjb = maxjb;
-    params.complete = 0;
-    calculate_density(&params, hdr, out, graph, strlen(hdr), strlen(out), strlen(graph));
-    NSString *message;
-    if (params.complete) {
-        message = [NSString stringWithFormat:@"Calculation complete %c%cDensity estimate: %.3g  Standard error: %.3g%c%cDetailed results in %@ and %@",
-            10, 10, params.estden, params.sden, 10, 10, outFile, [graphFile lastPathComponent]];
-    } else {
-        message = [NSString stringWithFormat:@"Calculation failed: Detailed results in %@", outFile];
-    }
-    [self setValue:message forKey:@"completeMsg"];
 }
 
 - (BOOL)parseInputColumns:(NSString *)input
@@ -311,6 +289,48 @@
     }
 
 	return YES;
+}
+
+- (void)calculate
+{
+    [self setValue:@"" forKey:@"completeMsg"];
+    NSLog(@"Calculating to %@ and %@", outFile, graphFile);
+    params.iprint = iprint;
+    params.jprint = jprint;
+    params.ishow = ishow;
+    params.maxjb = maxjb;
+    params.complete = 0;
+
+    const char * hdr = [header UTF8String];
+    const char * out = [outFile UTF8String];
+    const char * graph = [graphFile UTF8String];
+    unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:outFile]);
+    unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:graphFile]);
+
+    calculate_density(&params, hdr, out, graph, strlen(hdr), strlen(out), strlen(graph));
+
+    NSString *message;
+    if (params.complete) {
+        message = [NSString stringWithFormat:@"Calculation complete %c%cDensity estimate: %.3g  Standard error: %.2g%c%cDetailed results in %@ and %@",
+            10, 10, params.estden, params.sden, 10, 10, outFile, [graphFile lastPathComponent]];
+    } else {
+        message = [NSString stringWithFormat:@"Calculation failed: Detailed results in %@", outFile];
+    }
+    [self setValue:message forKey:@"completeMsg"];
+
+    [NSThread detachNewThreadSelector:@selector(calculationThread:) toTarget:self withObject:nil];
+    calculationTimer = nil;
+}
+
+- (void)calculationThread:(id)ignored
+{
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    [self calculationWork];
+    [pool release];
+}
+
+- (void)calculationWork
+{
 }
 
 @end
