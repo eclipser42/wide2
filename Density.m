@@ -68,11 +68,19 @@
         }
         [contents appendFormat:@"%c", 10];
     }
-    for (int i = 0; i < params.nvals; i += 10) {
+	for (int i = 0; i < params.nvals; i += 10) {
         for (int j = i; j < i + 10 && j < params.nvals; j++) {
             [contents appendFormat:@"%d, ", params.nsize[j]];
         }
         [contents appendFormat:@"%c", 10];
+	}
+	if (params.iry == 1) {
+		for (int i = 0; i < params.nvals; i += 10) {
+			for (int j = i; j < i + 10 && j < params.nvals; j++) {
+				[contents appendFormat:@"%d, ", params.angle[j]];
+			}
+			[contents appendFormat:@"%c", 10];
+		}
 	}
     return [contents dataUsingEncoding:NSUTF8StringEncoding];
 }
@@ -215,6 +223,13 @@
 	for (int i = 0; i < params.nvals; i++) {
 		if (![scanner scanInt:(params.nsize + i)]) return NO;
 	}
+	if (params.iry == 1) {
+		for (int i = 0; i < params.nvals; i++) {
+			if (![scanner scanDouble:(params.angle + i)]) 
+			return NO;
+		}
+	}
+	
 	return YES;
 }
 
@@ -295,8 +310,14 @@
 		if (![scanner scanInt:(params.nsize + i)]) {
             return NO;
         }
-		if (![scanner scanString:@"," intoString:nil])
-            return NO; /* Skip the comma separator */
+		if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	}
+	if (params.iry == 1) {
+	for (int i = 0; i < params.nvals; i++) {
+		if (![scanner scanDouble:(params.angle + i)]) 
+			return NO;
+		if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+		}
 	}
 
 	return YES;
