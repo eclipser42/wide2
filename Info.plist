@@ -9,6 +9,7 @@
 		<dict>
 			<key>CFBundleTypeExtensions</key>
 			<array>
+				<string>census</string>
 				<string>txt</string>
 				<string>text</string>
 				<string>*</string>
@@ -20,13 +21,13 @@
 				<string>text/plain</string>
 			</array>
 			<key>CFBundleTypeName</key>
-			<string>NSStringPboardType</string>
+			<string>DensityCensus</string>
 			<key>CFBundleTypeOSTypes</key>
 			<array>
 				<string>****</string>
 			</array>
 			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
+			<string>Editor</string>
 			<key>NSDocumentClass</key>
 			<string>Density</string>
 		</dict>
@@ -34,7 +35,7 @@
 	<key>CFBundleExecutable</key>
 	<string>Wildlife Density</string>
 	<key>CFBundleIconFile</key>
-	<string></string>
+	<string>WildlifeDensity Icon.tiff</string>
 	<key>CFBundleIdentifier</key>
 	<string>au.edu.unimelb.zoology.wildlifedensity</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -44,7 +45,7 @@
 	<key>CFBundleSignature</key>
 	<string>WLDN</string>
 	<key>CFBundleVersion</key>
-	<string>1.0</string>
+	<string>0.1a1</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
