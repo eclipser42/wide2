@@ -35,7 +35,7 @@
 *
 *
 *     MNPS2 consists of a MAIN program and two subroutines,  
-*     SUBROUTINE GIVEF and SUBROUTINE SRAND.
+*     SUBROUTINE GIVEF and SUBROUTINE SRANDNAG.
 *
 *
 *     The main program determines parameter values for a least
@@ -47,7 +47,7 @@
 *
 *     Subroutine GIVEF calculates the sum of squares by using the
 *     mathematical model, and returns this to the main program.
-*     Subroutine SRAND supplies a pseudo-random number used in the
+*     Subroutine SRANDNAG supplies a pseudo-random number used in the
 *     data resampling procedure in response to a seed value supplied 
 *     by the main program.
 *
@@ -339,10 +339,31 @@
 *     This program uses double precision for all real numbers.
 *
 *
-*                                                                       
-      PROGRAM MNPS2
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z) 
-      CHARACTER*80 HEADER,INFILE*40,OUTFILE*40,RUNID*10
+*
+*     PROGRAM MNPS2
+
+      SUBROUTINE CALCULATE_DENSITY(PARAMS, HEADER, OUTFILE)
+
+*     This seqence derived type must be kept in complete agreement with the
+*     C-language definition in mnps2.h
+      TYPE CALC_PARAMS
+      SEQUENCE        ! SEQUENCE indicates not to insert internal
+                      ! padding for data alignment
+      INTEGER NVALS,NUMA,NUMO,LTMIN,LTMAX,IFX,IRY,NS,KM,IMV,KDT
+      INTEGER IPRINT,JPRINT,ISHOW,MAXJB,IT,IV
+      DOUBLE PRECISION CLINT,STT,DIST,THH,R3S,VGH,PD,PS,F(4)
+      DOUBLE PRECISION STEP(4),R(5000)
+      INTEGER NSIZE(5000)
+      DOUBLE PRECISION ANGLE(5000)
+      END TYPE CALC_PARAMS
+
+      TYPE (CALC_PARAMS) PARAMS
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+
+*     CHARACTER*80 HEADER,INFILE*40,OUTFILE*40,RUNID*10
+      CHARACTER*(*) HEADER, OUTFILE
+
       INTEGER NSIZE(5000),NBSZ(5000),I,IB,IC,IMAX,IN,IRB
       INTEGER ISEED,IPRINT,IMV,IRY,ISHOW,IT,IV,J,JB,JBSTP,JK,JR,JX
       INTEGER KDT,KWT,LTMIN,LTMAX,MAX,MAXJB,NS,NUMA,NUMEST,NUMO,NVALS 
@@ -350,7 +371,7 @@
       DIMENSION R(5000),BSTR(5000),Y(5000),BSTY(5000),
      & DEN(5000),COEFF1(5000),COEFF2(5000),ANGLE(5000)
       DIMENSION G(5,4),STEP(4),STEPT(4),F(4),FT(4)
-      REAL RAND
+      DOUBLE PRECISION VAL(80),H(4),PBAR(4),PSTAR(4),PSTST(4)
 *
 *  
 *     The program accepts up to 5000 data values, each being the total
@@ -363,13 +384,11 @@
 *     Some variables are common to the main program and the
 *     subroutine, viz.
 *
-      COMMON / common1 /VAL(80),H(4),PBAR(4),PSTAR(4),PSTST(4)
-      COMMON / common2 /HSTAR,HSTST,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS
-      COMMON / common3 /KM,IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT
-      COMMON / common4 /LTMAX,LTMIN,MAX,NUMA,NUMO,NVALS,NS
-*
-*
-*
+*     COMMON / common1 /VAL(80),H(4),PBAR(4),PSTAR(4),PSTST(4)
+*     COMMON / common2 /HSTAR,HSTST,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS
+*     COMMON / common3 /KM,IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT
+*     COMMON / common4 /LTMAX,LTMIN,MAX,NUMA,NUMO,NVALS,NS
+
 *     This program is designed to receive a list-directed data file with
 *     a name constructed from RUNID (a character value not more than 10
 *     characters long).  The filename constructed will be IN'runid'.DAT.
@@ -389,21 +408,59 @@
       MAX=750
       NOP=4
       NLOOP=1
-*
+
+      NVALS  = PARAMS.NVALS
+      CLINT  = PARAMS.CLINT
+      STT    = PARAMS.STT
+      NUMA   = PARAMS.NUMA
+      NUMO   = PARAMS.NUMO
+      DIST   = PARAMS.DIST
+      THH    = PARAMS.THH
+      LTMIN  = PARAMS.LTMIN
+      LTMAX  = PARAMS.LTMAX
+      IFX    = PARAMS.IFX
+      IRY    = PARAMS.IRY
+      NS     = PARAMS.NS
+      KM     = PARAMS.KM
+      IMV    = PARAMS.IMV
+      KDT    = PARAMS.KDT
+      IPRINT = PARAMS.IPRINT
+      JPRINT = PARAMS.JPRINT
+      ISHOW  = PARAMS.ISHOW
+      MAXJB  = PARAMS.MAXJB
+      R3S    = PARAMS.R3S
+      VGH    = PARAMS.VGH
+      IT     = PARAMS.IT
+      IV     = PARAMS.IV
+      PD     = PARAMS.PD
+      PS     = PARAMS.PS
+*     RUNID  = PARAMS.RUNID
+
+      DO 2 IG=1,NOP
+      F(IG)    = PARAMS.F(IG)
+      STEP(IG) = PARAMS.STEP(IG)
+    2 CONTINUE
+
+      DO 24 IH=1,5000
+      R(IH)     = PARAMS.R(IH)
+      NSIZE(IH) = PARAMS.NSIZE(IH)
+      ANGLE(IH) = PARAMS.ANGLE(IH)
+   24 CONTINUE
+
 *     The next set of commands names the input and output files.
-*	
-      WRITE(6,281)
-  281 FORMAT(' Enter run identifier : ',$)
-      READ(5,282)RUNID
-  282 FORMAT(A10)
-      LR=INDEX(RUNID,' ')
-      IF(LR.EQ.0)THEN
-        LR=10
-      ELSE
-        LR=LR-1
-      ENDIF
-      INFILE='IN'//RUNID(1:LR)//'.DAT'
-      OUTFILE='OUT'//RUNID(1:LR)//'.LIS'
+*
+*     WRITE(6,281)
+* 281 FORMAT(' Enter run identifier : ',$)
+*     READ(5,282)RUNID
+* 282 FORMAT(A10)
+*     LR=INDEX(RUNID,' ')
+*     IF(LR.EQ.0)THEN
+*       LR=10
+*     ELSE
+*       LR=LR-1
+*     ENDIF
+*     INFILE='IN'//RUNID(1:LR)//'.DAT'
+*     OUTFILE='OUT'//RUNID(1:LR)//'.LIS'
 *
 *
 *     All data lines are read into the program together at this point.
@@ -411,14 +468,14 @@
 *     in PRECISELY the same sequence as the corresponding R(IN) data, 
 *     and omit overtaking cases where r=0.
 *           
-* 
-      OPEN(UNIT=1,FILE=INFILE,STATUS='OLD',IOSTAT=IOS,ERR=283)
+*
+*     OPEN(UNIT=1,FILE=INFILE,STATUS='OLD',IOSTAT=IOS,ERR=283)
       OPEN(UNIT=2,FILE=OUTFILE,STATUS='NEW',IOSTAT=IOS,ERR=284)
-      READ(1,*) HEADER,NVALS,CLINT,STT,NUMA,NUMO,DIST,THH,LTMIN,
-     & LTMAX,IFX,IRY,NS,KM,IMV,KDT,IPRINT,JPRINT,ISHOW,MAXJB,R3S,
-     & VGH,IT,IV,PD,PS,(F(I),I=1,NOP),(STEP(I),I=1,NOP),
-     & (R(IN),IN=1,NVALS),(NSIZE(IN),IN=1,NVALS),
-     & (ANGLE(IN),IN=1,(NVALS*(IRY-IMV)))
+*     READ(1,*) HEADER,NVALS,CLINT,STT,NUMA,NUMO,DIST,THH,LTMIN,
+*    & LTMAX,IFX,IRY,NS,KM,IMV,KDT,IPRINT,JPRINT,ISHOW,MAXJB,R3S,
+*    & VGH,IT,IV,PD,PS,(F(I),I=1,NOP),(STEP(I),I=1,NOP),
+*    & (R(IN),IN=1,NVALS),(NSIZE(IN),IN=1,NVALS),
+*    & (ANGLE(IN),IN=1,(NVALS*(IRY-IMV)))
 *
 *
 *     If a value of the maximum detection distance F(4) has been
@@ -444,19 +501,19 @@
 *
       IF (IFX) 5,5,6
     6 WRITE(2,3) CLINT, IT
-    3 FORMAT(/23H Class Interval Width =,F7.1,25H m.    Total Time 
-     &Spent =I5,5H min.)
+    3 FORMAT(/23H Class Interval Width =,F7.1,
+     &25H m.    Total Time Spent =,I5,5H min.)
       GO TO 15
 *
     5 IF (KM) 7,7,9
     7 WRITE(2,8) CLINT, DIST
-    8 FORMAT(/23H Class Interval Width =,F5.1,28H m.    Total Dis
-     &tance (xJ) =,F10.3,3H m.)
+    8 FORMAT(/23H Class Interval Width =,F5.1,
+     &28H m.    Total Distance (xJ) =,F10.3,3H m.)
       GO TO 15
 *
     9 WRITE(2,10) CLINT, DIST
-   10 FORMAT(/23H Class Interval Width =,F7.1,28H m.    Total Dis
-     &tance (xJ) =,F10.3,4H km.)
+   10 FORMAT(/23H Class Interval Width =,F7.1,
+     &28H m.    Total Distance (xJ) =,F10.3,4H km.)
 *
 *
 *     If calculations are to be based on perpendicular distances (y)
@@ -693,11 +750,11 @@
       ISEED = ISEED + (R(JR)*724*JR)/JB
 *
 *     A random number between 0 and 1 is now called from the Subroutine
-*     SRAND, multiplied by NVALS to give it a value between 0 and NVALS,
+*     SRANDNAG, multiplied by NVALS to give it a value between 0 and NVALS,
 *     and converted to integer form, adding 1 to allow for chopping. 
 *
-      CALL SRAND(ISEED)
-      X = RAND()
+      CALL SRANDNAG(ISEED)
+      X = RANDNAG()
       JX = INT(X*NVALS + 1)
 *
 *     What happens now depends on whether radial or perpendicular
@@ -808,7 +865,7 @@
 *     The initial simplex of program MINIM is now set up.
 *
 *
-  103 DO 100 I=1,NOP                                                    
+  103 DO 100 I=1,NOP
   100 G(1,I)=F(I)                                                       
       IROW=2                                                            
       DO 130 I=1,NOP                                                    
@@ -822,8 +879,10 @@
       NEVAL=0                                                           
       DO 170 I=1,NP1                                                    
       DO 140 J=1,NOP                                                    
-  140 F(J)=G(I,J)                                                       
-      CALL GIVEF (F,H(I))                                               
+  140 F(J)=G(I,J)
+      CALL GIVEF (F,H(I),VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+     & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
+     & NUMA,NUMO,NVALS,NS)
 *
       NEVAL=NEVAL+1                                                     
 *                                                                       
@@ -878,7 +937,9 @@
 *
       DO 270 I=1,NOP                                                    
   270 PSTAR(I)=A*(PBAR(I)-G(IMAX,I))+PBAR(I)                            
-      CALL GIVEF (PSTAR,HSTAR)                                          
+      CALL GIVEF (PSTAR,HSTAR,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+     & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
+     & NUMA,NUMO,NVALS,NS)
 *                                                                       
 *     The next 5 statements test whether a progress report is
 *     required and, if so, provide one.  This procedure occurs
@@ -907,7 +968,9 @@
 *
   310 DO 320 I=1,NOP                                                    
   320 PSTST(I)=C*(PSTAR(I)-PBAR(I))+PSTAR(I)                            
-      CALL GIVEF (PSTST,HSTST)                                          
+      CALL GIVEF (PSTST,HSTST,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+     & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
+     & NUMA,NUMO,NVALS,NS)
 *
 *     If IPRINT=1 the program prints out the progress of the
 *     iteration.  This is not normally required.
@@ -959,7 +1022,9 @@
       H(IMAX)=HSTAR                                                         
   430 DO 440 I=1,NOP                                                    
   440 PSTST(I)=B*G(IMAX,I)+(1.0-B)*PBAR(I)                              
-      CALL GIVEF (PSTST,HSTST)                                          
+      CALL GIVEF (PSTST,HSTST,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+     & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
+     & NUMA,NUMO,NVALS,NS)
 *
       NEVAL =NEVAL+1                                                    
       IF ((IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) GO TO 450
@@ -990,7 +1055,9 @@
       DO 550 I=1,NP1                                                    
       DO 520 J=1,NOP                                                    
   520 F(J)=G(I,J)                                                       
-      CALL GIVEF (F,H(I))                                               
+      CALL GIVEF (F,H(I),VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+     & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
+     & NUMA,NUMO,NVALS,NS)
 *
       NEVAL=NEVAL +1                                                    
       IF ((IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) GO TO 530
@@ -1036,9 +1103,11 @@
   610 F(I)=F(I)+G(J,I)                                                  
       F(I)=F(I)/FLOAT(NP1)                                                   
   620 CONTINUE                                                         
-      CALL GIVEF(F,FUNC)                                                
+      CALL GIVEF(F,FUNC,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+     & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
+     & NUMA,NUMO,NVALS,NS)
 *
-      NEVAL=NEVAL+1                                                     
+      NEVAL=NEVAL+1
 *
 *     If KWT=1, the program calculates a biweighted least squares
 *     value.  This process begins once the number of iterations
@@ -1068,16 +1137,16 @@
   650 FORMAT(40H NUMBER OF FUNCTION EVALUATIONS EXCEEDS ,I4)            
       WRITE(2,660) HSTD                                                    
   660 FORMAT(51H STANDARD ERROR OF FUNCTION VALUES OF LAST SIMPLEX ,E13.  
-     16)                                                                
+     &6)
       WRITE(2,670) (F(I),I=1,NOP)                                          
   670 FORMAT(28H  CENTROID OF LAST SIMPLEX  ,8E13.5,     (/28X,8E13.5)) 
       WRITE(2,680) FUNC                                                    
   680 FORMAT(31H  FUNCTION VALUE AT CENTROID   ,E13.6)                  
       GO TO 845  
 *
-*                                        	                                              
-  700 IF (HSTD.LT.STOPC)  GO TO 720                                       
-*                                                                      
+*
+  700 IF (HSTD.LT.STOPC)  GO TO 720
+*
 *     If the standard deviation calculated above is not less than
 *     the criterion set (STOPC), IFLAG and LOOP are set to zero
 *     and the basic loop begins again.
@@ -1154,7 +1223,9 @@
 *     Program execution returns to the subroutine to yield final pass values 
 *     of F(1), F(2) and F(3).
 *
-      CALL GIVEF(F,FUNC)                                                    
+      CALL GIVEF(F,FUNC,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+     & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
+     & NUMA,NUMO,NVALS,NS)
 *
       LPRINT=1
       KPRINT=0                                                            
@@ -1198,6 +1269,7 @@
 *
   845 LOOP=0
       IFLAG=0
+      IPRINT=0
       KPRINT=0
 *
       DO 853 I=1,NP1
@@ -1286,8 +1358,8 @@
       WRITE(2,1486)
  1486 FORMAT(1H ,77(1Hx)/2H x,4(18X,1Hx))
       WRITE(2,1487)
- 1487 FORMAT(15H x    PARAMETER,5X,1Hx,6X,5HVALUE,7X,1Hx,18H  STANDARD
-     & ERROR  ,1Hx,7X,4HUNIT,7X,1Hx)
+ 1487 FORMAT(15H x    PARAMETER,5X,1Hx,6X,5HVALUE,7X,1Hx,
+     &18H  STANDARD ERROR  ,1Hx,7X,4HUNIT,7X,1Hx)
       WRITE(2,1488)
  1488 FORMAT(2H x,4(18X,1Hx)/1H ,77(1Hx)/2H x,4(18X,1Hx)/12H x ESTIMATED
      &,8X,1Hx,3(18X,1Hx))
@@ -1298,7 +1370,7 @@
  1489 IF (MAXJB-1) 2000,2000,2002
  2000 WRITE(2,2001) ESTDEN
  2001 FORMAT(15H x DENSITY  (D),5X,1Hx,4X,F10.3,4X,
-     &39Hx (indeterminate)  x  indivs./hectare  x)
+     &40Hx (indeterminate)  x  indivs./hectare  x)
       GO TO 1493
  2002 WRITE(2,1490) ESTDEN,SDEN
  1490 FORMAT(15H x DENSITY  (D),5X,1Hx,4X,F10.3,4X,1Hx,4X,F10.3,4X,
@@ -1346,8 +1418,8 @@
       GO TO 2013
 *
  1500 WRITE(2,1502)
- 1502 FORMAT(2H x,4(18X,1Hx)/1H ,77(1Hx)/2H x,4(18X,1Hx)/14H x ATTENUAT
-     &ION,6X,1Hx,3(18X,1Hx))
+ 1502 FORMAT(2H x,4(18X,1Hx)/1H ,77(1Hx)/2H x,4(18X,1Hx)/
+     &14H x ATTENUATION,6X,1Hx,3(18X,1Hx))
       IF (MAXJB-1) 2014,2014,2016
  2014 WRITE(2,2015) COEFFNT2
  2015 FORMAT(21H x COEFFICIENT  (b) x,4X,F10.4,4X,
@@ -1382,21 +1454,25 @@
  1518 F(3)=(ESTDEN*2.*DIST*PD*(SNS/2))/1.E4
       GO TO 1520
  1519 F(3)=ESTDEN*2.*IV*IT*PD/1.E4	       	  	  
- 1520 CALL GIVEF(F,FUNC)
+ 1520 CALL GIVEF(F,FUNC,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+     & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
+     & NUMA,NUMO,NVALS,NS)
 *
 *	  
  1525 CONTINUE
       CLOSE(UNIT=1)
       CLOSE(UNIT=2)
-      STOP
+*     STOP
+      RETURN
 *
 *
   283 WRITE(6,285)INFILE,IOS
   285 FORMAT(' Error opening ',A40,' - IOS = ',I6)
-      STOP
+*     STOP
+      RETURN
   284 WRITE(6,285)OUTFILE,IOS
-      STOP
-      END
+*     STOP
+      END SUBROUTINE CALCULATE_DENSITY
 *
 *     *************************************************************
 *
@@ -1416,23 +1492,24 @@
 *     program as FUNC.
 *
 *
-      SUBROUTINE GIVEF(F,FUNC)                                          
+      SUBROUTINE GIVEF(F,FUNC,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+     & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
+     & NUMA,NUMO,NVALS,NS)
 *
 *     Double precision for all real numbers is set, together with
 *     common values, dimensions and symbols for key variables.
 *
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z) 
-      INTEGER NSIZE(5000),NBSZ(5000),HEADER(80),I,IB,IC,IMAX,IN,IRB
-      INTEGER ISEED,IPRINT,IMV,IRY,ISHOW,IT,IV,J,JB,JBSTP,JK,JR,JX
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      INTEGER IMV,IRY,ISHOW
       INTEGER KDT,KWT,LTMIN,LTMAX,MAX,MAXJB,NS,NUMA,NUMEST,NUMO,NVALS 
       DIMENSION R(5000),BSTR(5000),Y(5000),BSTY(5000),
      & DEN(5000),COEFF1(5000),COEFF2(5000)
-      DIMENSION G(5,4),STEP(4),STEPT(4),F(4)
-*	  
-      COMMON / common1 /VAL(80),H(4),PBAR(4),PSTAR(4),PSTST(4)
-      COMMON / common2 /HSTAR,HSTST,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS
-      COMMON / common3 /KM,IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT
-      COMMON / common4 /LTMAX,LTMIN,MAX,NUMA,NUMO,NVALS,NS
+      DIMENSION G(5,4),STEP(4),STEPT(4),F(4),VAL(80)
+*
+*     COMMON / common1 /VAL(80),H(4),PBAR(4),PSTAR(4),PSTST(4)
+*     COMMON / common2 /HSTAR,HSTST,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS
+*     COMMON / common3 /KM,IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT
+*     COMMON / common4 /LTMAX,LTMIN,MAX,NUMA,NUMO,NVALS,NS
 *
 *     TOT is the progressive value of the sum of squares of the
 *     differences between observed and calculated values.  It is
@@ -1440,7 +1517,7 @@
 *
       TOT=0.                             
       WTOT=0.                              
-*     
+*
 *     The program now sets upper and lower limits to the
 *     parameter values supplied, usually by effectively giving
 *     FUNC (through HTOT) a very high value if a parameter falls
@@ -2212,15 +2289,15 @@
        FUNC=(ABS(F(2)-QMIN-1.))*FUNC                                     
  8190 IF (KPRINT) 8200,8200,8191
  8191 WRITE(2,8192) FUNC
- 8192 FORMAT(//5X,28HOLS Difference at Minimum:  ,F15.6/)
+ 8192 FORMAT(5X,28HOLS Difference at Minimum:  ,F15.6/)
  8200 RETURN                                                            
-      END  
+      END SUBROUTINE GIVEF
 *
 *
-       SUBROUTINE SRAND(ISEED)
+       SUBROUTINE SRANDNAG(ISEED)
 *
 *  This subroutine sets the integer seed to be used with the
-*  companion RAND function to the value of ISEED.  A flag is
+*  companion RANDNAG function to the value of ISEED.  A flag is
 *  set to indicate that the sequence of pseudo-random numbers
 *  for the specified seed should start from the beginning.
 *
@@ -2230,8 +2307,9 @@
       JSEED=ISEED
       IFRST=0
 *
-      END
-      REAL FUNCTION RAND()
+      END SUBROUTINE SRANDNAG
+
+      REAL FUNCTION RANDNAG()
 *
 *
 *  This function returns a pseudo-random number for each invocation.
@@ -2265,14 +2343,14 @@
       ELSE
         NEXTN = TESTV + MODLUS
       ENDIF
-      RAND = REAL(NEXTN)/REAL(MODLUS)
+      RANDNAG = REAL(NEXTN)/REAL(MODLUS)
 *
       RETURN
-      END
+      END FUNCTION RANDNAG
+
       BLOCKDATA RANDBD
       COMMON / SEED /JSEED,IFRST
 *
       DATA JSEED,IFRST/123456789,0/
 *
-      END
-                                                             
+      END BLOCKDATA RANDBD
