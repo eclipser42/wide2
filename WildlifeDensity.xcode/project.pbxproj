@@ -99,6 +99,7 @@
 			fileRef = 420B008E06C6F75800695CAB;
 			isa = PBXBuildFile;
 			settings = {
+				COMPILER_FLAGS = "-Wx,-qthreaded";
 			};
 		};
 		1A221BF3071BD19B00596C57 = {
