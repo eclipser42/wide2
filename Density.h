@@ -10,13 +10,12 @@
     NSString *graphFile;
     int iprint,jprint,ishow,maxjb;
     calc_params params;
+    NSTimer *calculationTimer;
     BOOL complete;
     NSString *completeMsg;
 }
 
 - (int)nvals;
-
-- (void)calculate;
 
 /**
  * Parse input with the observation data in rows, separated by either commas or spaces
@@ -27,4 +26,10 @@
  * Parse input with the observation data in columns
  **/
 - (BOOL)parseInputColumns:(NSString *)input;
+
+- (void)calculate;
+
+- (void)calculationThread:(id)ignored;
+
+- (void)calculationWork;
 @end
