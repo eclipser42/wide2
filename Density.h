@@ -8,7 +8,8 @@
 	NSString *header;
     NSString *outFile;
     NSString *graphFile;
-    int iprint,jprint,ishow,maxjb;
+    int iprint, jprint, ishow, maxjb;
+    double elevations[MAX_OBSERVATIONS];
     calc_params params;
     NSTimer *calculationTimer;
     BOOL complete;
@@ -26,6 +27,7 @@
  * Parse input with the observation data in columns
  **/
 - (BOOL)parseInputColumns:(NSString *)input;
+- (BOOL)parseInputOldColumns:(NSString *)input;
 
 - (void)calculate;
 
