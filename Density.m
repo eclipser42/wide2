@@ -201,7 +201,7 @@
 	for (int i = 0; i < params.nvals; i++) {
 		if (![scanner scanInt:(params.nsize + i)]) return NO;
 	}
-	if (params.iry) {
+	if (params.iry && !params.imv) {
 		for (int i = 0; i < params.nvals; i++) {
 			if (![scanner scanDouble:(params.angle + i)])
              return NO;
@@ -291,7 +291,7 @@
 		if (![scanner scanString:@"," intoString:nil])
             return NO; /* Skip the comma separator */
 	}
-	if (params.iry) {
+	if (params.iry && !params.imv) {
 		for (int i = 0; i < params.nvals; i++) {
 			if (![scanner scanDouble:(params.angle + i)])
                 return NO;
