@@ -1,29 +1,29 @@
-!     PROGRAM MNPS2
+!     PROGRAM mnps2.f
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
 !     point methods, together with estimates of other parameters of the
-!     observing situation.  It has been designed primarily for use in 
-!     ground surveys of mammal and bird populations in terrestrial 
+!     observing situation.  It has been designed primarily for use in
+!     ground surveys of mammal and bird populations in terrestrial
 !     habitats, though a variant can work with aerial surveys using both
 !     fixed-wing aircraft and helicopters.
 !
-!     [The program as written does not allow for normal aerial survey 
-!     density estimation, or estimation where a segment of the viewing   
-!     arc is missing; for these types of data, program MNPSAS should 
+!     [The program as written does not allow for normal aerial survey
+!     density estimation, or estimation where a segment of the viewing
+!     arc is missing; for these types of data, program MNPSAS should
 !     be used instead.]
 !
-!     MNPS2 works by modelling mathematically the frequency distributions 
-!     of the numbers sighted under uniform observing conditions over a  
-!     range of distances from either the observer or the transect line. 
-!     Curve-fitting is achieved by using the simplex method to minimize 
-!     the sum of squares of the differences between the observed and 
+!     MNPS2 works by modelling mathematically the frequency distributions
+!     of the numbers sighted under uniform observing conditions over a
+!     range of distances from either the observer or the transect line.
+!     Curve-fitting is achieved by using the simplex method to minimize
+!     the sum of squares of the differences between the observed and
 !     calculated numbers across the frequency distribution.
-!                 
-!     Based on the 'best-fit' solution so obtained, the program returns  
+!
+!     Based on the 'best-fit' solution so obtained, the program returns
 !     population density estimates, estimates of other parameters of the
-!     model and related information on the system in which the original 
-!     observations were made. Standard errors of the parameters are 
+!     model and related information on the system in which the original
+!     observations were made. Standard errors of the parameters are
 !     obtained by bootstrap sampling of data from the original data set.
 !
 !
@@ -34,26 +34,26 @@
 !     ******************************************************************
 !
 !
-!     MNPS2 consists of a MAIN program and two subroutines,  
+!     MNPS2 consists of a MAIN program and two subroutines,
 !     SUBROUTINE GIVEF and SUBROUTINE SRANDNAG.
 !
 !
 !     The main program determines parameter values for a least
 !     squares fit between calculated and observed frequencies,
-!     using the simplex method in a way derived from 
-!     Nelder & Mead, The Computer Journal, January, 1965.  [Original 
-!     'MINIM' program by D.E.Shaw, Divn. of Mathematical Statistics, 
+!     using the simplex method in a way derived from
+!     Nelder & Mead, The Computer Journal, January, 1965.  [Original
+!     'MINIM' program by D.E.Shaw, Divn. of Mathematical Statistics,
 !     CSIRO, Australia.]
 !
 !     Subroutine GIVEF calculates the sum of squares by using the
 !     mathematical model, and returns this to the main program.
 !     Subroutine SRANDNAG supplies a pseudo-random number used in the
-!     data resampling procedure in response to a seed value supplied 
+!     data resampling procedure in response to a seed value supplied
 !     by the main program.
 !
 !
 !     The program accepts several alternative types of data and
-!     provides three different ways of calculating expected values, 
+!     provides three different ways of calculating expected values,
 !     viz:
 !
 !       . radial distance data supplied (IFX=0 and IRY=0);
@@ -61,8 +61,8 @@
 !       . fixed-point data supplied (IFX=1 and IRY=0);
 !
 !
-!     Data are supplied to the program by means of a data file, 
-!     'IN<num>.dat'.  The parameters supplied in the input via the 
+!     Data are supplied to the program by means of a data file,
+!     'IN<num>.dat'.  The parameters supplied in the input via the
 !     data file are, in sequence:
 !
 !
@@ -71,14 +71,14 @@
 !     NVALS - the total number of individual animal detections
 !          in the sample submitted for modelling.
 !
-!     CLINT - the class interval to be used within the program, 
+!     CLINT - the class interval to be used within the program,
 !          chosen so that 80 x CLINT is less than the observed
 !          maximum detection distance.
 !
-!     STT - the detection distance value (r or y) from which class 
+!     STT - the detection distance value (r or y) from which class
 !          intervals begin (usually zero).
 !
-!     NUMA - the total number of individual animals detected 
+!     NUMA - the total number of individual animals detected
 !          ahead of a moving observer on a transect.
 !
 !     NUMO - the number of individuals overtaking the observer
@@ -113,7 +113,7 @@
 !
 !     NS - the number of sides of the transect line used during
 !          a survey, viz:
-!            
+!
 !            =0  not transect data, so not relevant (fixed point);
 !            =1  handles data from only one side of the line;
 !            =2  handles data from both sides of the transect line.
@@ -124,24 +124,24 @@
 !            =0  distances are measured in metres;
 !            =1  distances measured in kilometres.
 !
-!         The program as written assumes that all distances are 
+!         The program as written assumes that all distances are
 !         in metres.
 !
-!    IMV - a parameter used to determine which method of 
+!    IMV - a parameter used to determine which method of
 !          calculating probability is used in the subroutine.
 !          It either:
 !               . calculates a mean probability value
 !                 within each interval (IMV=0); or
 !               . calculates the median probability
-!                 value within each interval (IMV=1), viz: 
+!                 value within each interval (IMV=1), viz:
 !
 !            =0  uses the mean value of P(r) in an interval;
 !            =1  uses the median value of P(r).
 !
-!          [If perpendicular distances are being supplied as raw 
-!          input data instead of providing radial distances and 
-!          angles, put IMV=1 as well as IRY=1.  This removes the need
-!          for data on angles, but also precludes the possibility
+!          [If perpendicular distances are being supplied as raw
+!          input data instead of providing radial distances and
+!          angles, put IMV=1 as well as IRY (or IFX) =1.  This removes
+!          a need for angle data, but also precludes the possibility
 !          of calculating median probabilities when such data are
 !          supplied.   (The program resets IMV=0 once the data have
 !          been entered.)]
@@ -150,7 +150,7 @@
 !          coefficient becomes negative or if the data are
 !          visual observations.
 !
-!     KDT - a control parameter to indicate the type of
+!     KDT - a control parameter to indicate some properties of
 !          observational data supplied to the program, viz:
 !
 !            = 0  for visual and flushing data;
@@ -159,18 +159,18 @@
 !          If KDT=0, the program sets IMV=1 within the
 !          subroutine.
 !
-!     IPRINT - a parameter to control the output of progress 
+!     IPRINT - a parameter to control the output of progress
 !          evaluations from the main program, viz:
 !
 !            = 0  no progress evaluations;
-!            = 1  reports initial convergence (with the parameter 
-!                 and function values there), overrunning of MAX, 
-!                 and a progress report on the minimization every 
+!            = 1  reports initial convergence (with the parameter
+!                 and function values there), overrunning of MAX,
+!                 and a progress report on the minimization every
 !                 function evaluation;
 !
 !     JPRINT - a second parameter to control the progress of the
 !          main program, viz.:
-!      
+!
 !            = 0  no frequency distributions or internal summaries;
 !            = 1  prints the frequency distributions of the original
 !                 and backstrapped data and the final outcome of
@@ -191,11 +191,11 @@
 !     R3S - three times the estimated interquartile range of all
 !          the deviations between the calculated and observed
 !          values, used in the process of converging on an
-!          internal minimum.  Its default value is 100 if no R3S 
+!          internal minimum.  Its default value is 100 if no R3S
 !          value is supplied in the input.
 !
 !     VGH - the approximate average height of vegetation cover
-!          in the animal's habitat in situations where the observer 
+!          in the animal's habitat in situations where the observer
 !          is well above the plane of the population and most of
 !          the line of detection is unobstructed.
 !
@@ -229,12 +229,12 @@
 !                 possible under the conditions of the census.
 !
 !          Those supplied with the data are the starting values
-!          for the search; those printed on exit are the parameter 
+!          for the search; those printed on exit are the parameter
 !          values which specify the minimum point.  Initial F()
 !          values supplied are best based on existing knowledge.
 !
 !
-!     STEP - the step sizes used initially in the function 
+!     STEP - the step sizes used initially in the function
 !          minimization process to modify the F values. Typical
 !          STEP values are:
 !
@@ -247,8 +247,9 @@
 !          STEP(4):  usually set at zero.
 !
 !          Setting the STEP value at 0.0 for a parameter fixes the F()
-!          value at that supplied to the program.  Where a data set (NVALS) 
-!          is small (say, < 50 detections), STEP(2) should be set at 0.0. 
+!          value at that supplied to the program.  Where a data set
+!          (NVALS) is small (say, < 50 detections), STEP(2) should be
+!          set at 0.0
 !          Where the set is very small (say, < 30 detections), STEP(1)
 !          should also be set at 0.0 .
 !
@@ -274,7 +275,7 @@
 !     NOP - the number of parameters potentially varied during
 !          the minimization process.
 !
-!     FUNC - the sum of squares of the differences between 
+!     FUNC - the sum of squares of the differences between
 !          observed and expected values;
 !
 !     MAX - the maximum number of function evaluations to be
@@ -295,7 +296,7 @@
 !          before testing for final convergence.
 !
 !     KWT - a control parameter which directs calculation of
-!          a biweighted least squares once the number of 
+!          a biweighted least squares once the number of
 !          iterations exceeds a predetermined value.
 !
 !            = 0  for normal least squares computation,
@@ -325,10 +326,10 @@
 !
 !     P  - the conspicuousness coefficient ('a').
 !
-!     Q  - for auditory data (where KDT=1), the 
+!     Q  - for auditory data (where KDT=1), the
 !          conspicuousness coefficient ('b').
-!  
-!        - for visual data (where KDT=0), the mean vegetation 
+!
+!        - for visual data (where KDT=0), the mean vegetation
 !          cover proportion in the habitat between animal and
 !          observer.
 !
@@ -342,7 +343,7 @@
 !
 !     RMAX - the maximum horizontal detection distance ('rmax').
 !
-!     ERMAX - a maximum detection distance calculated by the 
+!     ERMAX - a maximum detection distance calculated by the
 !          program.
 !
 !
@@ -352,71 +353,57 @@
 !     This program uses double precision for all real numbers.
 !
 !
-!
-!     PROGRAM MNPS2
-
-      SUBROUTINE CALCULATE_DENSITY(PARAMS, HEADER, OUTFILE)
+      SUBROUTINE calculate_density (params, header, outfile)
 !
 !
       IMPLICIT NONE
 !
-!     This seqence derived type must be kept in complete agreement with the
-!     C-language definition in mnps2.h
+!     This seqence derived type must be kept in complete agreement with
+!     the C-language definition in mnps2.h
 !
       TYPE CALC_PARAMS
       SEQUENCE        ! SEQUENCE indicates not to insert internal
                       ! padding for data alignment
-      INTEGER NVALS,NUMA,NUMO,LTMIN,LTMAX,IFX,IRY,NS,KM,IMV,KDT
-      INTEGER IPRINT,JPRINT,ISHOW,MAXJB,IT,IV
-      DOUBLE PRECISION CLINT,STT,DIST,THH,R3S,VGH,PD,PS,F(4)
-      DOUBLE PRECISION STEP(4),R(5000)
-      INTEGER NSIZE(5000)
-      DOUBLE PRECISION ANGLE(5000)
+      INTEGER nvals, numa, numo, ltmin, ltmax, ifx, iry, ns, km, imv
+      INTEGER iprint, jprint, ishow, maxjb, it, iv, kdt
+      DOUBLE PRECISION clint, stt, dist, thh, r3s, vgh, pd, ps
+      DOUBLE PRECISION f(4), step(4), r(5000)
+      INTEGER nsize(5000)
+      DOUBLE PRECISION angle(5000)
       END TYPE CALC_PARAMS
 
-      TYPE (CALC_PARAMS) PARAMS
-
-!     CHARACTER*80 HEADER,INFILE*40,OUTFILE*40,RUNID*10
-      CHARACTER*(*) HEADER, OUTFILE
+      TYPE (CALC_PARAMS) params
+!
+      CHARACTER*(*) header, outfile
 !
 !     The variables declared below are in alphabetical order.
 !
-      INTEGER NSIZE(5000),NBSZ(5000)
-      INTEGER I,IA,IB,IC,IE,IFLAG,IFX,IG,IH,IMAX
-      INTEGER IMIN,IMV,IN,IOS,IPRINT,IR,IRB,IROW,IRY,ISEED,ISHOW,IT,IV
-      INTEGER J,JB,JBSTP,JK,JPRINT,JR,JS,JV,JX,K,KDT,KM,KPRINT,KWT,LOOP
-      INTEGER LPRINT,LTMIN,LTMAX,MAX,MAXJB,MFAIL,MSFAIL,MTEST,NAP,NEVAL
-      INTEGER NLOOP,NOP,NP1,NS,NUMA,NUMEST,NUMO,NVALS
-      DOUBLE PRECISION A,APPROX,B,C,CF1DIF,CF1SUM,CF2DIF,CF2SUM,CF3DIF
-      DOUBLE PRECISION CF3SUM, CLINT,COEFFNT1,COEFFNT2,COEFFNT3
-      DOUBLE PRECISION DCOEFF, DENDIF,DIST,DLIM,DSUM,FRST, ESTDEN,  FUNC
-      DOUBLE PRECISION HMAX,HMEAN,HMIN,HSTAR,HSTD,HSTST, PD,PS
-      DOUBLE PRECISION SAVEMN, SCF1,SCF2,SCF3,R3S, SDEN, SNS, STOPC, STT
-      DOUBLE PRECISION TEST, TCOEFF1, TCOEFF2, TCOEFF3, TCOV, TDEN, THH
-      DOUBLE PRECISION VGH, X
-      REAL R(5000),BSTR(5000),Y(5000),BSTY(5000), DEN(5000)
-      REAL COEFF1(5000), COEFF2(5000), COEFF3(5000), ANGLE(5000)
-      DOUBLE PRECISION VAL(80),VALT(80)
-      DOUBLE PRECISION G(5,4),STEP(4),STEPT(4),F(4),FT(4)
-      DOUBLE PRECISION H(4),PBAR(4),PSTAR(4),PSTST(4)
-
+      INTEGER nsize(5000), nbsz(5000)
+      INTEGER i, ia, ib, ic, ie, iflag, ifx, ig, ih, imax
+      INTEGER imin, imv, in, ios, iprint, ir, irb, irow, iry, iseed
+      INTEGER ishow, it, iv, j, jb, jbstp, jk, jprint, jr, js, jv, jx
+      INTEGER k, kdt, km, kprint, kwt, loop, lprint, ltmin, ltmax, max
+      INTEGER maxjb, mfail, msfail, mtest, nap, neval
+      INTEGER nloop, nop, np1, ns, numa, numest, numo, nvals
+      DOUBLE PRECISION a, approx, b, c, cf1dif, cf1sum, cf2dif, cf2sum
+      DOUBLE PRECISION cf3dif, cf3sum, clint, coeffnt1, coeffnt2
+      DOUBLE PRECISION coeffnt3, dcoeff, dendif, dist, dlim, dsum
+      DOUBLE PRECISION estden, frst, func, hmax, hmean, hmin, hstar
+      DOUBLE PRECISION hstd, hstst, pd, ps, r3s, savemn, scf1, scf2
+      DOUBLE PRECISION scf3, sden, sns, stopc, stt, test, tcoeff1
+      DOUBLE PRECISION tcoeff2, tcoeff3, tcov, tden, thh, vgh, x
+      REAL r(5000), bstr(5000), y(5000), bsty(5000), den(5000)
+      REAL coeff1(5000), coeff2(5000), coeff3(5000), angle(5000)
+      DOUBLE PRECISION val(80), valt(80)
+      DOUBLE PRECISION g(5, 4), step(4), stept(4), f(4), ft(4)
+      DOUBLE PRECISION h(4), pbar(4), pstar(4), pstst(4)
 !
-!  
+!
 !     The program accepts up to 5000 data values, each being the total
 !     number of observations [N(r) or N(y)] within the class
 !     intervals, beginning with that nearest r=0 or y=0 [R(1),
 !     NSIZE(1) and ANGLE(1), if supplied].  If ANGLE() is not
 !     supplied and IRY=0 or =2, computation still proceeds.
-!
-!
-!     Some variables are common to the main program and the
-!     subroutine, viz.
-!
-!     COMMON / common1 /VAL(80),H(4),PBAR(4),PSTAR(4),PSTST(4)
-!     COMMON / common2 /HSTAR,HSTST,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH
-!    &,S,SNS
-!     COMMON / common3 /KM,IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT
-!     COMMON / common4 /LTMAX,LTMIN,MAX,NUMA,NUMO,NVALS,NS,MSFAIL,MTEST
 !
 !     This program is designed to receive a list-directed data file with
 !     a name constructed from RUNID (a character value not more than 10
@@ -424,222 +411,216 @@
 !     RUNID is also used to construct the output file name of the form
 !     OUT'runnid'.DAT.
 !
-!     The header line should begin with the computer run number each time
-!     to avoid confusion, and be bounded by quotation marks.  Other entries
-!     must be separated either by commas or spaces (and pre-checked before
-!     running).
+!     The header line should begin with the computer run number each
+!     time to avoid confusion, and be bounded by quotation marks.  Other
+!     entries must be separated either by commas or spaces (and
+!     pre-checked before running).
 !
 !
 !     The program is set to seek a minimum using up to MAX=750
 !     iterations, begin with four parameters (NOP) and set a testing
 !     point (NLOOP) equal to unity.
 !
-      MAX=750
-      NOP=4
-      NLOOP=1
-
-      NVALS  = PARAMS.NVALS
-      CLINT  = PARAMS.CLINT
-      STT    = PARAMS.STT
-      NUMA   = PARAMS.NUMA
-      NUMO   = PARAMS.NUMO
-      DIST   = PARAMS.DIST
-      THH    = PARAMS.THH
-      LTMIN  = PARAMS.LTMIN
-      LTMAX  = PARAMS.LTMAX
-      IFX    = PARAMS.IFX
-      IRY    = PARAMS.IRY
-      NS     = PARAMS.NS
-      KM     = PARAMS.KM
-      IMV    = PARAMS.IMV
-      KDT    = PARAMS.KDT
-      IPRINT = PARAMS.IPRINT
-      JPRINT = PARAMS.JPRINT
-      ISHOW  = PARAMS.ISHOW
-      MAXJB  = PARAMS.MAXJB
-      R3S    = PARAMS.R3S
-      VGH    = PARAMS.VGH
-      IT     = PARAMS.IT
-      IV     = PARAMS.IV
-      PD     = PARAMS.PD
-      PS     = PARAMS.PS
-!     RUNID  = PARAMS.RUNID
-
-      DO 2 IG=1,NOP
-      F(IG)    = PARAMS.F(IG)
-      STEP(IG) = PARAMS.STEP(IG)
-    2 CONTINUE
-
-      DO 24 IH=1,5000
-      R(IH)     = PARAMS.R(IH)
-      NSIZE(IH) = PARAMS.NSIZE(IH)
-      ANGLE(IH) = PARAMS.ANGLE(IH)
-   24 CONTINUE
-
-!     The next set of commands names the input and output files.
+      max=750
+      nop=4
+      nloop=1
 !
-!     WRITE(6,281)
-! 281 FORMAT(' Enter run identifier : ',$)
-!     READ(5,282)RUNID
-! 282 FORMAT(A10)
-!     LR=INDEX(RUNID,' ')
-!     IF(LR.EQ.0)THEN
-!       LR=10
-!     ELSE
-!       LR=LR-1
-!     ENDIF
-!     INFILE='IN'//RUNID(1:LR)//'.DAT'
-!     OUTFILE='OUT'//RUNID(1:LR)//'.LIS'
+      nvals=params.nvals
+      clint=params.clint
+      stt=params.stt
+      numa=params.numa
+      numo=params.numo
+      dist=params.dist
+      thh=params.thh
+      ltmin=params.ltmin
+      ltmax=params.ltmax
+      ifx=params.ifx
+      iry=params.iry
+      ns=params.ns
+      km=params.km
+      imv=params.imv
+      kdt=params.kdt
+      iprint=params.iprint
+      jprint=params.jprint
+      ishow=params.ishow
+      maxjb=params.maxjb
+      r3s=params.r3s
+      vgh=params.vgh
+      it=params.it
+      iv=params.iv
+      pd=params.pd
+      ps=params.ps
+!
+      DO 10 ig=1,nop
+        f(ig)=params.f(ig)
+        step(ig)=params.step(ig)
+   10 CONTINUE
+      PRINT *,'IRY=',iry
+!
+      DO 20 ih=1,nvals
+        r(ih)=params.r(ih)
+        nsize(ih)=params.nsize(ih)
+   20 CONTINUE
+!
+      IF ((iry.eq.1).and.(imv.eq.1)) GO TO 40
+      DO 30 ih=1,nvals
+        angle(ih)=params.angle(ih)
+   30 CONTINUE
+      PRINT *,' Step 23 ',ih,r(10),nsize(10),angle(10)
 !
 !
-!     All data lines are read into the program together at this point.
 !     Care in required to ensure that the group size data is submitted
-!     in PRECISELY the same sequence as the corresponding R(IN) data, 
+!     in PRECISELY the same sequence as the corresponding R(IN) data,
 !     and omit overtaking cases where r=0.
-!           
 !
-!     OPEN(UNIT=1,FILE=INFILE,STATUS='OLD',IOSTAT=IOS,ERR=283)
-      OPEN(UNIT=2,FILE=OUTFILE,STATUS='NEW',IOSTAT=IOS,ERR=284)
-!     READ(1,*) HEADER,NVALS,CLINT,STT,NUMA,NUMO,DIST,THH,LTMIN,
-!    & LTMAX,IFX,IRY,NS,KM,IMV,KDT,IPRINT,JPRINT,ISHOW,MAXJB,R3S,
-!    & VGH,IT,IV,PD,PS,(F(I),I=1,NOP),(STEP(I),I=1,NOP),
-!    & (R(IN),IN=1,NVALS),(NSIZE(IN),IN=1,NVALS),
-!    & (ANGLE(IN),IN=1,(NVALS*(IRY-IMV)))
+!
+   40 OPEN (UNIT=2,FILE=outfile,STATUS='NEW',IOSTAT=ios,ERR=1940)
 !
 !
 !     F(3) is now raised in value to approximate D2LJ in the case
 !     of line transect data, or D2ut for fixed point data.  D is
 !     also altered from no./ha to no./sq.m.
 !
-      IF (IFX) 105,105,106
-  105 F(3)=(2.*DIST*F(3))/1.E4
-      STEP(3)=(2.*DIST*STEP(3))/1.E4
-      GO TO 107
-  106 F(3)=(2.*IV*IT*F(3))/1.E4
-      STEP(3)=(2.*IV*IT*STEP(3))/1.E4
+      IF (ifx) 50,50,70
+   50 IF (km.gt.0) GO TO 60
+      f(3)=(2.*dist*f(3))/1.e4
+      step(3)=(2.*dist*step(3))/1.e4
+      GO TO 80
+!
+   60 f(3)=(2.*dist*1000*f(3))/1.e4
+      step(3)=(2.*dist*1000*step(3))/1.e4
+      GO TO 80
+!
+   70 f(3)=(2.*iv*it*f(3))/1.e4
+      step(3)=(2.*iv*it*step(3))/1.e4
 !
 !
 !     If a value of the maximum detection distance F(4) has been
-!     entered which exceeds 80 times the class interval, F(4) is
-!     reset at 80 times that interval to avoid computation problems.
+!     entered more than 80 times the class interval, CLINT is
+!     reset at F(4)/80 to avoid computation problems.
 !
-  107 IF (F(4).GT.(80*CLINT)) F(4)=80*CLINT
+   80 IF (f(4).gt.(80*clint)) clint=(f(4))/80
 !
 !
 !     The header line now begins the program output.
 !
-      WRITE(2,4) HEADER
-    4 FORMAT(1X,A80)
+      WRITE (2,90) header
+   90 FORMAT (1x,a80)
 !
 !
-!     IRY is reduced by 1 for convenience in Fortran computations.
+!     IRY is reduced by 1 for convenience in Fortran computations,
+!     putting IRY=-1 (radial data) or IRY=0 (perp. data).
 !
-      IRY=IRY-1
+      iry=iry-1
+!
 !
 !     The program prints out the class interval width (CLINT) and
 !     either the total transect length (DIST) or the total time
 !     spent (IT) at fixed points.
 !
-      IF (IFX) 5,5,6
-    6 WRITE(2,3) CLINT, IT
-    3 FORMAT(/23H Class Interval Width =,F7.1,
-     &25H m.    Total Time Spent =,I5,5H min.)
-      GO TO 15
+      IF (ifx) 120,120,100
+  100 WRITE (2,110) clint,it
+  110 FORMAT (/' Class Interval Width =',f7.1,
+     &' m.    Total Time Spent =',i5,' min.')
+      GO TO 170
 !
-    5 IF (KM) 7,7,9
-    7 WRITE(2,8) CLINT, DIST
-    8 FORMAT(/23H Class Interval Width =,F7.1,
-     &28H m.    Total Distance (xJ) =,F10.3,3H m.)
-      GO TO 15
+  120 IF (km) 130,130,150
+  130 WRITE (2,140) clint,dist
+  140 FORMAT (/' Class Interval Width =',f7.1,
+     &' m.    Total Distance (xJ) =',f10.3,' m.')
+      GO TO 170
 !
-    9 WRITE(2,10) CLINT, DIST
-   10 FORMAT(/23H Class Interval Width =,F7.1,
-     &28H m.    Total Distance (xJ) =,F10.3,4H km.)
+  150 WRITE (2,160) clint,dist
+  160 FORMAT (/' Class Interval Width =',f7.1,
+     &' m.    Total Distance (xJ) =',f10.3,' km.')
 !
 !
 !     If calculations are to be based on perpendicular distances (y)
 !     from the transect line, and the data supplied are radial
 !     distances and angles, perpendicular distances are now calculated
 !     for the data entered initially,  this action being
-!     prompted by IRY having a zero value.  If perpendicular 
+!     prompted by IMY having a zero value.  If perpendicular
 !     distance data as such were supplied (IMV=1), this step is
-!     bypassed.
+!     bypassed and the distance data recognized as Y(IN).
 !
-   15 IF (IRY) 11,12,11
-   12 IF (IMV) 14,14,21
-   14 DO 13 IN=1,NVALS
-      Y(IN)=R(IN)*SIN((ANGLE(IN)*3.14159265)/180.)
-   13 CONTINUE
-      GO TO 11
+  170 IF ((iry.eq.0).and.(imv.eq.1)) GO TO 190
+      IF (iry.lt.0) GO TO 210
+      DO 180 in=1, nvals
+        PRINT *, in, angle(in)
+        y(in)=r(in)*sin((angle(in)*3.14159265)/180.)
+  180 CONTINUE
+      PRINT *, 'Step 14', ' Y(10)=', y(10), ' IMV=', imv, ' IRY=', iry
+      GO TO 210
 !
-!     If perp. values were supplied in the input, R is redefined as Y.
 !
-   21 DO 22 IN=1,NVALS
-      Y(IN)=R(IN)
-   22 CONTINUE
+!     If IMV was set at 1 because angle data have been supplied,
+!     then IMV is reset at 0 to avoid changing later calculations.
 !
-!     If perpendicular distance data are being used, and IMV was set
-!     at 1 because perpendicular distance data are being supplied
-!     as original data (not as radial distances and horizontal angles),
-!     then IMV is reset at 0.
-!
-      IF ((IRY.EQ.0).AND.(IMV.EQ.1)) IMV=0
+  190 DO 200 in=1,nvals
+        y(in)=r(in)
+        PRINT *,'Step 28',' IN= ',in,' Y(IN) ',y(in),' R(IN) ',r(in)
+  200 CONTINUE
+      IF (imv.eq.1) imv=0
 !
 !     The initial values of 'a', 'b', 'D2L, and 'dmax' are retained
-!     as FT and the corresponding steps as STEPT to make possible 
+!     as FT and the corresponding steps as STEPT to make possible
 !     reruns of calculations.
 !
-   11 DO 16 IA=1,NOP
-      FT(IA)=F(IA)
-      STEPT(IA)=STEP(IA)
-   16 CONTINUE
+  210 DO 220 ia=1,nop
+        ft(ia)=f(ia)
+        stept(ia)=step(ia)
+  220 CONTINUE
+      PRINT *,'Step 11',' IRY= ',iry
 !
 !     DMAX is given an upper limit (DLIM) which is 80 times the
 !     interval width (CLINT).
 !
-      DLIM=CLINT*80.
+      dlim=clint*80.
 !
 !     If transect lengths have been expressed in kilometres (KM=1),
 !     distance data are converted to metres.
 !
-      IF (KM) 18,18,17
-   17 DIST=DIST*1000.
+      IF (km) 240,240,230
+  230 dist=dist*1000.
+      PRINT *,' Step 17 ',' DIST= ',dist
 !
 !     The stopping criterion (STOPC) is set at a suitable value.
 !
-   18 STOPC=0.0008
+  240 stopc=0.0008
 !
 !     If progress reports are required (IPRINT=1), the program
 !     prints a heading for them.
 !
-      IF (IPRINT) 30,30,19
-   19 WRITE(2,20) IPRINT                                                  
-   20 FORMAT (22H PROGRESS REPORT EVERY,I4,21H FUNCTION EVALUATIONS/  
-     &/24H EVAL. NO.  FUNC. VALUE ,10X,10HPARAMETERS)                       
-!                                                                       
+      IF (iprint) 270,270,250
+  250 WRITE (2,260) iprint
+  260 FORMAT (' PROGRESS REPORT EVERY', i4, ' FUNCTION EVALUATIONS'/
+     &/' EVAL. NO.  FUNC. VALUE ', 10x, 'PARAMETERS')
+!
 !     The term 'APPROX' is used to test closeness to zero.
 !
-   30 APPROX = 1.E-20
-!                                                                       
-!     IF NO VALUES OF A,B AND C ARE INPUT , I.E. A IS SET = 0.0 ,    
+  270 approx=1.e-20
+!
+!     IF NO VALUES OF A,B AND C ARE INPUT , I.E. A IS SET = 0.0 ,
 !     THEN THE PROGRAM SETS A = 1.0 , B = 0.5 , C = 2.0
 !
-      IF (ABS(A).LT.APPROX) GO TO 40                                          
-  31  GO TO 50
-  40  A=1.0
-      B=0.5                                                                  
-      C=2.0                                                                  
-!                                                                       
+      IF (abs(a) .ge. approx) THEN
+
+        a=1.0
+        b=0.5
+        c=2.0
+
+      ENDIF
+!
 !     NAP is the number of parameters to be varied (i.e. with STEP
 !     not equal to zero.
 !
 !
-   50 NAP=0                                                       
-      LOOP=0                                                                 
-      IFLAG=0                                                                
-      KPRINT=0                                                               
-      LPRINT=0
-      DCOEFF=0
+      nap=0
+      loop=0
+      iflag=0
+      kprint=0
+      lprint=0
+      dcoeff=0
 !
 !
 !     If all STEP sizes have been set at zero, computation goes
@@ -648,49 +629,49 @@
 !     it uses NAP to indicate the number of submitted parameters
 !     to be varied during subsequent iterations.
 !
-      DO 70 I=1,NOP                                                     
-      IF (ABS(STEP(I)).GT.APPROX) GO TO 60                                   
-   51 GO TO 70                                                              
-   60 NAP=NAP+1                                                         
-   70 CONTINUE                                                          
-      IF (NAP) 80,80,89
-   80 KPRINT=1
-      SNS=FLOAT(NS)
-      IF (SNS.EQ.0.) SNS=2.
-      IF (KM) 82,82,81
-   81 ESTDEN=(1.E6*F(3))/(2.*DIST)
-      GO TO 89
-   82 IF (IFX) 83,83,84
-   83 ESTDEN=(1.E4*F(3))/(2.*DIST)
-      GO TO 89
-   84 ESTDEN=(1.E4*F(3))/(2.*IV*IT)
+      DO 310 i=1,nop
+        IF (abs(step(i)).gt.approx) GO TO 300
+        GO TO 310
+  300   nap=nap+1
+  310 CONTINUE
+      IF (nap) 320,320,370
+  320 kprint=1
+      sns=float(ns)
+      IF (sns.eq.0.) sns=2.
+      IF (km) 340,340,330
+  330 estden=(1.e6*f(3))/(2.*dist)
+      GO TO 370
+  340 IF (ifx) 350,350,360
+  350 estden=(1.e4*f(3))/(2.*dist)
+      GO TO 370
+  360 estden=(1.e4*f(3))/(2.*iv*it)
 !
 !
-!     To enable parameter estimation using bootstrapping, the basic 
+!     To enable parameter estimation using bootstrapping, the basic
 !     MINIM routine is run a predetermined MAXJB times, beginning
 !     with an initial run.  A number of functions are set at zero first.
 !
-   89 JBSTP=0
-      JB=0
-      MFAIL=0
-      MSFAIL=0
-      TDEN=0.0
-      TCOEFF1=0.0
-      TCOEFF2=0.0
-      TCOEFF3=0.0
+  370 jbstp=0
+      jb=0
+      mfail=0
+      msfail=0
+      tden=0.0
+      tcoeff1=0.0
+      tcoeff2=0.0
+      tcoeff3=0.0
 !
-   90 DO 855 JB=1,MAXJB
-!     
+      DO 1410 jb=1,maxjb
+!
 !     The flag variable MTEST is first set at zero.
 !
-      MTEST=0
+        mtest=0
 !
 !     The program now computes the first distribution of the numbers
 !     detected within each class interval, based on the detection
 !     distances [(R(IN)], the numbers in each group [(NSIZE(IN)] and
 !     the class interval (CLINT) preset in the input.
 !
-!     In subsequent runs through Loop 855, bootstrapping applies  
+!     In subsequent runs through Loop 855, bootstrapping applies
 !     (JBSTP=1) and a bootstrapped distribution is used instead.
 !
 !
@@ -698,94 +679,93 @@
 !     numbers in each class in which the R(IN) or Y(IN) values fall.
 !     Calculating the various VAL(IC) values first requires
 !     finding which R(IN) or Y(IN) values fall within the interval
-!     concerned, then adding all the NSIZE(IN) values which fall 
-!     within that class.  This will be done for each class interval 
+!     concerned, then adding all the NSIZE(IN) values which fall
+!     within that class.  This will be done for each class interval
 !     in turn, beginning with the calculation of VAL(1) for the
 !     nearest class to r=0 or y=0.
 !
 !     An alternative computation works with perpendicular distance
 !     values (see below).
-!     
 !
-      IF (IRY) 32,33,32
+!
+        IF (iry) 380,430,380
 !
 !
 !     Either the initial r class totals, VALT(), are calculated...
 !
 !
-   32 FRST=STT
+  380   frst=stt
 
-      DO 92 IC=1,80
-      VAL(IC)=0.0
-      IF (JBSTP.EQ.1) GO TO 91
+        DO 410 ic=1,80
+          val(ic)=0.0
+          IF (jbstp.eq.1) GO TO 480
 !
-      DO 93 IR=1,NVALS
-      IF (R(IR).GT.FRST .AND. R(IR).LE.(FRST+CLINT)) 
-     & GO TO 85
-      GO TO 93
-   85 VAL(IC)=VAL(IC)+NSIZE(IR)
-   93 CONTINUE
-      FRST=FRST+CLINT
-   92 CONTINUE
+          DO 400 ir=1,nvals
+            IF (r(ir).gt.frst.and.r(ir).le.(frst+clint)) GO TO 390
+            GO TO 400
+  390       val(ic)=val(ic)+nsize(ir)
+  400     CONTINUE
+          frst=frst+clint
+  410   CONTINUE
 !
-!     The frequency distribution of the original data is saved, 
+!     The frequency distribution of the original data is saved,
 !     as VALT(IG).
 !
-      DO 75 IG=1,80
-      VALT(IG)=VAL(IG)
-   75 CONTINUE
-      IF (NAP.LE.0) GO TO 860
+        DO 420 ig=1,80
+          valt(ig)=val(ig)
+  420   CONTINUE
+        IF (nap.le.0) GO TO 1320
 !
-      JBSTP=1
-      GO TO 98
-! 
+        jbstp=1
+        GO TO 620
+!
 !
 !     Or the initial y class totals, VALT(), are calculated...
 !
 !     Absolute values of Y() are used because data from the
 !     two sides of a transect line are pooled.
 !
-!   
-   33 FRST=STT
+!
+  430   frst=stt
 
-      DO 34 IC=1,80
-      VAL(IC)=0.0
-      IF (JBSTP.EQ.1) GO TO 91
+        DO 460 ic=1,80
+          val(ic)=0.0
+          IF (jbstp.eq.1) GO TO 480
 !
-      DO 35 IR=1,NVALS
-      IF (ABS(Y(IR)).GE.FRST .AND. ABS(Y(IR)).LT.(FRST+CLINT)) 
-     & GO TO 36
-      GO TO 35
-   36 VAL(IC)=VAL(IC)+NSIZE(IR)
-   35 CONTINUE
-      FRST=FRST+CLINT
-   34 CONTINUE
+          DO 450 ir=1,nvals
+            IF (abs(y(ir)).ge.frst.and.abs(y(ir)).lt.(frst+clint))
+     &       GO TO 440
+            GO TO 450
+  440       val(ic)=val(ic)+nsize(ir)
+  450     CONTINUE
+          frst=frst+clint
+  460   CONTINUE
 !
-!     The frequency distribution of the original data is now saved, 
+!     The frequency distribution of the original data is now saved,
 !     as VALT(IG).
 !
-      DO 37 IG=1,80
-      VALT(IG)=VAL(IG)
-   37 CONTINUE
-      IF (NAP.LE.0) GO TO 860
+        DO 470 ig=1,80
+          valt(ig)=val(ig)
+  470   CONTINUE
+        IF (nap.le.0) GO TO 1320
 !
-      JBSTP=1
-      GO TO 98  
+        jbstp=1
+        GO TO 620
 !
-! 
-!     To calculate a bootstrapped distribution, values of R(IN) and  
+!
+!     To calculate a bootstrapped distribution, values of R(IN) and
 !     the corresponding group NSIZE(IN) are to be chosen at random
-!     with replacement, based on a randomly-selected value of IN, 
-!     which ranges between 1 and NVALS, the total number of groups of 
+!     with replacement, based on a randomly-selected value of IN,
+!     which ranges between 1 and NVALS, the total number of groups of
 !     animals detected.  Loop 95 selects these values.
 !
 !
-   91 ISEED=0
-      DO 95 JR=1,NVALS
-!     
+  480   iseed=0
+        DO 510 jr=1,nvals
+!
 !     A seed value is first chosen, based on the (sequential) values of
 !     R in the data input, the size of the data set provided (NVALS),
-!     the stage reached in the main backstrapping loop (JB), 
+!     the stage reached in the main backstrapping loop (JB),
 !     and the relevant step (JR) in Loop 95.  This should minimize
 !     the likelihood of common seed values being submitted in
 !     different random number searches.
@@ -796,23 +776,24 @@
 !
 !     An upper limit is placed on ISEED to prevent integer overflow.
 !
-      IF (ISEED.GT.150000) ISEED=ISEED/100
-      ISEED = ISEED + (R(JR)*724*JR)/JB
+          IF (iseed.gt.150000) iseed=iseed/100
+          iseed=iseed+(r(jr)*724*jr)/jb
 !
 !     A random number between 0 and 1 is now called from the Subroutine
-!     SRANDNAG, multiplied by NVALS to give it a value between 0 and NVALS,
-!     and converted to integer form, adding 1 to allow for chopping. 
+!     SRANDNAG, multiplied by NVALS to give it a value between 0 and
+!     NVALS, and converted to integer form, adding 1 to allow for
+!     chopping.
 !
-      CALL SRANDNAG(ISEED)
-      CALL RANDGEN(X)
-      JX = INT(X*NVALS + 1)
+          CALL srandnag (iseed)
+          CALL randgen (x)
+          jx = INT(x*nvals + 1)
 !
 !     What happens now depends on whether radial or perpendicular
 !     distance measurements are being used.
 !
 !
-      IF (IRY) 41,42,41
-!    
+          IF (iry) 490,500,490
+!
 !     Either: radial distance computations are made.
 !
 !     The randomly-chosen bootstrapped value of R, R(JX), is now
@@ -822,9 +803,9 @@
 !     95 then goes back to its beginning to select another R value,
 !     and so on until all NVALS selections have been made.
 !
-   41 BSTR(JR)=R(JX)
-      NBSZ(JR)=NSIZE(JX)
-      GO TO 95
+  490     bstr(jr)=r(jx)
+          nbsz(jr)=nsize(jx)
+          GO TO 510
 !
 !     Or: perpendicular distance computations are made.
 !
@@ -835,123 +816,118 @@
 !     95 then goes back to its beginning to select another Y value,
 !     and so on until all NVALS selections have been made.
 !
-   42 BSTY(JR)=Y(JX)
-      NBSZ(JR)=NSIZE(JX)
+  500     bsty(jr)=y(jx)
+          nbsz(jr)=nsize(jx)
 !
-   95 CONTINUE
+  510   CONTINUE
 !
 !
-!     There should now be a new set of (N=NVALS) R (or Y) and NSIZE  
+!     There should now be a new set of (N=NVALS) R (or Y) and NSIZE
 !     values to use in putting together a new frequency distribution.
 !
 !     The calculation path differs according to whether radial or
 !     perpendicular distance data are being handled.
 !
 !
-      IF (IRY) 43,44,43
+        IF (iry) 520,570,520
 !
 !
 !     Either: radial distance data are handled.
 !
-   43 FRST=STT
-      DO 96 IC=1,80
-      VAL(IC)=0
-      DO 97 IRB=1,NVALS
-      IF ((BSTR(IRB).GT.FRST) .AND. (BSTR(IRB).LE.(FRST+CLINT))) 
-     & GO TO 86
-      GO TO 97
-   86 VAL(IC)=VAL(IC)+NBSZ(IRB)
-   97 CONTINUE
-      FRST=FRST+CLINT
-   96 CONTINUE
+  520   frst=stt
+        DO 550 ic=1,80
+          val(ic)=0
+          DO 540 irb=1,nvals
+            IF ((bstr(irb).gt.frst).and.(bstr(irb).le.(frst+clint))) GO
+     &       TO 530
+            GO TO 540
+  530       val(ic)=val(ic)+nbsz(irb)
+  540     CONTINUE
+          frst=frst+clint
+  550   CONTINUE
 !
-!     BSTR(IRB) values need to be reassigned at this point 
+!     BSTR(IRB) values need to be reassigned at this point
 !     or some values will be carried into subsequent loop
 !     iterations.
 !
-      DO 88 JS=1,NVALS
-      BSTR(JS)=0.0
-      NBSZ(JS)=0
-   88 CONTINUE
-      GO TO 98
+        DO 560 js=1,nvals
+          bstr(js)=0.0
+          nbsz(js)=0
+  560   CONTINUE
+        GO TO 620
 !
 !
 !     Or: perpendicular distance data are handled.
 !
-   44 FRST=STT
-      DO 45 IC=1,80
-      VAL(IC)=0
-      DO 46 IRB=1,NVALS
-      IF ((BSTY(IRB).GE.FRST) .AND. (BSTY(IRB).LT.(FRST+CLINT))) 
-     & GO TO 47
-      GO TO 46
-   47 VAL(IC)=VAL(IC)+NBSZ(IRB)
-   46 CONTINUE
-      FRST=FRST+CLINT
-   45 CONTINUE
+  570   frst=stt
+        DO 600 ic=1,80
+          val(ic)=0
+          DO 590 irb=1,nvals
+            IF ((bsty(irb).ge.frst) .and. (bsty(irb).lt.(frst+clint)))
+     &       GO TO 580
+            GO TO 590
+  580       val(ic)=val(ic)+nbsz(irb)
+  590     CONTINUE
+          frst=frst+clint
+  600   CONTINUE
 !
-!     BSTY(IRB) values need to be reassigned at this point 
+!     BSTY(IRB) values need to be reassigned at this point
 !     or some values will be carried into subsequent loop
 !     iterations.
 !
-      DO 48 JS=1,NVALS
-      BSTY(JS)=0.0
-      NBSZ(JS)=0
-   48 CONTINUE
+        DO 610 js=1,nvals
+          bsty(js)=0.0
+          nbsz(js)=0
+  610   CONTINUE
 !
 !
-!     The calculated set of values, VAL(IC), in each class interval 
+!     The calculated set of values, VAL(IC), in each class interval
 !     is now printed out for the set of data concerned if JPRINT=1.
 !
 !
-   98 IF(JPRINT) 103,103,102
-  102 WRITE(2,87) JB
-   87 FORMAT(///27H  Bootstrap Replicate No. = ,I4/)
-      WRITE(2,99) (VAL(I),I=1,80)
-   99 FORMAT(8F10.4,//)
+  620   IF (jprint) 660,660,630
+  630   WRITE (2,640) jb
+  640   FORMAT (///'  Bootstrap Replicate No. =',i4/)
+        WRITE (2,650) (val(i),i=1,80)
+  650   FORMAT (8f10.4,//)
 !
-!                                                                       
-!                                                                       
+!
 !     The initial simplex of program MINIM is now set up.
 !
 !
 
-  103 DO 100 I=1,NOP
-  100 G(1,I)=F(I)                                                       
-      IROW=2                                                            
-      DO 130 I=1,NOP                                                    
-      IF (ABS(STEP(I)).LT.APPROX)  GO TO 130                                   
-  110 DO 120 J=1,NOP                                                    
-  120 G(IROW,J)=F(J)                                                    
-      G(IROW,I)=G(IROW,I)+STEP(I)                                       
-      IROW=IROW+1                                                       
-  130 CONTINUE                                                          
-      NP1=NAP+1                                                         
-      NEVAL=0
-      DO 170 I=1,NP1
-      DO 140 J=1,NOP
-  140 F(J)=G(I,J)
-      CALL GIVEF (F,H(I),DCOEFF,
-     & VAL,CLINT,PD,PS,R3S,
-     & STT,TCOV,THH,VGH,
-     & SNS,IFX,IMV,IRY,ISHOW,
-     & IT,IV,KDT,KPRINT,KWT,
-     & LPRINT,LTMAX,LTMIN,NUMA,NUMO,
-     & NVALS,NS,MSFAIL,MTEST,'Outfile2.txt')
+  660   DO 670 i=1,nop
+  670     g(1,i)=f(i)
+        irow=2
+        DO 690 i=1,nop
+          IF (abs(step(i)).lt.approx) GO TO 690
+          DO 680 j=1,nop
+  680       g(irow,j)=f(j)
+          g(irow,i)=g(irow,i)+step(i)
+          irow=irow+1
+  690   CONTINUE
+        np1=nap+1
+        neval=0
+        DO 730 i=1,np1
+          DO 700 j=1,nop
+  700       f(j)=g(i,j)
+          CALL givef (f, h(i), dcoeff, val, clint, pd, ps, r3s, stt,
+     &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt,
+     &     kprint, kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns,
+     &     msfail, mtest, 'Outfile2.txt')
 
 !
-      NEVAL=NEVAL+1 
-!                                                                       
+          neval=neval+1
+!
 !     All points in the initial simplex become output if IPRINT=1.
 !
-      IF (IPRINT) 170,170,150
-  150 WRITE(2,160) NEVAL,H(I),(F(J),J=1,NOP)
-  160 FORMAT (/3X,I4,4X,E13.6,8(1X,E13.6)/24X,8(1X,E13.6)/24X,4(1X,
-     &E13.6))
-  170 CONTINUE
+          IF (iprint) 730,730,710
+  710     WRITE (2,720) neval,h(i),(f(j),j=1,nop)
+  720     FORMAT (/3x,i4,4x,e13.6,8(1x,e13.6)/24x,8(1x,e13.6)/24x,4(1x,
+     &     e13.6))
+  730   CONTINUE
 !
-!                                                           
-!                                                                       
+!
 !     Now follows the basic loop.  That is, given a simplex, it
 !     determines a new simplex and tests for convergence as
 !     required (following the flow chart given in Nelder and
@@ -961,234 +937,219 @@
 !     of the current simplex.
 !
 !
-  180 LOOP=LOOP+1                                                       
-      IMAX=1                                                                
-      IMIN=1                                                                
-      HMAX=H(1)                                                             
-      HMIN=H(1)                                                             
-      DO 220 I=2,NP1                                                    
-      IF (H(I).GT.H(IMAX)) GO TO 190                                         
-  181 GO TO 200                                                          
-  190 IMAX=I                                                            
-      HMAX=H(I)                                                         
-  200 IF (H(I).LT.H(IMIN)) GO TO 210
-  201 GO TO 220                                                            
-  210 IMIN = I                                                          
-      HMIN=H(I)                                                         
-  220 CONTINUE                                                          
-!                                                                       
+  740   loop=loop+1
+        imax=1
+        imin=1
+        hmax=h(1)
+        hmin=h(1)
+        DO 780 i=2,np1
+          IF (h(i).gt.h(imax)) GO TO 750
+          GO TO 760
+  750     imax=i
+          hmax=h(i)
+  760     IF (h(i).lt.h(imin)) GO TO 770
+          GO TO 780
+  770     imin=i
+          hmin=h(i)
+  780   CONTINUE
+!
 !     The centroid of all vertices, excluding the maximum, is
 !     now found.
 !
-      DO 230 I=1,NOP                                                    
-  230 PBAR(I)=0.0                                                       
-      DO 260 I=1,NP1                                                    
-      IF (I.EQ.IMAX) GO TO 260                                                
-  240 DO 250 J=1,NOP                                                    
-  250 PBAR(J)=PBAR(J)+G(I,J)/FLOAT(NAP)                                   
-  260 CONTINUE                                                          
-!                                                                       
+        DO 790 i=1,nop
+  790     pbar(i)=0.0
+        DO 810 i=1,np1
+          IF (i.eq.imax) GO TO 810
+          DO 800 j=1,nop
+  800       pbar(j)=pbar(j)+g(i,j)/FLOAT(nap)
+  810   CONTINUE
+!
 !     The program reflects the maximum through PBAR to PSTAR, and
 !     evaluates the function at PSTAR (to give HSTAR).
 !
-      DO 270 I=1,NOP                                                    
-  270 PSTAR(I)=A*(PBAR(I)-G(IMAX,I))+PBAR(I)                            
-      CALL GIVEF (PSTAR,HSTAR,DCOEFF,
-     & VAL,CLINT,PD,PS,R3S,
-     & STT,TCOV,THH,VGH,
-     & SNS,IFX,IMV,IRY,ISHOW,
-     & IT,IV,KDT,KPRINT,KWT,
-     & LPRINT,LTMAX,LTMIN,
-     & NUMA,NUMO,NVALS,NS,MSFAIL,MTEST,'Outfile2.txt')
-!                                                                       
+        DO 820 i=1,nop
+  820     pstar(i)=a*(pbar(i)-g(imax,i))+pbar(i)
+        CALL givef (pstar, hstar, dcoeff, val, clint, pd, ps, r3s, stt,
+     &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint,
+     &    kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail,
+     &   mtest, 'Outfile2.txt')
+!
 !     The next 5 statements test whether a progress report is
 !     required and, if so, provide one.  This procedure occurs
 !     frequently in the program.
 !
-      NEVAL=NEVAL + 1                                                    
-!                                                                           
+        neval=neval+1
+!
 !     If the number of function evaluations to date exceeds 750
 !     (=MAX), the program prints out parameter values provided that
 !     IPRINT and JPRINT have been set at 1.
 !
-      IF ((NEVAL.GT.MAX) .AND. (IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) THEN
-         J=NEVAL/IPRINT                                                    
-         K=NEVAL-J*IPRINT                                                  
-         IF (K.LE.0) WRITE(2,160) NEVAL,HSTAR,(PSTAR(J),J=1,NOP) 
-      ENDIF 
+        IF ((neval.gt.max).and.(iprint.eq.1).and.(jprint.eq.1)) THEN
+          j=neval/iprint
+          k=neval-j*iprint
+          IF (k.le.0) WRITE (2,720) neval,hstar,(pstar(j),j=1,nop)
+        END IF
 !
-      IF (HSTAR.LT.HMIN) GO TO 310                                         
-      GO TO 380                                                            
-!                                                                       
+        IF (hstar.lt.hmin) GO TO 830
+        GO TO 900
+!
 !     If HSTAR is less than HMIN, PBAR is reflected through PSTAR
 !     (to give PSTST) and the function is evaluated there (to
 !     give HSTST).
 !
-  310 DO 320 I=1,NOP                                                    
-  320 PSTST(I)=C*(PSTAR(I)-PBAR(I))+PSTAR(I)                            
-      CALL GIVEF (PSTST,HSTST,DCOEFF,
-     & VAL,CLINT,PD,PS,R3S,
-     & STT,TCOV,THH,VGH,
-     & SNS,IFX,IMV,IRY,ISHOW,
-     & IT,IV,KDT,KPRINT,KWT,
-     & LPRINT,LTMAX,LTMIN,NUMA,NUMO,
-     & NVALS,NS,MSFAIL,MTEST,'Outfile2.txt')
+  830   DO 840 i=1,nop
+  840     pstst(i)=c*(pstar(i)-pbar(i))+pstar(i)
+        CALL givef (pstst, hstst, dcoeff, val, clint, pd, ps, r3s, stt,
+     &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint,
+     &    kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail,
+     &   mtest, 'Outfile2.txt')
 !
 !     If IPRINT=1 the program prints out the progress of the
 !     iteration.  This is not normally required.
 !
-      NEVAL=NEVAL+1                                                     
-      IF ((IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) GO TO 330
-      GO TO 350
-  330 J=NEVAL/IPRINT                                                    
-      K=NEVAL-J*IPRINT                                                  
-      IF (K) 340,340,350
-  340 WRITE(2,160) NEVAL,HSTST,(PSTST(J),J=1,NOP)                          
-  350 IF (HSTST.LT.HMIN) GO TO 360                                           
-  351 GO TO 560                                                           
-!                                                                       
+        neval=neval+1
+        IF ((iprint.eq.1).and.(jprint.eq.1)) GO TO 850
+        GO TO 870
+  850   j=neval/iprint
+        k=neval-j*iprint
+        IF (k) 860,860,870
+  860   WRITE (2,720) neval,hstst,(pstst(j),j=1,nop)
+  870   IF (hstst.lt.hmin) GO TO 880
+        GO TO 1030
+!
 !     If HSTST is less than HMIN, the maximum point of the current
 !     simplex is replaced by PSTST and HMAX is replaced by HSTAR,
 !     then a test is performed.
 !
-  360 DO 370 I=1,NOP                                                   
-  370 G(IMAX,I)=PSTST(I)                                                
-      H(IMAX)=HSTST                                                     
-      GO TO 580                                                         
-!                                                                       
+  880   DO 890 i=1,nop
+  890     g(imax,i)=pstst(i)
+        h(imax)=hstst
+        GO TO 1050
+!
 !     If HSTAR is not less than HMIN, the program tests is HSTAR
 !     is greater than the function value at all vertices other
 !     than the maximum one.
 !
-  380 DO 400 I=1,NP1                                                    
-      IF (I.EQ.IMAX)  GO TO 400                                               
-  390 IF (HSTAR.LT.H(I)) GO TO 560                                         
-  400 CONTINUE                                                          
-!                                                                       
+  900   DO 910 i=1,np1
+          IF (i.eq.imax) GO TO 910
+          IF (hstar.lt.h(i)) GO TO 1030
+  910   CONTINUE
+!
 !     If it is less than at least one of these vertices, the
 !     maximum point of the current simplex is replaced by PSTAR and
 !     HMAX by HSTAR.  A test is then performed.
 !
 !     If HSTAR is greater than all the function values excluding
-!     the maximum, the program tests is HSTAR is greater than HMAX.
+!     the maximum, the program tests if HSTAR is greater than HMAX.
 !     If it is not, the maximum point of whichever simplex is
 !     now in store (depending on whether HSTAR is greater or less
 !     than HMAX) is replaced by PSTAR and HMAX by HSTAR, and the
 !     contracted point PSTST and the function value there (HSTST)
 !     are calculated.
 !
-      IF (HSTAR.GT.HMAX)  GO TO 430                                           
-  410 DO 420 I=1,NOP                                                    
-  420 G(IMAX,I)=PSTAR(I)                                                
-      HMAX=HSTAR                                                            
-      H(IMAX)=HSTAR                                                         
-  430 DO 440 I=1,NOP                                                    
-  440 PSTST(I)=B*G(IMAX,I)+(1.0-B)*PBAR(I)                              
-      CALL GIVEF (PSTST,HSTST,DCOEFF,
-     & VAL,CLINT,PD,PS,R3S,
-     & STT,TCOV,THH,VGH,
-     & SNS,IFX,IMV,IRY,ISHOW,
-     & IT,IV,KDT,KPRINT,KWT,
-     & LPRINT,LTMAX,LTMIN,NUMA,NUMO,
-     & NVALS,NS,MSFAIL,MTEST,'Outfile2.txt')
+        IF (hstar.gt.hmax) GO TO 930
+        DO 920 i=1,nop
+  920     g(imax,i)=pstar(i)
+        hmax=hstar
+        h(imax)=hstar
+  930   DO 940 i=1,nop
+  940     pstst(i)=b*g(imax,i)+(1.0-b)*pbar(i)
+        CALL givef (pstst, hstst, dcoeff, val, clint, pd, ps, r3s, stt,
+     &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint,
+     &    kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail,
+     &   mtest, 'Outfile2.txt')
 !
-      NEVAL =NEVAL+1                                                    
-      IF ((IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) GO TO 450
-      GO TO 470
-  450 J=NEVAL/IPRINT                                                    
-      K=NEVAL-J*IPRINT                                                  
-      IF (K) 460,460,470
-  460 WRITE(2,160) NEVAL,HSTST,(PSTST(J),J=1,NOP)                          
-  470 IF (HSTST.GT.HMAX) GO TO 500                                          
-!                                                                       
+        neval=neval+1
+        IF ((iprint.eq.1).and.(jprint.eq.1)) GO TO 950
+        GO TO 970
+  950   j=neval/iprint
+        k=neval-j*iprint
+        IF (k) 960,960,970
+  960   WRITE (2,720) neval,hstst,(pstst(j),j=1,nop)
+  970   IF (hstst.gt.hmax) GO TO 990
+!
 !     If HSTST is less than HMAX, the maximum point is replaced by
 !     PSTST and HMAX by HSTST.  A test is then applied.
 !
-  480 DO 490 I=1,NOP                                                    
-  490 G(IMAX,I)=PSTST(I)                                                
-      H(IMAX)=HSTST                                                     
-      GO TO 580                                                         
-!                                                                       
-!     If HSTST is not less than HMAX, each point in the current 
+        DO 980 i=1,nop
+  980     g(imax,i)=pstst(i)
+        h(imax)=hstst
+        GO TO 1050
+!
+!     If HSTST is not less than HMAX, each point in the current
 !     simplex is replaced by a point midway between its current
 !     position and the position of the minimum point of the
 !     current simplex.  The function is evaluated at each new
 !     vertex and the test performed.
 !
-  500 DO 510 I=1,NP1                                                    
-      DO 510 J=1,NOP                                                    
-  510 G(I,J)=(G(I,J)+G(IMIN,J))/2.0                                     
-      DO 550 I=1,NP1                                                    
-      DO 520 J=1,NOP                                                    
-  520 F(J)=G(I,J)                                                       
-      CALL GIVEF (F,H(I),DCOEFF,
-     & VAL,CLINT,PD,PS,R3S,
-     & STT,TCOV,THH,VGH,
-     & SNS,IFX,IMV,IRY,ISHOW,
-     & IT,IV,KDT,KPRINT,KWT,
-     & LPRINT,LTMAX,LTMIN,NUMA,NUMO,
-     & NVALS,NS,MSFAIL,MTEST,'Outfile2.txt')
+  990   DO 1000 i=1,np1
+          DO 1000 j=1,nop
+ 1000     g(i,j)=(g(i,j)+g(imin,j))/2.0
+        DO 1020 i=1,np1
+          DO 1010 j=1,nop
+ 1010       f(j)=g(i,j)
+          CALL givef (f, h(i), dcoeff, val, clint, pd, ps, r3s, stt,
+     &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt,
+     &     kprint, kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns,
+     &     msfail, mtest, 'Outfile2.txt')
 !
-      NEVAL=NEVAL +1                                                    
-      IF ((IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) THEN
-  530    J=NEVAL/IPRINT                                                    
-         K=NEVAL-J*IPRINT
-         IF (K.LT.0) THEN
-  540       WRITE(2,160) NEVAL, H(I),(F(J),J=1,NOP)
-         ENDIF
-      ENDIF
-  550 CONTINUE
+          neval=neval+1
+          IF ((iprint.eq.1).and.(jprint.eq.1)) THEN
+            j=neval/iprint
+            k=neval-j*iprint
+            IF (k.lt.0) THEN
+              WRITE (2,720) neval,h(i),(f(j),j=1,nop)
+            END IF
+          END IF
+ 1020   CONTINUE
 
-      GO TO 580                                                         
-  560 DO 570 I=1,NOP                                                    
-  570 G(IMAX,I)=PSTAR(I)                                                
-      H(IMAX)=HSTAR                                                     
+        GO TO 1050
+ 1030   DO 1040 i=1,nop
+ 1040     g(imax,i)=pstar(i)
+        h(imax)=hstar
 !
 !     If LOOP=NLOOP, tests for convergence begin.  Otherwise
 !     computation goes back to the beginning of the basic loop.
 !
-  580 IF (LOOP.NE.NLOOP) GO TO 180                                                             
+ 1050   IF (loop.ne.nloop) GO TO 740
 !
-!                                                                       
+!
 !   Tests for Convergence -
 !
 !     The mean and standard deviation of the function values of the
 !     current simplex are now calculated.
 !
-  590 HSTD=0.0                                                             
-      HMEAN=0.0                                                             
-      DO 600 I=1,NP1                                                    
-      HSTD=HSTD+H(I)*H(I)                                               
-  600 HMEAN=HMEAN+H(I)                                                  
-      HMEAN=HMEAN/FLOAT(NP1)
-      HSTD=(HSTD-FLOAT(NP1)*HMEAN*HMEAN)/FLOAT(NP1)                          
-      HSTD=SQRT(ABS(HSTD))                                                   
-!                                                                       
+        hstd=0.0
+        hmean=0.0
+        DO 1060 i=1,np1
+          hstd=hstd+h(i)*h(i)
+ 1060     hmean=hmean+h(i)
+        hmean=hmean/FLOAT(np1)
+        hstd=(hstd-FLOAT(np1)*hmean*hmean)/FLOAT(np1)
+        hstd=SQRT(ABS(hstd))
+!
 !     The parameter values (F) at the centroid of the current
 !     simplex and the function value there (FUNC) are now
 !     calculated.
 !
-      DO 620 I=1,NOP                                                    
-      F(I)=0.0                                                          
-      DO 610 J=1,NP1                                                    
-  610 F(I)=F(I)+G(J,I)                                                  
-      F(I)=F(I)/FLOAT(NP1)                                                   
-  620 CONTINUE                                                         
-      CALL GIVEF(F,FUNC,DCOEFF,
-     & VAL,CLINT,PD,PS,R3S,
-     & STT,TCOV,THH,VGH,
-     & SNS,IFX,IMV,IRY,ISHOW,
-     & IT,IV,KDT,KPRINT,KWT,
-     & LPRINT,LTMAX,LTMIN,NUMA,NUMO,
-     & NVALS,NS,MSFAIL,MTEST,'Outfile2.txt')
+        DO 1080 i=1,nop
+          f(i)=0.0
+          DO 1070 j=1,np1
+ 1070       f(i)=f(i)+g(j,i)
+          f(i)=f(i)/FLOAT(np1)
+ 1080   CONTINUE
+        CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
+     &    thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
+     &    lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail, mtest, 'O
+     &utfile2.txt')
 !
-      NEVAL=NEVAL+1
+        neval=neval+1
 !
 !     If KWT=1, the program calculates a biweighted least squares
 !     value.  This process begins once the number of iterations
 !     exceeds a predetermined value (=40).
 !
-      IF (NEVAL.GT.40) KWT=1
+        IF (neval.gt.40) kwt=1
 !
 !     If the number of evaluations has exceeded the value of MAX
 !     set (=750), the convergence process is judged not to have
@@ -1198,126 +1159,122 @@
 !     the value of MAXJB later, and the next run through the loop
 !     begins.
 !
-      IF (NEVAL.GT.MAX) GO TO 630
-      GO TO 700 
+        IF (neval.gt.max) GO TO 1090
+        GO TO 1150
 !
 !     MFAIL is a parameter which counts the number of times a series
 !     of iterations failed to converge on a minimum within the set
 !     maximum number of iterations.
 !
-  630 MFAIL = MFAIL + 1
-      IF ((IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) GO TO 640
-      GO TO 845
-  640 WRITE(2,650) MAX                                                     
-  650 FORMAT(40H NUMBER OF FUNCTION EVALUATIONS EXCEEDS ,I4)            
-      WRITE(2,660) HSTD                                                    
-  660 FORMAT(51H STANDARD ERROR OF FUNCTION VALUES OF LAST SIMPLEX ,E13.  
-     &6)
-      WRITE(2,670) (F(I),I=1,NOP)                                          
-  670 FORMAT(28H  CENTROID OF LAST SIMPLEX  ,8E13.5,     (/28X,8E13.5)) 
-      WRITE(2,680) FUNC                                                    
-  680 FORMAT(31H  FUNCTION VALUE AT CENTROID   ,E13.6)                  
-      GO TO 845  
+ 1090   mfail=mfail+1
+        IF ((iprint.eq.1).and.(jprint.eq.1)) GO TO 1100
+        GO TO 1380
+ 1100   WRITE (2,1110) max
+ 1110   FORMAT (' NUMBER OF FUNCTION EVALUATIONS EXCEEDS ',i4)
+        WRITE (2,1120) hstd
+ 1120   FORMAT (' STANDARD ERROR OF FUNCTION VALUES OF LAST SIMPLEX ',
+     &   e13.6)
+        WRITE (2,1130) (f(i),i=1,nop)
+ 1130   FORMAT ('  CENTROID OF LAST SIMPLEX  ',8e13.5,(/28x,8e13.5))
+        WRITE (2,1140) func
+ 1140   FORMAT ('  FUNCTION VALUE AT CENTROID   ',e13.6)
+        GO TO 1380
 !
 !
-  700 IF (HSTD.LT.STOPC)  GO TO 720
+ 1150   IF (hstd.lt.stopc) GO TO 1160
 !
 !     If the standard deviation calculated above is not less than
 !     the criterion set (STOPC), IFLAG and LOOP are set to zero
 !     and the basic loop begins again.
 !
-      IFLAG=0                                                           
-      LOOP=0                                                            
-      GO TO 180                                                         
-  720 KWT=1
-      IF ((IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) GO TO 730
-      GO TO 750
-  730 WRITE(2,740)                                                         
-  740 FORMAT(2H */33H  INITIAL EVIDENCE OF CONVERGENCE)                 
-      WRITE(2,745) (F(I),I=1,NOP)  
-  745 FORMAT(28H  CENTROID OF LAST SIMPLEX  ,8E13.5,    (/28X,8E13.5))                                        
-      WRITE(2,746) FUNC 
-  746 FORMAT(31H  FUNCTION VALUE AT CENTROID   ,E13.6)                                                   
-!                                                                       
-!     If the standard deviation is less than the stopping 
+        iflag=0
+        loop=0
+        GO TO 740
+ 1160   kwt=1
+        IF ((iprint.eq.1).and.(jprint.eq.1)) GO TO 1170
+        GO TO 1210
+ 1170   WRITE (2,1180)
+ 1180   FORMAT (' *'/'  INITIAL EVIDENCE OF CONVERGENCE')
+        WRITE (2,1190) (f(i),i=1,nop)
+ 1190   FORMAT ('  CENTROID OF LAST SIMPLEX  ',8e13.5,(/28x,8e13.5))
+        WRITE (2,1200) func
+ 1200   FORMAT ('  FUNCTION VALUE AT CENTROID   ',e13.6)
+!
+!     If the standard deviation is less than the stopping
 !     criterion, IFLAG is set =0 if there was no evidence of
 !     convergence on the last test and =1 if there was evidence
 !     of convergence.
 !
-  750 IF (IFLAG) 760,760,770                                                 
-!                                                                       
+ 1210   IF (iflag) 1220,1220,1230
+!
 !     If IFLAG=0, reset IFLAG=1,  the mean of the function
-!     values of the current simplex are saved (as SAVEMN), and  
+!     values of the current simplex are saved (as SAVEMN), and
 !     computation goes back to the beginning of the basic loop.
 !
-  760 IFLAG=1                                                           
-      SAVEMN=HMEAN                                                           
-      LOOP=0                                                            
-      GO TO 180                                                         
-!                                                                       
+ 1220   iflag=1
+        savemn=hmean
+        loop=0
+        GO TO 740
+!
 !     If IFLAG=1, the program tests if the change in the mean is
 !     less than the stopping criterion.  If it is, the process is
 !     said to have converged.  If not, IFLAG and LOOP are both set
 !     at zero and computation reverts to the start of the
 !     basic loop.
 !
-  770 IF (HMEAN.EQ.0) GO TO 790
-      TEST=SAVEMN/HMEAN
-      IF (TEST.GT.0.99995 .AND. TEST.LT.1.00005)  GO TO 790                                           
-  780 IFLAG=0                                                           
-      LOOP=0                                                            
-      GO TO 180                                                         
+ 1230   IF (hmean.eq.0) GO TO 1240
+        test=savemn/hmean
+        IF (test.gt.0.99995.and.test.lt.1.00005) GO TO 1240
+        iflag=0
+        loop=0
+        GO TO 740
 !
 !     If a calculated value of F(4) [=dmax] is greater than the
 !     upper limit (DLIM) set by the program, F(4) is set at
 !     DLIM, STEP(4) is set at zero, and the search goes
 !     back to the beginning.
 !
-  790 IF (DLIM.GE.F(4)) GO TO 797
-      F(4)=DLIM
-      STEP(4)=0.
-      GO TO 180
+ 1240   IF (dlim.ge.f(4)) GO TO 1250
+        f(4)=dlim
+        step(4)=0.
+        GO TO 740
 !
 !     If JPRINT=1 the program prints out the results of each successful
 !     convergence on a minimum.
 !
-  797 IF (JPRINT) 850,850,800
-  800 WRITE(2,810) NEVAL                                                   
-  810 FORMAT(5(/),36H PROCESS CONVERGES ON MINIMUM AFTER ,I4,
-     &21H FUNCTION EVALUATIONS///)
-      WRITE(2,820) (F(I),I=1,NOP)                                          
-  820 FORMAT(14H MINIMUM AT   ,4(1X,E13.6))                              
-      WRITE(2,830) FUNC                                                    
-  830 FORMAT(//26H MINIMUM FUNCTION VALUE   ,E13.6)                     
-      WRITE(2,840)                                                         
-  840 FORMAT(///16H END  OF  SEARCH/1X,15(1H*)) 
+ 1250   IF (jprint) 1310,1310,1260
+ 1260   WRITE (2, 1270) neval
+ 1270   FORMAT (5(/),' PROCESS CONVERGES ON MINIMUM AFTER ', i4,
+     &' FUNCTION EVALUATIONS'///)
+        WRITE (2, 1280) (f(i), i=1, nop)
+ 1280   FORMAT (' MINIMUM AT   ',4(1x,e13.6))
+        WRITE (2, 1290) func
+ 1290   FORMAT (//' MINIMUM FUNCTION VALUE   ',e13.6)
+        WRITE (2, 1300)
+ 1300   FORMAT (///' END  OF  SEARCH'/1x,15('*'))
 !
 !
+ 1310   CONTINUE
 !
-  850 CONTINUE   
-!                                                         
 !
 !     MTEST is set at 1 to flag that convergence has occurred.  This
 !     is carried into Subroutine GIVEF to trigger computation of
 !     MSFAIL where computation of S cannot occur.
 !
-  860 MTEST=1
+ 1320   mtest=1
 !
-!     Program execution returns to the subroutine to yield final pass values 
-!     of F(1), F(2) and F(3).
+!     Program execution returns to the subroutine to yield final pass
+!     values of F(1), F(2) and F(3).
 !
-      CALL GIVEF(F,FUNC,DCOEFF,
-     & VAL,CLINT,PD,PS,R3S,
-     & STT,TCOV,THH,VGH,
-     & SNS,IFX,IMV,IRY,ISHOW,
-     & IT,IV,KDT,KPRINT,KWT,
-     & LPRINT,LTMAX,LTMIN,NUMA,NUMO,
-     & NVALS,NS,MSFAIL,MTEST,'Outfile2.txt')
+        CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
+     &    thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
+     &    lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail, mtest,
+     &    'Outfile2.txt')
 !
-      LPRINT=1
-      KPRINT=0                                                            
-!                                                                       
-!     
+        lprint=1
+        kprint=0
+!
+!
 !     The estimated 'best fit' values of the parameters from the current
 !     pass through Loop 855 are now computed, tabulated and printed out.
 !
@@ -1325,116 +1282,117 @@
 !     correcting units to no./ha, and dividing by 2L in the case of
 !     line transect data, and by 2Vt in the case of fixed-point data.
 !
- 1428 IF (KM) 1436,1436,1435
- 1435 DEN(JB)=(1.E6*F(3))/(2.*DIST)
-      GO TO 1437
- 1436 IF (IFX) 1440,1440,1441
- 1440 DEN(JB)=(1.E4*F(3))/(2.*DIST)
-      GO TO 1437
- 1441 DEN(JB)=(1.E4*F(3))/(2.*IV*IT)
+        IF (km) 1340,1340,1330
+ 1330   den(jb)=(1.e6*f(3))/(2.*dist)
+        GO TO 1370
+ 1340   IF (ifx) 1350,1350,1360
+ 1350   den(jb)=(1.e4*f(3))/(2.*dist)
+        GO TO 1370
+ 1360   den(jb)=(1.e4*f(3))/(2.*iv*it)
 !
 !     Values of the other parameter estimates are obtained by redefining
 !     the estimates of F(1) and F(2), thus:
 !
- 1437 COEFF1(JB)=F(1)
-      COEFF2(JB)=F(2)
-      COEFF3(JB)=DCOEFF
+ 1370   coeff1(jb)=f(1)
+        coeff2(jb)=f(2)
+        coeff3(jb)=dcoeff
 !
 !
 !     Running totals of DEN, COEFF1 and COEFF2 are now made to
 !     enable calculation of mean values after the loop ends.
 !
-      TDEN = TDEN + DEN(JB)
-      TCOEFF1 = TCOEFF1 + COEFF1(JB)
-      TCOEFF2 = TCOEFF2 + COEFF2(JB)
-      TCOEFF3 = TCOEFF3 + COEFF3(JB)
-! 
-!                                  
-!     Loop 855 now ends, returning calculations to Line 90 until the maximum
-!     preset number of bootstraps (MAXJB) value is reached.  LOOP is reset 
-!     to zero to enable a new series of iterations in the basic loop to
-!     begin again, as are G(I,J) values.
+        tden=tden+den(jb)
+        tcoeff1=tcoeff1+coeff1(jb)
+        tcoeff2=tcoeff2+coeff2(jb)
+        tcoeff3=tcoeff3+coeff3(jb)
 !
 !
-  845 LOOP=0
-      IFLAG=0
-      KPRINT=0
+!     Loop 855 now ends, returning calculations to Line 90 until the
+!     maximum preset number of bootstraps (MAXJB) value is reached.
+!     LOOP is reset to zero to enable a new series of iterations in the
+!     basic loop to begin again, as are G(I,J) values.
 !
-      DO 853 I=1,NP1
-      DO 853 J=1,NOP
-  853 G(I,J) = 0.0
+!
+ 1380   loop=0
+        iflag=0
+        kprint=0
+!
+        DO 1390 i=1,np1
+          DO 1390 j=1,nop
+ 1390     g(i,j)=0.0
 !
 !     F and STEP values are reset to their original values also.
 !
-      DO 847 IE=1,NOP
-      F(IE)=FT(IE)
-      STEP(IE)=STEPT(IE)
-  847 CONTINUE
+        DO 1400 ie=1,nop
+          f(ie)=ft(ie)
+          step(ie)=stept(ie)
+ 1400   CONTINUE
 !
 !
-  855 CONTINUE  
+ 1410 CONTINUE
 !
 !
 !     Following completion of the runs through Loop 855, the means and
-!     standard errors of each of the parameters are now calculated, based
-!     on the values of the three arrays DEN(JB), COEFF1(JB) and COEFF2(JB).
+!     standard errors of each of the parameters are now calculated,
+!     based on the values of the three arrays DEN(JB), COEFF1(JB) and
+!     COEFF2(JB).
 !
-!     The overall means ESTDEN, COEFFNT1 and COEFFNT2 are calculated first.
-!     NUMEST is the number of parameter estimations made.
+!     The overall means ESTDEN, COEFFNT1 and COEFFNT2 are calculated
+!     first.  NUMEST is the number of parameter estimations made.
 !
-      NUMEST=MAXJB-MFAIL
-      IF (NUMEST.GE.1) GO TO 1446
-      NUMEST=1
- 1446 ESTDEN=TDEN/NUMEST
-      COEFFNT1=TCOEFF1/NUMEST
-      COEFFNT2=TCOEFF2/NUMEST
-!
-!
-!     Should MSFAIL be identical to NUMEST, 1 is added to NUMEST to prevent
-!     division by zero at the next step.
-!
-      IF (NUMEST.EQ.MSFAIL) NUMEST=MSFAIL + 1
-      COEFFNT3=TCOEFF3/(NUMEST-MSFAIL)
-      IF (NUMEST.EQ.(MSFAIL+1)) NUMEST=NUMEST - 1
+      numest=maxjb-mfail
+      IF (numest.ge.1) GO TO 1420
+      numest=1
+ 1420 estden=tden/numest
+      coeffnt1=tcoeff1/numest
+      coeffnt2=tcoeff2/numest
 !
 !
-!     The next step is to calculate the standard errors of each 
+!     Should MSFAIL be identical to NUMEST, 1 is added to NUMEST to
+!     prevent division by zero at the next step.
+!
+      IF (numest.eq.msfail) numest=msfail+1
+      coeffnt3=tcoeff3/(numest-msfail)
+      IF (numest.eq.(msfail+1)) numest=numest-1
+!
+!
+!     The next step is to calculate the standard errors of each
 !     parameter, provided that the number of analyses exceeds 1.
 !     Each is the standard deviation of the parameter estimates.
 !     If NUMEST is 0 or 1, standard error calculation is bypassed.
 !
-      IF (NUMEST.LE.1.) GO TO 1484
-      DSUM=0.0
-      DO 1450 JB=1,MAXJB
-      IF ((DEN(JB)).EQ.0.) GO TO 1450
-      DENDIF=(DEN(JB)-ESTDEN)**2.
-      DSUM=DSUM+DENDIF
+      IF (numest.le.1.) GO TO 1470
+      dsum=0.0
+      DO 1430 jb=1,maxjb
+        IF ((den(jb)).eq.0.) GO TO 1430
+        dendif=(den(jb)-estden)**2.
+        dsum=dsum+dendif
+ 1430 CONTINUE
+      sden = SQRT(dsum/(numest-1))
+!
+      cf1sum=0.0
+      DO 1440 jb=1,maxjb
+        IF ((coeff1(jb)).eq.0.) GO TO 1440
+        cf1dif=(coeff1(jb)-coeffnt1)**2.
+        cf1sum=cf1sum+cf1dif
+ 1440 CONTINUE
+      scf1 = SQRT(cf1sum/(numest-1))
+!
+      cf2sum=0.0
+      DO 1450 jb=1,maxjb
+        IF ((coeff2(jb)).eq.0.) GO TO 1450
+        cf2dif=(coeff2(jb)-coeffnt2)**2.
+        cf2sum=cf2sum+cf2dif
  1450 CONTINUE
-      SDEN=SQRT(DSUM/(NUMEST-1))
-!
-      CF1SUM=0.0
-      DO 1451 JB=1,MAXJB
-      IF ((COEFF1(JB)).EQ.0.) GO TO 1451
-      CF1DIF=(COEFF1(JB)-COEFFNT1)**2.
-      CF1SUM=CF1SUM+CF1DIF
- 1451 CONTINUE
-      SCF1=SQRT(CF1SUM/(NUMEST-1))
-!
-      CF2SUM=0.0
-      DO 1452 JB=1,MAXJB
-      IF ((COEFF2(JB)).EQ.0.) GO TO 1452
-      CF2DIF=(COEFF2(JB)-COEFFNT2)**2.
-      CF2SUM=CF2SUM+CF2DIF
- 1452 CONTINUE
-      SCF2=SQRT(CF2SUM/(NUMEST-1))
-      CF3SUM=0.0
-      DO 1453 JB=1,MAXJB
-      IF (COEFF3(JB).EQ.0) GO TO 1453
-      CF3DIF=(COEFF3(JB)-COEFFNT3)**2.
-      CF3SUM=CF3SUM+CF3DIF
- 1453 CONTINUE
-      IF ((NUMEST-MSFAIL-1).LE.0) GO TO 1484
-      SCF3=SQRT(CF3SUM/(NUMEST-MSFAIL-1))
+      scf2=sqrt(cf2sum/(numest-1))
+      cf3sum=0.0
+      DO 1460 jb=1,maxjb
+        IF (coeff3(jb).eq.0) GO TO 1460
+        cf3dif=(coeff3(jb)-coeffnt3)**2.
+        cf3sum=cf3sum+cf3dif
+ 1460 CONTINUE
+      IF ((numest-msfail-1).le.0) GO TO 1470
+      scf3=sqrt(cf3sum/(numest-msfail-1))
 !
 !
 !     The products of the program are now output.
@@ -1443,103 +1401,103 @@
 !     The estimated topographical cover (TCOV) is first, followed
 !     by the number of actual parameter estimations made (NUMEST).
 !
- 1484 WRITE(2,1471) TCOV
- 1471 FORMAT(/33H Estimated Topographical Cover = ,F7.6) 
+ 1470 WRITE (2,1480) tcov
+ 1480 FORMAT (/' Estimated Topographical Cover = ',f7.6)
 !
-      WRITE(2,1472) NUMEST
- 1472 FORMAT(/34H Number of Parameter Estimations =,I4)
-! 
+      WRITE (2,1490) numest
+ 1490 FORMAT (/' Number of Parameter Estimations =',i4)
+!
 !
 !     Now follow general headings for the results table.
 !
 !
-      WRITE(2,835)                                                             
-  835 FORMAT(//24H Calculated values were:/)                                
-      KPRINT=1   
+      WRITE (2,1500)
+ 1500 FORMAT (//' Calculated values were:'/)
+      kprint=1
 !
-      WRITE(2,1485)
- 1485 FORMAT(//28H ESTIMATED PARAMETER VALUES://)
-      WRITE(2,1486)
- 1486 FORMAT(1H ,77(1Hx)/2H x,4(18X,1Hx))
-      WRITE(2,1487)
- 1487 FORMAT(15H x    PARAMETER,5X,1Hx,6X,5HVALUE,7X,1Hx,
-     &18H  STANDARD ERROR  ,1Hx,7X,4HUNIT,7X,1Hx)
-      WRITE(2,1488)
- 1488 FORMAT(2H x,4(18X,1Hx)/1H ,77(1Hx)/2H x,4(18X,1Hx)/12H x ESTIMATED
-     &,8X,1Hx,3(18X,1Hx))
+      WRITE (2,1510)
+ 1510 FORMAT (//' ESTIMATED PARAMETER VALUES:'//)
+      WRITE (2,1520)
+ 1520 FORMAT (' ',77('x')/' x',4(18x,'x'))
+      WRITE (2,1530)
+ 1530 FORMAT (' x    PARAMETER',5x,'x',6x,'VALUE',7x,'x',
+     &'  STANDARD ERROR  ','x',7x,'UNIT',7x,'x')
+      WRITE (2,1540)
+ 1540 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/' x ESTIMATED'
+     &,8x,'x',3(18x,'x'))
 !
 !     Density estimates are printed.
 !
- 1479 IF (KM) 1489,1489,1491
- 1489 IF (MAXJB-1) 2000,2000,2002
- 2000 WRITE(2,2001) ESTDEN
- 2001 FORMAT(15H x DENSITY  (D),5X,1Hx,4X,F10.3,4X,
-     &40Hx (indeterminate)  x  indivs./hectare  x)
-      GO TO 1493
- 2002 WRITE(2,1490) ESTDEN,SDEN
- 1490 FORMAT(15H x DENSITY  (D),5X,1Hx,4X,F10.3,4X,1Hx,4X,F10.3,4X,
-     &20Hx  indivs/hectare  x)
-      GO TO 1493
+      IF (km) 1550,1550,1600
+ 1550 IF (maxjb-1) 1560,1560,1580
+ 1560 WRITE (2,1570) estden
+ 1570 FORMAT (' x DENSITY  (D)',5x,'x',4x,f10.3,4x,
+     &'x (indeterminate)  x  indivs./hectare  x')
+      GO TO 1650
+ 1580 WRITE (2,1590) estden,sden
+ 1590 FORMAT (' x DENSITY  (D)',5x,'x',4x,f10.3,4x,'x',4x,f10.3,4x,
+     &'x  indivs/hectare  x')
+      GO TO 1650
 !
- 1491 IF (MAXJB-1) 2003,2003,2004
- 2003 WRITE(2,1492) ESTDEN
- 1492 FORMAT(15H x DENSITY  (D),5X,1Hx,4X,F10.2,4X,
-     &39Hx (indeterminate)  x   indivs./sq.km. x)
-      GO TO 1493
- 2004 WRITE(2,2005) ESTDEN,SDEN
- 2005 FORMAT(15H x DENSITY  (D),5X,1Hx,4X,F10.3,4X,1Hx,4X,F10.3,4X,
-     &20Hx   indivs./sq.km. x)
+ 1600 IF (maxjb-1) 1610,1610,1630
+ 1610 WRITE (2,1620) estden
+ 1620 FORMAT (' x DENSITY  (D)',5x,'x',4x,f10.2,4x,
+     &'x (indeterminate)  x   indivs./sq.km. x')
+      GO TO 1650
+ 1630 WRITE (2,1640) estden,sden
+ 1640 FORMAT (' x DENSITY  (D)',5x,'x',4x,f10.3,4x,'x',4x,f10.3,4x,
+     &'x   indivs./sq.km. x')
 !
 !     The conspicuousness coefficient is next printed.
 !
- 1493 WRITE(2,1494)
- 1494 FORMAT(2H x,4(18X,1Hx)/1H ,77(1Hx)/2H x,4(18X,1Hx)/
-     &21H x CONSPICUOUSNESS  x,3(18X,1Hx))
-      IF (MAXJB-1) 2006,2006,2007
- 2006 WRITE(2,1495) COEFFNT1
- 1495 FORMAT(21H x COEFFICIENT  (a) x,4X,F10.4,4X,
-     &39Hx (indeterminate)  x      metres      x)
-      GO TO 1501
- 2007 WRITE(2,2008) COEFFNT1,SCF1
- 2008 FORMAT(21H x COEFFICIENT  (a) x,4X,F10.3,4X,1Hx,4X,F10.3,4X,1Hx,
-     &6X,6Hmetres,6X,1Hx)
+ 1650 WRITE (2,1660)
+ 1660 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/
+     &' x CONSPICUOUSNESS  x',3(18x,'x'))
+      IF (maxjb-1) 1670,1670,1690
+ 1670 WRITE (2,1680) coeffnt1
+ 1680 FORMAT (' x COEFFICIENT  (a) x',4x,f10.4,4x,
+     &'x (indeterminate)  x      metres      x')
+      GO TO 1710
+ 1690 WRITE (2,1700) coeffnt1,scf1
+ 1700 FORMAT (' x COEFFICIENT  (a) x',4x,f10.3,4x,'x',4x,f10.3,4x,'x',
+     &6x,'metres',6x,'x')
 !
 !     The second coefficient is either a cover proportion or a sound
 !     attenuation coefficient, decided by the values of KDT.
 !
- 1501 IF (KDT) 1496,1496,1500
- 1496 WRITE(2,1497)
- 1497 FORMAT(2H x,4(18X,1Hx)/1H ,77(1Hx)/2H x,4(18X,1Hx)/14H x COVER   
-     &   ,6X,1Hx,3(18X,1Hx))
-      IF (MAXJB-1) 1509,1509,1512
- 1509 WRITE(2,1511) COEFFNT2
- 1511 FORMAT(21H x PROPORTION  (c)  x,4X,F10.4,4X,
-     &39Hx (indeterminate)  x                  x)
-      GO TO 2013
- 1512 WRITE(2,1513) COEFFNT2,SCF2
- 1513 FORMAT(21H x PROPORTION  (c)  x,4X,F10.4,4X,1Hx,4X,F10.4,4X,1Hx,
-     &4X,9H         ,5X,1Hx)
-      GO TO 2013
+ 1710 IF (kdt) 1720,1720,1780
+ 1720 WRITE (2,1730)
+ 1730 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/
+     &' x COVER ',6x,'x',3(18x,'x'))
+      IF (maxjb-1) 1740,1740,1760
+ 1740 WRITE (2,1750) coeffnt2
+ 1750 FORMAT (' x PROPORTION  (c)  x',4x,f10.4,4x,
+     &'x (indeterminate)  x                  x')
+      GO TO 1840
+ 1760 WRITE (2,1770) coeffnt2,scf2
+ 1770 FORMAT (' x PROPORTION  (c)  x',4x,f10.4,4x,'x',4x,f10.4,4x,'x',
+     &4x,'         ',5x,'x')
+      GO TO 1840
 !
- 1500 WRITE(2,1502)
- 1502 FORMAT(2H x,4(18X,1Hx)/1H ,77(1Hx)/2H x,4(18X,1Hx)/
-     &14H x ATTENUATION,6X,1Hx,3(18X,1Hx))
-      IF (MAXJB-1) 2014,2014,2016
- 2014 WRITE(2,2015) COEFFNT2
- 2015 FORMAT(21H x COEFFICIENT  (b) x,4X,F10.4,4X,
-     &39Hx (indeterminate)  x    per  metre    x)
-      GO TO 2013
- 2016 WRITE(2,1504) COEFFNT2,SCF2
- 1504 FORMAT(21H x COEFFICIENT  (b) x,4X,F10.4,4X,1Hx,4X,F10.4,4X,1Hx,
-     &4X,9Hper metre,5X,1Hx)
+ 1780 WRITE (2,1790)
+ 1790 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/
+     &' x ATTENUATION',6x,'x',3(18x,'x'))
+      IF (maxjb-1) 1800,1800,1820
+ 1800 WRITE (2,1810) coeffnt2
+ 1810 FORMAT (' x COEFFICIENT  (b) x',4x,f10.4,4x,
+     &'x (indeterminate)  x    per  metre    x')
+      GO TO 1840
+ 1820 WRITE (2,1830) coeffnt2,scf2
+ 1830 FORMAT (' x COEFFICIENT  (b) x',4x,f10.4,4x,'x',4x,f10.4,4x,'x',
+     &4x,'per metre',5x,'x')
 !
 !     The table is now ruled off.
 !
- 2013 WRITE(2,1499)
- 1499 FORMAT(2H x,4(18X,1Hx)/1H ,77(1Hx)//)
+ 1840 WRITE (2,1850)
+ 1850 FORMAT (' x',4(18x,'x')/' ',77('x')//)
 !
-      WRITE(2,2017) COEFFNT3,SCF3
- 2017 FORMAT(/X,31HDetectability Coefficient (S) =,F8.2,6H, SE =,F6.2)
+      WRITE (2,1860) coeffnt3,scf3
+ 1860 FORMAT (/x,'Detectability Coefficient (S) =',f8.2,', SE =',f6.2)
 !
 !
 !     Key model estimates are now output if ISHOW was originally set
@@ -1550,40 +1508,36 @@
 !     within the subroutine.
 !
 !
-      F(1) = COEFFNT1
-      F(2) = COEFFNT2
-      DO 1530 JV=1,80
- 1530 VAL(JV)=VALT(JV)
-      IF(KM) 1517,1517,1516
- 1516 F(3)=(ESTDEN*2.*DIST*PD*(SNS/2))/1.E6
-      GO TO 1520
- 1517 IF (IFX) 1518,1518,1519
- 1518 F(3)=(ESTDEN*2.*DIST*PD*(SNS/2))/1.E4
-      GO TO 1520
- 1519 F(3)=ESTDEN*2.*IV*IT*PD/1.E4
- 1520 CALL GIVEF(F,FUNC,DCOEFF,
-     & VAL,CLINT,PD,PS,R3S,
-     & STT,TCOV,THH,VGH,
-     & SNS,IFX,IMV,IRY,ISHOW,
-     & IT,IV,KDT,KPRINT,KWT,
-     & LPRINT,LTMAX,LTMIN,NUMA,NUMO,
-     & NVALS,NS,MSFAIL,MTEST,'Outfile2.txt')
+      f(1)=coeffnt1
+      f(2)=coeffnt2
+      DO 1870 jv=1,80
+ 1870   val(jv)=valt(jv)
+      IF (km) 1890,1890,1880
+ 1880 f(3)=(estden*2.*dist*pd*(sns/2))/1.e6
+      GO TO 1920
+ 1890 IF (ifx) 1900,1900,1910
+ 1900 f(3)=(estden*2.*dist*pd*(sns/2))/1.e4
+      GO TO 1920
+ 1910 f(3)=estden*2.*iv*it*pd/1.e4
+ 1920 CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
+     & thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
+     & lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail, mtest,
+     & 'Outfile2.txt')
 !
 !
- 1525 CONTINUE
 !     CLOSE(UNIT=1)
-      CLOSE(UNIT=2)
+      CLOSE (unit=2)
 !     STOP
       RETURN
 !
 !
 ! 283 WRITE(6,285)INFILE,IOS
-  285 FORMAT(' Error opening ',A40,' - IOS = ',I6)
+ 1930 FORMAT (' Error opening ',a40,' - IOS = ',i6)
 !     STOP
       RETURN
-  284 WRITE(6,285)OUTFILE,IOS
+ 1940 WRITE (6,1930) outfile,ios
 !     STOP
-      END SUBROUTINE CALCULATE_DENSITY
+      END SUBROUTINE calculate_density
 !
 !     **************************************************************
 !
@@ -1595,21 +1549,18 @@
 !     computations at radial distances which exceed the maximum
 !     recognition distance, and working inwards.
 !
-!     The subroutine calculates an 'expected' frequency in each 
-!     class, using parameter values supplied from the main 
+!     The subroutine calculates an 'expected' frequency in each
+!     class, using parameter values supplied from the main
 !     program.  It then compares each with the relevant
 !     observed value supplied to the program, computes a sum
 !     of squares of the differences, and returns this to the main
 !     program as FUNC.
 !
 !
-      SUBROUTINE GIVEF(F,FUNC,S,
-     & VAL,CLINT,PD,PS,R3S,
-     & STT,TCOV,THH,VGH,
-     & SNS,IFX,IMV,IRY,ISHOW,
-     & IT,IV,KDT,KPRINT,KWT,
-     & LPRINT,LTMAX,LTMIN,NUMA,NUMO,
-     & NVALS,NS,MSFAIL,MTEST,COMPARISON_FILE)
+      SUBROUTINE givef (f, func, s, val, clint, pd, ps, r3s, stt, tcov,
+     & thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
+     & lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail, mtest,
+     & comparison_file)
 !
 !     Double precision for all real numbers is set, together with
 !     common values, dimensions and symbols for key variables.
@@ -1618,113 +1569,108 @@
       IMPLICIT NONE
 !
 !
-      INTEGER IERMAX,IFX,IMV,IOS,IRY,ISHOW,IT,IV,JJ,JL,JRLOW,JV
-      INTEGER KDT,KPRINT,KWT,LPRINT,L10,L20,LIMIT,LTMIN,LTMAX
-      INTEGER MAX,MAXJB,MD,MSFAIL,MTEST,NS,NUMA,NUMO,NVALS 
-      CHARACTER*(*) COMPARISON_FILE
-      DOUBLE PRECISION APREXI,AUC,CINT,CLINT,D2L,DD,DDS,DDSM,DH,DIF
-      DOUBLE PRECISION DIFSQ,DINT,DL,DMAX,DNR,DNRL,DNRH,DVG,E,ED
-      DOUBLE PRECISION ERMAX,ERR,EXPD,EXPDR,EXPDY,EXPDV,FUNC
-      DOUBLE PRECISION HCINT,HTOT,OBSD,P,PA,PAD,PAM,PD,PR,PRC,PRR
-      DOUBLE PRECISION PRMAX,PS,Q,QDD,QDMAX,QMIN,QR,R3S, RLOW
-      DOUBLE PRECISION RMAX,RR, S,SNS,SS,SSH,SSL,SSMAX,STT,TCOV,TEXPD
-      DOUBLE PRECISION THH, TOPDD,TOPMAX,TOT,TOTE,TR,VEGDD,VEGMAX,VGH
-      DOUBLE PRECISION VH,VISDD,VISMAX,VL,VLOWM,W,WDIFSQ,WH, VHOWH,WL
-      DOUBLE PRECISION WM, WTOT,YH,YL,YY,YYH,YYL,Z,ZH,ZL
-      DOUBLE PRECISION VAL(80)
-      DOUBLE PRECISION ROUT(80),CALCNR(80),OBSDNR(80) 
-      DOUBLE PRECISION YOUT(80),CALCNY(80),OBSDNY(80)  
-      DOUBLE PRECISION G(5,4),STEP(4),STEPT(4),F(4)
-      DOUBLE PRECISION H(4),PBAR(4),PSTAR(4),PSTST(4)         
+      INTEGER iermax,ifx,imv,ios,iry,ishow,it,iv,jj,jl,jrlow,jv
+      INTEGER kdt,kprint,kwt,lprint,l10,l20,limit,ltmin,ltmax
+      INTEGER max,maxjb,md,msfail,mtest,ns,numa,numo,nvals
+      CHARACTER*(*) comparison_file
+      DOUBLE PRECISION aprexi,auc,cint,clint,d2l,dd,dds,ddsm,dh,dif
+      DOUBLE PRECISION difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed
+      DOUBLE PRECISION ermax,err,expd,expdr,expdy,expdv,func
+      DOUBLE PRECISION hcint,htot,obsd,p,pa,pad,pam,pd,pr,prc,prr
+      DOUBLE PRECISION prmax,ps,q,qdd,qdmax,qmin,qr,r3s,rlow
+      DOUBLE PRECISION rmax,rr,s,sns,ss,ssh,ssl,ssmax,stt,tcov,texpd
+      DOUBLE PRECISION thh,topdd,topmax,tot,tote,tr,vegdd,vegmax,vgh
+      DOUBLE PRECISION vh,visdd,vismax,vl,vlowm,w,wdifsq,wh,vhowh,wl
+      DOUBLE PRECISION wm,wtot,yh,yl,yy,yyh,yyl,z,zh,zl
+      DOUBLE PRECISION val(80)
+      DOUBLE PRECISION rout(80),calcnr(80),obsdnr(80)
+      DOUBLE PRECISION yout(80),calcny(80),obsdny(80)
+      DOUBLE PRECISION g(5,4),step(4),stept(4),f(4)
+      DOUBLE PRECISION h(4),pbar(4),pstar(4),pstst(4)
 !
-!     COMMON / common1 /VAL(80),H(4),PBAR(4),PSTAR(4),PSTST(4)
-!     COMMON / common2 /HSTAR,HSTST,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH
-!    &,S,SNS
-!     COMMON / common3 /KM,IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT
-!     COMMON / common4 /LTMAX,LTMIN,MAX,NUMA,NUMO,NVALS,NS,MSFAIL,MTEST
 !
 !     TOT is the progressive value of the sum of squares of the
 !     differences between observed and calculated values.  It is
 !     initially set at zero.
 !
-      TOT=0.                             
-      WTOT=0.                              
+      tot=0.
+      wtot=0.
 !
 !     The program now sets upper and lower limits to the
 !     parameter values supplied, usually by effectively giving
 !     FUNC (through HTOT) a very high value if a parameter falls
 !     outside predetermined limits.
 !
-      P=F(1)
+      p=f(1)
 !
 !     HTOT is a variable used to deflect the search away from
 !     highly improbable values of the parameters.
 !
-      HTOT=0.
-      DMAX=F(4)
+      htot=0.
+      dmax=f(4)
 !
 !     HTOT is set high if DMAX < 1
 !
-      IF (DMAX.GE.1.) GO TO 5002
+      IF (dmax.ge.1.) GO TO 10
 !
 !     Initially, HTOT is set at 1 000 000
 !
-      HTOT=1.E+6
- 5002 Q=F(2)
+      htot=1.e+6
+   10 q=f(2)
 !
 !     If Q is negative, the program sets IMV=1 and so uses the
 !     median value of d in an interval as the basis of
 !     computations, in order to avoid logarithms of negative
 !     values appearing in Approximation 1 below.
 !
-      IF (Q) 5003,5005,5005
+      IF (q) 20,30,30
 !
- 5003 IMV=1
+   20 imv=1
 !
 !
 !     F(3) is renamed D2L for its run through Subroutine GIVEF.
 !
- 5005 D2L=F(3)
+   30 d2l=f(3)
 !
 !     HTOT is set to a higher value if D2L<0.0001
 !
-      IF (D2L-.0001) 2020,5400,5400
- 2020 HTOT=1.E+6 + HTOT
+      IF (d2l-.0001) 40,50,50
+   40 htot=1.e+6+htot
 !
 !     HTOT is set high if a>400
 !
- 5400 IF (P-400.) 5800,5800,5500
- 5500 HTOT=1.E+6 + HTOT
+   50 IF (p-400.) 70,70,60
+   60 htot=1.e+6+htot
 !
 !     HTOT is set high if a<0.0099
 !
- 5800 IF (P-.0099) 5900,5900,5950
+   70 IF (p-.0099) 80,80,90
 !
- 5900 HTOT=ABS((P-2.)*1.E06)+HTOT
+   80 htot=abs((p-2.)*1.e06)+htot
 !
 !     RMAX is set at zero if DMAX is equal to or less than THH
 !
- 5950 IF (DMAX.GT.THH) GO TO 6000
-      RMAX=0.0
-      GO TO 6001
+   90 IF (dmax.gt.thh) GO TO 100
+      rmax=0.0
+      GO TO 110
 !
 !     RMAX - the maximum horizontal recognition distance - is
 !     computed from the direct line distance and height difference.
 !
- 6000 RMAX=DSQRT(DMAX*DMAX-THH*THH)
- 6001 IF (Q) 6003,6002,6002                                             
+  100 rmax=dsqrt(dmax*dmax-thh*thh)
+  110 IF (q) 130,120,120
 !
 !     An upper limit of 0.4 is set for the attenuation coefficient
 !
- 6002 IF (Q.LT.0.4) GO TO 6006                                            
-      HTOT=1.E+6 + HTOT
-      GO TO 6006                                                        
+  120 IF (q.lt.0.4) GO TO 140
+      htot=1.e+6+htot
+      GO TO 140
 !
 !     A lower limit of -2./DMAX is set to the attenuation coeffnt.
 !
- 6003 QMIN=-2./DMAX                                                     
-      IF (Q.GT.QMIN) GO TO 6006                                           
-      Q=QMIN                                                            
+  130 qmin=-2./dmax
+      IF (q.gt.qmin) GO TO 140
+      q=qmin
 !
 !     The theoretical probability of detecting an individual at
 !     the maximum recognition distance [PRMAX=Pr(rmax)] is now
@@ -1733,42 +1679,42 @@
 !     PA is the square of the conspicuousness coefficient.
 !
 !
- 6006 PA=P*P
+  140 pa=p*p
 !
 !     Visibility and audibility will be affected by topographical
-!     features in habitats where the ground is not level. The
-!     total probability of visibility at DMAX (VISMAX) will be the product of
+!     features in habitats where the ground is not level. The total
+!     probability of visibility at DMAX (VISMAX) will be the product of
 !     the probability VEGMAX that the animal is unobscured by vegetation
 !     at distance DMAX, and the probability TOPMAX that it is unobscured
 !     by topography.  VEGMAX will be a function of dMAX (VEGMAX=(1-Q)**DMAX),
-!     while TOPMAX is approximated by the function  
+!     while TOPMAX is approximated by the function
 !     TOPMAX=(1-T)**(LTMAX-DMAX)=(EXP(ln(0.001)/(LTMAX-LTMIN))**(LTMAX-DMAX),
-!     and VISMAX=VEGMAX*TOPMAX.  A first step is to calculate TOPMAX, 
+!     and VISMAX=VEGMAX*TOPMAX.  A first step is to calculate TOPMAX,
 !     provided that either LTMIN is not very large or RMAX is currently
 !     less than LTMIN.
 !
-      IF ((LTMIN.LT.999.).AND.(RMAX.GT.LTMIN))  GO TO 6010
-      TOPMAX=1.
-      GO TO 6011
- 6010 TOPMAX=(EXP(-6.9078/(LTMAX-LTMIN)))**(DMAX-LTMIN)
+      IF ((ltmin.lt.999.).and.(rmax.gt.ltmin)) GO TO 150
+      topmax=1.
+      GO TO 160
+  150 topmax=(exp(-6.9078/(ltmax-ltmin)))**(dmax-ltmin)
 !
-!     For observing situations (e.g. aerial survey) where there is 'ground'
-!     cover for only the first part of the direct-line distance
-!     d between animal and observer (indicated by the vegetation
-!     height (VGH) exceeding zero), this cover will obscure
-!     some animals.  The proportion (VISMAX) visible at DMAX will
-!     be a function of d (VISMAX=(1-c)**DMAX). The distance obscured
-!     (DVG) will have a value equal to (cover height) x (distance d)/
-!     (observer-animal height difference).
+!     For observing situations (e.g. aerial survey) where there is
+!     'ground' cover for only the first part of the direct-line distance
+!     d between animal and observer (indicated by the vegetation height
+!     (VGH) exceeding zero), this cover will obscure some animals.  The
+!     proportion (VISMAX) visible at DMAX will be a function of d
+!     (VISMAX=(1-c)**DMAX). The distance obscured (DVG) will have a
+!     value equal to (cover height) x (distance d)/ (observer-animal
+!     height difference).
 !
- 6011 IF (KDT) 5959,5959,5961
-! 
-!     If the calculated cover proportion is less than zero, the 
-!     program adds an arbitrary 100 to the accumulating total 
+  160 IF (kdt) 170,170,230
+!
+!     If the calculated cover proportion is less than zero, the
+!     program adds an arbitrary 100 to the accumulating total
 !     to deflect the search away from such unreal values.
 !
- 5959 IF (Q.GE.0.) GO TO 5960
-      HTOT=1.E+2 + HTOT
+  170 IF (q.ge.0.) GO TO 180
+      htot=1.e+2+htot
 !
 !     If visual data are supplied, and there is vegetation close
 !     to the ground only, and the animals are within that
@@ -1776,39 +1722,39 @@
 !     to the proportion of the direct-line distance potentially
 !     obscured by that ground vegetation.
 !
- 5960 IF (KDT) 5958,5958,5961
- 5958 IF (VGH) 5963,5963,5964
- 5964 DVG=VGH*DMAX/THH
-      IF (DMAX.LE.DVG) GO TO 5963
-      VEGMAX=(1.-Q)**DVG
-      VISMAX=VEGMAX*TOPMAX
-      GO TO 5965
- 5963 VEGMAX=(1.-Q)**DMAX
-      VISMAX=VEGMAX*TOPMAX
- 5965 DDSM=DMAX*DMAX
-      PRMAX=PA*VISMAX/DDSM
+  180 IF (kdt) 190,190,230
+  190 IF (vgh) 210,210,200
+  200 dvg=vgh*dmax/thh
+      IF (dmax.le.dvg) GO TO 210
+      vegmax=(1.-q)**dvg
+      vismax=vegmax*topmax
+      GO TO 220
+  210 vegmax=(1.-q)**dmax
+      vismax=vegmax*topmax
+  220 ddsm=dmax*dmax
+      prmax=pa*vismax/ddsm
 !
 !     For visual data collected where there is cover, IMV is put
 !     =1 to avoid the possibility of negative values being taken
 !     to logarithms later in the program.
 !
-      IMV=1
-      GO TO 5962
+      imv=1
+      GO TO 260
 !
- 5961 QDMAX=Q*DMAX                                                      
+  230 qdmax=q*dmax
 !
 !     To prevent overflow during computations, and upper limit of
 !     70 and a lower limit of -68 are set to DMAX.
 !
-      IF (QDMAX.LT.70.) GO TO 6007                                       
-      QDMAX=70.                                                         
-      GO TO 6008                                                        
- 6007 IF ((-QDMAX).LT.68.) GO TO 6008                                    
-      QDMAX=-68.                                                        
- 6008 SSMAX=DEXP(QDMAX)                                                  
-      DDSM=DMAX*DMAX                                                    
-      PAM=PA/DDSM                                                       
-      PRMAX=PAM/SSMAX                                                   
+      IF (qdmax.lt.70.) GO TO 240
+      qdmax=70.
+      GO TO 250
+  240 IF ((-qdmax).lt.68.) GO TO 250
+      qdmax=-68.
+  250 ssmax=dexp(qdmax)
+      ddsm=dmax*dmax
+      pam=pa/ddsm
+      prmax=pam/ssmax
 !
 !     The control variable L10 determines the number of classes
 !     for which an expected value is calculated.  It is set equal
@@ -1816,70 +1762,70 @@
 !     below an aircraft is hidden from the observer.
 !     0.5 is added to remove errors due to 'chopping'.
 !
- 5962 L10=(RMAX/CLINT) + 0.5
-      TOTE=0.
+  260 l10=(rmax/clint)+0.5
+      tote=0.
 !
 !     TR is the highest r value in the current frequency class;
 !     because the first class computed is that furthest
 !     from the observer or from the transect line - TR is initially
 !     set at the class width (CLINT) times the number of classes.
-!     This is adjusted upwards by STT if this starting value is 
+!     This is adjusted upwards by STT if this starting value is
 !     greater than zero.
 !
-      TR=CLINT*FLOAT(L10) + STT
+      tr=clint*float(l10)+stt
 !
 !
 !     To compute 'expected' values within each class, each class
 !     is subdivided into subclasses, each of width 800/L10, so that
 !     CINT is small and L10 x L20=800.  Each subclass
-!     corresponds to an observing arc of width CINT ('delta-r') 
+!     corresponds to an observing arc of width CINT ('delta-r')
 !     that sweeps forwards ahead of the observer.  L20 is the
 !     number of classes in the inner loop.
 !     0.5 is added to remove errors due to 'chopping'.
 !
-      L20=(800/L10) + 0.5
+      l20=(800/l10)+0.5
 !
-!     CINT ('delta-r') is the width of each subclass; it is set 
+!     CINT ('delta-r') is the width of each subclass; it is set
 !     at the class width divided by the number of subclasses used.
 !
-      CINT=CLINT/FLOAT(L20)
-      HCINT=CINT/2.
-!     
+      cint=clint/float(l20)
+      hcint=cint/2.
+!
 !     With perpendicular distance data, RMAX is altered slightly
 !     to become an exact multiple of CINT.
 !
-      IF (IRY) 7007,7006,7007
- 7006 IERMAX=(F(4))/CINT
-      ERMAX=IERMAX*CINT
+      IF (iry) 280,270,280
+  270 iermax=(f(4))/cint
+      ermax=iermax*cint
 !
 !     In the event that PRMAX > 1., HTOT is set to a high value.
 !
- 7007 IF (PRMAX.LT.1.) GO TO 7009                                        
-      HTOT=PRMAX*1.E06+HTOT                                                  
+  280 IF (prmax.lt.1.) GO TO 290
+      htot=prmax*1.e06+htot
 !
 !     QR is the proportion of the number of animals originally in
 !     a subclass still present after animals detected in arcs
 !     further out have been disregarded.  It is initially unity.
 !
- 7009 QR=1.
+  290 qr=1.
 !
 !     JRLOW - a control variable used to control the printout
 !     of RLOW - is set initially at zero.
 !
-      JRLOW=0
+      jrlow=0
 !
 !     EXPD is the cumulative expected number within a class; it is
 !     set at zero before computations begin; so is EXPDV.
 !
-      EXPD=0.                                                          
-      EXPDV=0.
-      S=0.
+      expd=0.
+      expdv=0.
+      s=0.
 !
 !     Loop 10, which calculates expected values and compares them
 !     with observed values, now begins .....
 !
 !
-      DO 10 JJ=1,L10
+      DO 1180 jj=1,l10
 !
 !     MD is the hth class in the series from MD=80 to MD=1 (or 2,
 !     in situations where the most central belt is obscured).
@@ -1887,19 +1833,19 @@
 !     despite chopping by the program.)  To calculate it, TR is
 !     reduced by the starting value (STT) if this exceeds zero.
 !
-      MD=INT((TR-STT)/CLINT + 0.5)
+        md=int((tr-stt)/clint+0.5)
 !
 !     OBSD is the observed value for the hth arc, as supplied
 !     in the input to the program.
 !
-      OBSD=VAL(MD)
+        obsd=val(md)
 !
 !     The observed frequency value in the hth class is corrected to
 !     allow for animals that overtake the observer from behind.
 !
-      OBSD=((NUMA+NUMO)*OBSD)/NUMA
+        obsd=((numa+numo)*obsd)/numa
 !
-!     Where the data are radial distance or fixed point data, EXPD 
+!     Where the data are radial distance or fixed point data, EXPD
 !     accumulates the expected frequency values within a class; it
 !     is set at zero before computations for the class begin.
 !
@@ -1908,42 +1854,42 @@
 !     it is set at zero before computations for the class begin,
 !     while EXPD is allowed to accumulate.
 !
-      IF (IRY) 7021,7022,7021                                          
- 7021 EXPD=0.                                                          
-      GO TO 7014
- 7022 TEXPD=0.
- 7014 IF (TOTE.LT.0.) GO TO 7017
-      GO TO 7023
- 7017 TOTE=0.
+        IF (iry) 300,310,300
+  300   expd=0.
+        GO TO 320
+  310   texpd=0.
+  320   IF (tote.lt.0.) GO TO 330
+        GO TO 340
+  330   tote=0.
 !
 !     WL is the lower boundary of the current class.
 !
- 7023 WL=TR-CLINT
+  340   wl=tr-clint
 !
 !     If the entire class lies above both the highest calculated
-!     and highest observed recognition distances, the expected 
+!     and highest observed recognition distances, the expected
 !     value (EXPDV) is set at zero and the calculations in Loop
 !     20 are bypassed.
 !
-      IF (WL.GT.RMAX .AND. WL.GT.ERMAX) GO TO 7015
-      GO TO 7020
- 7015 EXPDV=0.
-      GO TO 8100                                                        
+        IF (wl.gt.rmax.and.wl.gt.ermax) GO TO 350
+        GO TO 360
+  350   expdv=0.
+        GO TO 900
 !
 !     DNR is the central r value in an observing arc.
 !     It is initially set half of CINT below TR
 !
- 7020 DNR=TR-HCINT
+  360   dnr=tr-hcint
 !
 !     DNRH is the highest r value in an observing arc.  It is
 !     initially equal to TR.
 !
-      DNRH=DNR+HCINT
+        dnrh=dnr+hcint
 !
-!     DH is the direct-line distance to the outer edge of the 
+!     DH is the direct-line distance to the outer edge of the
 !     observing arc.
 !
-      DH=DSQRT(THH*THH+DNRH*DNRH)
+        dh=dsqrt(thh*thh+dnrh*dnrh)
 !
 !     Two alternative ways of calculating the probability of
 !     detection are provided.  If the method is based on the area
@@ -1951,177 +1897,178 @@
 !     the curve from y=DH to y=(infinity) is calculated and
 !     expressed as YYH.  If IMV=1, this calculation is bypassed.
 !
-      IF (IMV) 7024,7024,8000
+        IF (imv) 370,370,450
 !
 !     This method of computation uses one of two approximations to
 !     the exponential integral (APREXI).  If bd < 1, Approximation
 !     2 is used; if bd is equal to or greater than 1, Approximation
 !     1 is used.
 !
- 7024 ZH=Q*DH
+  370   zh=q*dh
 !
-!     To avoid overflow during computations, ZH is set at 68 if 
+!     To avoid overflow during computations, ZH is set at 68 if
 !     ZH > 68.
 !
-      IF (ZH.LT.68.) GO TO 7025
-      ZH=68.
-      GO TO 7026
+        IF (zh.lt.68.) GO TO 380
+        zh=68.
+        GO TO 390
 !
 !     ZH is set at -70 if ZH < 70.
 !
- 7025 IF ((-ZH).LT.70.) GO TO 7026
-      ZH=-70.
+  380   IF ((-zh).lt.70.) GO TO 390
+        zh=-70.
 !
 !     If ZH is zero, VHOWH (=VH/WH) is set at 0, and a few lines of
 !     calculations are bypassed.
 !
- 7026 IF (ZH) 7030,7027,7030
- 7027 VHOWH=0.
-      GO TO 7040
+  390   IF (zh) 410,400,410
+  400   vhowh=0.
+        GO TO 430
 !
 !     The choice of approximation depends on the value of bd.
 !
- 7030 IF (ZH.GE.1.0) GO TO 7035
-!    
+  410   IF (zh.ge.1.0) GO TO 420
+!
 !     Approximation 2 is used if bd<1.
 !
-      APREXI=-.577216+.999992*ZH-.249910*ZH**2+.055200*ZH**3
-     $-.009760*ZH**4+.0010792*ZH**5-LOG(ZH)
-      GO TO 7040
+        aprexi=-.577216+.999992*zh-.249910*zh**2+.055200*zh**3-.009760*
+     &   zh**4+.0010792*zh**5-log(zh)
+        GO TO 430
 !
 !     Approximation 1 is used if bd=1 or bd>1.
 !
- 7035 VH=ZH*ZH+2.334733*ZH+0.250621
-      WH=ZH*ZH+3.330457*ZH+1.681534
-      VHOWH=VH/WH
- 7040 SSH=DEXP(ZH)
-      YH=PA/(DH*SSH)
+  420   vh=zh*zh+2.334733*zh+0.250621
+        wh=zh*zh+3.330457*zh+1.681534
+        vhowh=vh/wh
+  430   ssh=dexp(zh)
+        yh=pa/(dh*ssh)
 !
 !     YYH is the area under the detectability curve from
 !     the current DH value to infinity.
 !
-      IF (ZH.GT.0. .AND. ZH.LT.1.0) GO TO 7050
-      YYH=YH*(1.-VHOWH)
-      GO TO 8000
- 7050 YYH=YH-PA*Q*APREXI
+        IF (zh.gt.0..and.zh.lt.1.0) GO TO 440
+        yyh=yh*(1.-vhowh)
+        GO TO 450
+  440   yyh=yh-pa*q*aprexi
 !
-!     Loop 20, which calculates the expected number in each 
+!     Loop 20, which calculates the expected number in each
 !     arc within the class, and adds them together to produce
 !     a progressive total (EXPD and TEXPD), now begins .....
 !
 !
- 8000 DO 20 JL=1,L20
+  450   DO 870 jl=1,l20
 !
 !     DNRL is the lowest r value in each arc; it is calculated
 !     simply by subtracting the arc width from the highest r
 !     value in the arc.
 !
-      DNRL=DNRH-CINT
-!   
-!     If, in the last class evaluated, DNRL comes to a negative 
+          dnrl=dnrh-cint
+!
+!     If, in the last class evaluated, DNRL comes to a negative
 !     value, it is then set at zero.
 !
-      IF (DNRL) 8001,8002,8002
- 8001 DNRL=0.
+          IF (dnrl) 460,470,470
+  460     dnrl=0.
 !
 !     DL is the direct-line distance from the observer to the
 !     inner edge of the current observing arc.
 !
- 8002 DL=DSQRT(THH*THH+DNRL*DNRL)
+  470     dl=dsqrt(thh*thh+dnrl*dnrl)
 !
 !     DINT is the difference between DL and DH, and thus the width
 !     of the area under the probability density curve between DH
 !     and DL.
 !
-      DINT=DH-DL
+          dint=dh-dl
 !
 !     If IMV has been set at zero, calculation of the probability
 !     of detection now follows, using the same approximation to the
-!     exponential integral as previously.  If IMV has been set at 
+!     exponential integral as previously.  If IMV has been set at
 !     1, computation moves to address 8020.
 !
-      IF (IMV) 8004,8004,8020
- 8004 ZL=Q*DL
-      IF (ZL.LT.68.) GO TO 8008
-      ZL=68.
-      GO TO 8009
- 8008 IF ((-ZL).LT.70.) GO TO 8009
-      ZL=-70.
- 8009 IF (ZL) 8011,8010,8011
- 8010 VLOWM=0.
-      GO TO 8013
+          IF (imv) 480,480,570
+  480     zl=q*dl
+          IF (zl.lt.68.) GO TO 490
+          zl=68.
+          GO TO 500
+  490     IF ((-zl).lt.70.) GO TO 500
+          zl=-70.
+  500     IF (zl) 520,510,520
+  510     vlowm=0.
+          GO TO 540
 !
 !     The choice of approximation depends on the value of bd.
 !
- 8011 IF (ZL.GE.1.0) GO TO 8012
-!    
+  520     IF (zl.ge.1.0) GO TO 530
+!
 !     Approximation 2 is used if bd<1.
 !
-      APREXI=-.577216+.999992*ZL-.249910*ZL**2+.055200*ZL**3
-     &-.009760*ZL**4+.0010792*ZL**5-LOG(ZL)
-      GO TO 8013
+          aprexi=-.577216+.999992*zl-.249910*zl**2+.055200*zl**3-
+     &     .009760*zl**4+.0010792*zl**5-log(zl)
+          GO TO 540
 !
 !     Approximation 1 is used if bd=1 or bd>1.
 !
- 8012 VL=ZL*ZL+2.334733*ZL+0.250621
-      WM=ZL*ZL+3.330457*ZL+1.681534
-      VLOWM=VL/WM
- 8013 SSL=DEXP(ZL)
-      YL=PA/(DL*SSL)
+  530     vl=zl*zl+2.334733*zl+0.250621
+          wm=zl*zl+3.330457*zl+1.681534
+          vlowm=vl/wm
+  540     ssl=dexp(zl)
+          yl=pa/(dl*ssl)
 !
 !     YYL is the area under the detectability curve from
 !     the current DL value to infinity.
 !
-      IF (ZL.GT.0. .AND. ZL.LT.1.0) GO TO 8014
-      YYL=YL*(1.-VLOWM)
-      GO TO 8016
- 8014 YYL=YL-PA*Q*APREXI
+          IF (zl.gt.0..and.zl.lt.1.0) GO TO 550
+          yyl=yl*(1.-vlowm)
+          GO TO 560
+  550     yyl=yl-pa*q*aprexi
 !
 !     AUC is the area under the detectability curve between
 !     d=DL and d=DH.
 !
- 8016 AUC=ABS(YYH-YYL)
+  560     auc=abs(yyh-yyl)
 !
 !     The mean corrected probability [PR=P(r)] of detecting an
 !     individual animal present between d=DL and d=DH is given by
 !     dividing the area under the curve by the arc width, then
 !     subtracting Pr(rmax).  It is the mean height of the curve.
 !
-      PR=AUC/DINT
-      GO TO 7083
+          pr=auc/dint
+          GO TO 680
 !
-!     Where IMV was set at 1, computation of the probability 
+!     Where IMV was set at 1, computation of the probability
 !     is based on its median value in the arc rather than
 !     the mean height of its density curve.
 !
 !     DD is the direct-line distance to the centre of the arc.
 !
- 8020 DD=DSQRT(THH*THH+DNR*DNR)
+  570     dd=dsqrt(thh*thh+dnr*dnr)
 !
 !     Visibility and audibility will be affected by topographical
-!     features in habitats where the ground is not level. The
-!     total probability of visibility at DD (VISDD) will be the product of
-!     the probability VEGDD that the animal is unobscured by vegetation
-!     at distance DD, and the probability TOPDD that it is unobscured
-!     by topography.  VEGDD will be a function of d (VISDD=(1-Q)**DD),
-!     while TOPDD is approximated by the function  
+!     features in habitats where the ground is not level. The total
+!     probability of visibility at DD (VISDD) will be the product the
+!     probability VEGDD that the animal is unobscured by vegetation at
+!     distance DD, and the probability TOPDD that it is unobscured by
+!     topography.  VEGDD will be a function of d (VISDD=(1-Q)**DD),
+!     while TOPDD is approximated by the function
 !     TOPDD=(1-TCOV)**(DD-LTMIN)=(EXP(ln(0.001)/(LTMAX-LTMIN)))**(DD-LTMIN).
-!     and VISDD=VEGDD*TOPDD.  A first step is to calculate TOPDD, 
-!     provided that LTMIN is not very large value or d is 
-!     currently less than LTMIN.  [If LTMIN is set at 999 or higher, 
+!     and VISDD=VEGDD*TOPDD.  A first step is to calculate TOPDD,
+!     provided that LTMIN is not very large value or d is
+!     currently less than LTMIN.  [If LTMIN is set at 999 or higher,
 !     topography is assumed not to affect detectability, so TOPDD is set
-!     at 1 and TCOV at zero.  If DD is less than LTMIN, topography is also
-!     assumed not to affect detectability, so TOPDD is again set at 1.]
+!     at 1 and TCOV at zero.  If DD is less than LTMIN, topography is
+!     also assumed not to affect detectability, so TOPDD is again set at
+!     1.]
 !
-      IF (LTMIN.GE.999.) GO TO 8003
-      IF (DD.GE.LTMIN) GO TO 8019
-      TOPDD=1.
-      GO TO 8021
- 8003 TOPDD=1.
-      TCOV=0.
-      GO TO 8021
- 8019 TOPDD=(EXP(-6.9078/(LTMAX-LTMIN)))**(DD-LTMIN)
-      TCOV=1-(EXP(-6.9078/(LTMAX-LTMIN)))
+          IF (ltmin.ge.999.) GO TO 580
+          IF (dd.ge.ltmin) GO TO 590
+          topdd=1.
+          GO TO 600
+  580     topdd=1.
+          tcov=0.
+          GO TO 600
+  590     topdd=(exp(-6.9078/(ltmax-ltmin)))**(dd-ltmin)
+          tcov=1-(exp(-6.9078/(ltmax-ltmin)))
 !
 !     For observing situations where there is 'ground'
 !     cover for only the first part of the direct-line distance
@@ -2132,62 +2079,62 @@
 !     (DVG) will have a value equal to (cover height) x (distance d)/
 !     (observer-animal height difference).
 !
- 8021 IF (KDT) 8017,8017,8018
- 8017 IF (VGH) 8026,8026,8025
- 8025 DVG=VGH*DD/THH
-      IF (DD.LE.DVG) GO TO 8026
-      VEGDD=(1.-Q)**DVG
-      VISDD=VEGDD*TOPDD
-      GO TO 8027
- 8026 VEGDD=(1.-Q)**DD
-      VISDD=VEGDD*TOPDD
- 8027 DDS=DD*DD
-      PR=PA*VISDD/DDS
-      GO TO 7083
+  600     IF (kdt) 610,610,650
+  610     IF (vgh) 630,630,620
+  620     dvg=vgh*dd/thh
+          IF (dd.le.dvg) GO TO 630
+          vegdd=(1.-q)**dvg
+          visdd=vegdd*topdd
+          GO TO 640
+  630     vegdd=(1.-q)**dd
+          visdd=vegdd*topdd
+  640     dds=dd*dd
+          pr=pa*visdd/dds
+          GO TO 680
 !
- 8018 QDD=Q*DD
-      IF (QDD.LT.68.) GO TO 8022
-      QDD=68.
-      GO TO 8023
- 8022 IF ((-QDD).LT.70.) GO TO 8023
-      QDD=-70.
- 8023 SS=DEXP(QDD)
-      DDS=DD*DD
-      PAD=PA/DDS
-      PR=PAD/SS
+  650     qdd=q*dd
+          IF (qdd.lt.68.) GO TO 660
+          qdd=68.
+          GO TO 670
+  660     IF ((-qdd).lt.70.) GO TO 670
+          qdd=-70.
+  670     ss=dexp(qdd)
+          dds=dd*dd
+          pad=pa/dds
+          pr=pad/ss
 !
 !     PRC [=P(r)] is the height of the detectability curve at DD,
 !     corrected by subtracting PRMAX.
 !
- 7083 PRC=PR-PRMAX
+  680     prc=pr-prmax
 !
 !     Because 0<PRC<1, an upper limit of 1 and a lower limit of
 !     0 are set to the probability function.
 !
-      IF (PRC.LE.1.) GO TO 7084
-      PRC=1.
+          IF (prc.le.1.) GO TO 690
+          prc=1.
 !
- 7084 IF (PRC.GE.0) GO TO 8033
-      PRC=0
+  690     IF (prc.ge.0) GO TO 700
+          prc=0
 !
-!     The probability (PRR=g(r)) of detection within an arc of width 
+!     The probability (PRR=g(r)) of detection within an arc of width
 !     CINT is different from that in an arc of unit width, and is
 !     equal to the product of the corrected probability and the
-!     arc width.  
+!     arc width.
 !
- 8033 PRR=PRC*CINT
+  700     prr=prc*cint
 !
 !     If the median r value in an arc is above both the expected
 !     and observed highest r values, PRR is set at zero and QR at 1
 !
-      IF (DNR.GE.ERMAX .AND. DNR.GE.RMAX) GO TO 8034
+          IF (dnr.ge.ermax.and.dnr.ge.rmax) GO TO 710
 !
 !     If the median r value is above the maximum expected r value
 !     but less than the maximum observed r value, PRR is allowed to
 !     have a negative value.
 !
-      IF (DNR.LE.RMAX .OR. DNR.LE.ERMAX) GO TO 8036
- 8034 PRR=0.
+          IF (dnr.le.rmax.or.dnr.le.ermax) GO TO 720
+  710     prr=0.
 !
 !     E [= g(r).P(r)] is a probability density function which
 !     describes the probability that an animal is both present and
@@ -2197,12 +2144,12 @@
 !     available for detection in that arc. TOTE is the accumulating
 !     total of the probability density function.
 !
- 8036 E=PRR*QR
-      TOTE=TOTE+E
+  720     e=prr*qr
+          tote=tote+e
 !
 !     The subroutine now calculates the number of detections (ED)
 !     expected for radial, fixed-point and perpendicular distance data.
-!     For radial data, computation is based on the assumption 
+!     For radial data, computation is based on the assumption
 !     that the arc of
 !     radius r and width delta-r sweeps over a series of plots of
 !     unit area.  The total number of detections expected in such
@@ -2217,13 +2164,13 @@
 !     the expected no. = D x NS x LJ x Pd x CINT x g(r) x P(r) x Q(r).
 !     NS must be converted to a floating-point number (SNS) first.
 !
-      SNS=FLOAT(NS)
-      IF (IRY) 8043,8042,8043
- 8042 IF (PD.GT.0.) GO TO 8047
-      ED=D2L*CINT*E*(SNS/2.)
-      GO TO 8050
- 8047 ED=D2L*CINT*E*PD*(SNS/2.)
-      GO TO 8050
+          sns=float(ns)
+          IF (iry) 750,730,750
+  730     IF (pd.gt.0.) GO TO 740
+          ed=d2l*cint*e*(sns/2.)
+          GO TO 790
+  740     ed=d2l*cint*e*pd*(sns/2.)
+          GO TO 790
 !
 !     With radial distance data, each observing arc sweeps out an
 !     area L units long and 2r units wide, within which there are
@@ -2234,53 +2181,53 @@
 !     With fixed-point data, the expected total number detected
 !     = [2Vt(=D2L)] x Pd x Ps x r x g(r) x P(r).
 !
- 8043 IF (IFX) 8044,8044,8046
- 8044 IF (PD.GT.0.) GO TO 8048
-      ED=D2L*E*DNRH*(SNS/2.)
-      GO TO 8050
- 8048 ED=D2L*E*DNRH*PD*(SNS/2.)
-      GO TO 8050
- 8046 ED=D2L*PD*PS*E*DNRH
+  750     IF (ifx) 760,760,780
+  760     IF (pd.gt.0.) GO TO 770
+          ed=d2l*e*dnrh*(sns/2.)
+          GO TO 790
+  770     ed=d2l*e*dnrh*pd*(sns/2.)
+          GO TO 790
+  780     ed=d2l*pd*ps*e*dnrh
 !
 !     With radial distance data, the total number expected in a
 !     class (EXPD) is obtained by progressively adding together
 !     the ED values from each arc with radii between DNRH and DNRL.
 !
- 8050 EXPD=ED+EXPD
+  790     expd=ed+expd
 !
 !     In the case of perpendicular distance data, all the EXPD
 !     values within a class are added together to give a TEXPD
 !     value for the class (while EXPD continues to accumulate
 !     from class to class).
 !
-      IF (IRY) 7180,7175,7180
- 7175 TEXPD=EXPD+TEXPD
+          IF (iry) 810,800,810
+  800     texpd=expd+texpd
 !
 !     In preparation for the next arc in the range, DNRL is
 !     now renamed DNRH (because the lowest value in one arc
 !     becomes the highest in the next, going inward), while DL
 !     similarly becomes DH.
 !
- 7180 DNRH=DNRL
-      DH=DL
+  810     dnrh=dnrl
+          dh=dl
 !
-!     Similarly, in the case of radial distance data, YYL 
+!     Similarly, in the case of radial distance data, YYL
 !     becomes YYH.
 !
-      IF (IMV) 8051,8051,8052
- 8051 YYH=YYL
+          IF (imv) 820,820,830
+  820     yyh=yyl
 !
 !     The DNR value for the next arc is DNR minus the
 !     arc width (CINT).
 !
- 8052 DNR=DNR-CINT
+  830     dnr=dnr-cint
 !
 !     Where PRR is negative, QR is kept at 1, because no animals
 !     are in fact removed from the sample at such distances from
 !     the observer.
 !
-      IF (PRR) 8055,8056,8056
- 8055 QR=1.
+          IF (prr) 840,850,850
+  840     qr=1.
 !
 !     The proportion still present in the next arc will be
 !     the proportion present in the present arc less the
@@ -2288,24 +2235,24 @@
 !
 !     For fixed-point data, QR remains at 1.
 !
- 8056 QR=(1.-PRR)*QR
+  850     qr=(1.-prr)*qr
 !
-!     If QR has fallen to a value of less than 0.001 - one 
+!     If QR has fallen to a value of less than 0.001 - one
 !     animal in a thousand - the program is set to print out the
 !     approximate value of rmin where this happens.
 !
-      IF (QR .GT. .001) GO TO 20
-      IF (JRLOW) 8065,8065,20
+          IF (qr.gt..001) GO TO 870
+          IF (jrlow) 860,860,870
 !
 !     RLOW is the inner boundary of the arc by which 99.9% of the
 !     detections are expected to have been made.
 !
- 8065 RLOW=DNRL-CINT
-      JRLOW=1
+  860     rlow=dnrl-cint
+          jrlow=1
 !
 !     Loop 20 now ends.
 !
-   20 CONTINUE                                                          
+  870   CONTINUE
 !
 !
 !     Loop 10 is completed by determining the expected value
@@ -2313,28 +2260,28 @@
 !     radial or fixed-point and perpendicular distance data. In
 !     both cases, negative EXPD values (EXPDN) are then added in.
 !
-      IF (IRY) 8070,8075,8070
- 8070 EXPDV=EXPD
-      GO TO 8100
- 8075 EXPDV=TEXPD
+        IF (iry) 880,890,880
+  880   expdv=expd
+        GO TO 900
+  890   expdv=texpd
 !
 !     Calculated values are printed out once the program has
 !     converged on a minimum, and KPRINT has been set at 1.
 !
- 8100 IF (WL.GT.RMAX) GO TO 8140
+  900   IF (wl.gt.rmax) GO TO 1080
 !
-!     If D2L has a trial value of zero, calculation of S at this stage 
+!     If D2L has a trial value of zero, calculation of S at this stage
 !     is bypassed and a record of this non-computation retained
 !     as the temporary variable MSFAIL.  This is done only when the
 !     program has converged on a minimum (MTEST=1) and in the final
 !     pass through Loop 10 (JJ=L10).
 !
-      IF (D2L) 8103,8103,8102
- 8102 IF (SNS.EQ.0.) SNS=2
-      S=EXPDV/(D2L*PD*(SNS/2)) + S
-      GO TO 8104
- 8103 IF ((MTEST.EQ.1) .AND. (JJ.EQ.L10)) MSFAIL=MSFAIL + 1
- 8104 IF (KPRINT) 8140,8140,8110
+        IF (d2l) 920,920,910
+  910   IF (sns.eq.0.) sns=2
+        s=expdv/(d2l*pd*(sns/2))+s
+        GO TO 930
+  920   IF ((mtest.eq.1).and.(jj.eq.l10)) msfail=msfail+1
+  930   IF (kprint) 1080,1080,940
 !
 !     For output purposes only, EXPDV is redefined as EXPDR in
 !     the case of radial distance data, and as EXPDY in the case
@@ -2342,36 +2289,36 @@
 !     are printed as '0.0' in the output because the 'observations'
 !     are unreal.
 !
- 8110 IF (IRY) 8112,8114,8112                                          
- 8112 RR=TR-(CLINT/2.)
-      EXPDR=EXPDV
-      IF (EXPDR) 811,812,812
-  811 EXPDR=0.
-  812 IF (ISHOW.LE.0) GO TO 816
-      WRITE(2,8113) RR,EXPDR,OBSD
- 8113 FORMAT(4H  r=,F8.1,5X,10HCalc.N(r)=,F9.2,5X,10HObsd.N(r)=,F9.1)
-  816 ROUT(JJ)=RR
-      CALCNR(JJ)=EXPDR 
-      OBSDNR(JJ)=OBSD            
-      GO TO 8116                                                        
- 8114 YY=TR-(CLINT/2.)
-      EXPDY=EXPDV
-      IF (EXPDY) 813,814,814
-  813 EXPDY=0.
-  814 IF (ISHOW.LE.0) GO TO 817
-      WRITE(2,8115) YY,EXPDY,OBSD       
- 8115 FORMAT(4H  y=,F8.1,5X,10HCalc.N(y)=,F9.2,5X,10HObsd.N(y)=,F9.1)
-  817 YOUT(JJ)=YY
-      CALCNY(JJ)=EXPDY 
-      OBSDNY(JJ)=OBSD   
+  940   IF (iry) 950,1000,950
+  950   rr=tr-(clint/2.)
+        expdr=expdv
+        IF (expdr) 960,970,970
+  960   expdr=0.
+  970   IF (ishow.le.0) GO TO 990
+        WRITE (2,980) rr,expdr,obsd
+  980   FORMAT ('  r=',f8.1,5x,'Calc.N(r)=',f9.2,5x,'Obsd.N(r)=',f9.1)
+  990   rout(jj)=rr
+        calcnr(jj)=expdr
+        obsdnr(jj)=obsd
+        GO TO 1050
+ 1000   yy=tr-(clint/2.)
+        expdy=expdv
+        IF (expdy) 1010,1020,1020
+ 1010   expdy=0.
+ 1020   IF (ishow.le.0) GO TO 1040
+        WRITE (2,1030) yy,expdy,obsd
+ 1030   FORMAT ('  y=',f8.1,5x,'Calc.N(y)=',f9.2,5x,'Obsd.N(y)=',f9.1)
+ 1040   yout(jj)=yy
+        calcny(jj)=expdy
+        obsdny(jj)=obsd
 !
-!     The difference between each observed (OBSD) and expected 
+!     The difference between each observed (OBSD) and expected
 !     value (EXPDV) for the class is now calculated.
 !
- 8116 IF (ISHOW) 8140,8140,8117
- 8117 WRITE(2,8118) PRC,PRR,QR,E,TOTE,ED,EXPD,EXPDV,S
- 8118 FORMAT (1X,9(F12.6,3X))
- 8140 DIF=OBSD-EXPDV
+ 1050   IF (ishow) 1080,1080,1060
+ 1060   WRITE (2,1070) prc,prr,qr,e,tote,ed,expd,expdv,s
+ 1070   FORMAT (1x,9(f12.6,3x))
+ 1080   dif=obsd-expdv
 !
 !     Each difference between the expected (EXPDV) and observed
 !     (OBSD) value is squared and a running sum of squares total
@@ -2396,82 +2343,83 @@
 !     procedure over the next few lines is governed by the values
 !     of KWT and LPRINT.
 !
-      IF (IRY) 8133,8141,8133
- 8141 IF (KWT) 8133,8133,8130
- 8130 IF (R3S) 8134,8134,8132
- 8134 R3S=100.0
-      GO TO 8132
- 8133 W=1.
-      GO TO 8122
- 8132 Z=DIF/R3S
-      IF (Z.LE.1.) GO TO 8120
-      W=0.
-      GO TO 8122
- 8120 W=(1-Z*Z)**2.
- 8122 WDIFSQ=W*DIF*DIF
-      WTOT=WTOT+WDIFSQ
+        IF (iry) 1120,1090,1120
+ 1090   IF (kwt) 1120,1120,1100
+ 1100   IF (r3s) 1110,1110,1130
+ 1110   r3s=100.0
+        GO TO 1130
+ 1120   w=1.
+        GO TO 1150
+ 1130   z=dif/r3s
+        IF (z.le.1.) GO TO 1140
+        w=0.
+        GO TO 1150
+ 1140   w=(1-z*z)**2.
+ 1150   wdifsq=w*dif*dif
+        wtot=wtot+wdifsq
 !
-      IF (LPRINT) 8146,8146,8145
- 8145 DIFSQ=DIF*DIF                                                     
-      TOT=TOT+DIFSQ                                                     
+        IF (lprint) 1170,1170,1160
+ 1160   difsq=dif*dif
+        tot=tot+difsq
 !
 !     TR is reduced by CLINT before the subroutine goes to the
 !     next class inward.
 !
- 8146 TR=TR-CLINT
+ 1170   tr=tr-clint
 !
 !     Loop 10 ends.
 !
-   10 CONTINUE                                                          
+ 1180 CONTINUE
 !
 !
-      IF (KPRINT) 8148,8148,8147
- 8147 WRITE(2,8150) RLOW
- 8150 FORMAT(//,23H 99.9% r value (rmin) =,F7.2,3H m /)
-      OPEN(UNIT=3,FILE=COMPARISON_FILE,STATUS='NEW',IOSTAT=IOS,ERR=286)
-      IF (IRY) 8151,8155,8151
- 8151 WRITE (3,8152)
- 8152 FORMAT (3X,38H   Midpt.   Calculated     Observed   )
-      DO 8153 JJ=1,L10
-      JV=L10-JJ+1
-      LIMIT=DMAX/CLINT
-      IF (JJ.GT.LIMIT) GO TO 8148
-      WRITE (3,8154) ROUT(JV),CALCNR(JV),OBSDNR(JV)
- 8154 FORMAT (5X,F6.1,6X,F7.2,7X,F6.1,4X)
- 8153 CONTINUE
-      GO TO 8148
- 8155 WRITE (3,8156)
- 8156 FORMAT (3X,38H   Midpt.   Calculated     Observed   )
-      DO 8157 JJ=1,L10
-      JV=L10-JJ+1
-      LIMIT=DMAX/CLINT
-      IF (JJ.GT.LIMIT) GO TO 8148
-      WRITE (3,8158) YOUT(JV),CALCNY(JV),OBSDNY(JV)
- 8158 FORMAT (5X,F6.1,6X,F7.2,7X,F6.1,4X)
- 8157 CONTINUE                                 
- 8148 CLOSE(UNIT=3)
+      IF (kprint) 1290,1290,1190
+ 1190 WRITE (2,1200) rlow
+ 1200 FORMAT (//,' 99.9% r value (rmin) =',f7.2,' m '/)
+      OPEN (UNIT=3,FILE=comparison_file,STATUS='NEW',IOSTAT=ios,
+     & ERR=1320)
+      IF (iry) 1210,1250,1210
+ 1210 WRITE (3,1220)
+ 1220 FORMAT (3x,'   Midpt.   Calculated     Observed   ')
+      DO 1240 jj=1,l10
+        jv=l10-jj+1
+        limit=dmax/clint
+        IF (jj.gt.limit) GO TO 1290
+        WRITE (3,1230) rout(jv),calcnr(jv),obsdnr(jv)
+ 1230   FORMAT (5x,f6.1,6x,f7.2,7x,f6.1,4x)
+ 1240 CONTINUE
+      GO TO 1290
+ 1250 WRITE (3,1260)
+ 1260 FORMAT (3x,'   Midpt.   Calculated     Observed   ')
+      DO 1280 jj=1,l10
+        jv=l10-jj+1
+        limit=dmax/clint
+        IF (jj.gt.limit) GO TO 1290
+        WRITE (3,1270) yout(jv),calcny(jv),obsdny(jv)
+ 1270   FORMAT (5x,f6.1,6x,f7.2,7x,f6.1,4x)
+ 1280 CONTINUE
+ 1290 CLOSE (unit=3)
 !
-      IF (LPRINT) 8160,8160,8161
- 8160 FUNC=WTOT+HTOT
-      GO TO 8180
- 8161 FUNC=TOT+HTOT
-      GO TO 8180
-  286 WRITE(6,287)COMPARISON_FILE,IOS
-  287 FORMAT(' Error opening ',A40,' - IOS = ',I6)
+      IF (lprint) 1300,1300,1310
+ 1300 func=wtot+htot
+      GO TO 1340
+ 1310 func=tot+htot
+      GO TO 1340
+ 1320 WRITE (6,1330) comparison_file,ios
+ 1330 FORMAT (' Error opening ',a40,' - IOS = ',i6)
 !
 !     If F(2) has been given a high negative value, FUNC is set to
 !     a high value before returning to the main program.
 !
- 8180 IF (F(2).GE.QMIN)GO TO 8190                 
-       FUNC=(ABS(F(2)-QMIN-1.))*FUNC                                     
- 8190 IF (KPRINT) 8200,8200,8191
- 8191 WRITE(2,8192) FUNC
- 8192 FORMAT(X,28HOLS Difference at Minimum = ,F15.6/)
- 8200 RETURN                                                            
-      END SUBROUTINE GIVEF
+ 1340 IF (f(2).ge.qmin) GO TO 1350
+      func=(abs(f(2)-qmin-1.))*func
+ 1350 IF (kprint) 1380,1380,1360
+ 1360 WRITE (2,1370) func
+ 1370 FORMAT (x,'OLS Difference at Minimum = ',f15.6/)
+ 1380 RETURN
+      END SUBROUTINE givef
 !
 !
-       SUBROUTINE SRANDNAG(ISEED)
+      SUBROUTINE srandnag (iseed)
 !
 !  This subroutine sets the integer seed to be used with the
 !  companion RANDNAG function to the value of ISEED.  A flag is
@@ -2479,15 +2427,15 @@
 !  for the specified seed should start from the beginning.
 !
 !
-      DOUBLE PRECISION JSEED,IFRST
-      COMMON / SEED /JSEED,IFRST
+      DOUBLE PRECISION jseed,ifrst
+      COMMON /seed/ jseed,ifrst
 !
-      JSEED=ISEED
-      IFRST=0
+      jseed=iseed
+      ifrst=0
 !
-      END SUBROUTINE SRANDNAG
+      END SUBROUTINE srandnag
 
-      SUBROUTINE RANDGEN(RESULT)
+      SUBROUTINE randgen (result)
 !
 !
 !  This function returns a pseudo-random number for each invocation.
@@ -2501,36 +2449,36 @@
 !  Algorithms Group (NAG) for UNIX systems.
 !
 !
-      DOUBLE PRECISION RESULT
+      DOUBLE PRECISION result
 
-      PARAMETER (MPLIER=16807,MODLUS=2147483647,MOBYMP=127773,
-     +           MOMDMP=2836)
+      PARAMETER  (mplier=16807,modlus=2147483647,mobymp=127773,
+     & momdmp=2836)
 !
-      COMMON / SEED /JSEED,IFRST
-      INTEGER HVLUE, LVLUE, TESTV, NEXTN
-      SAVE    NEXTN
+      COMMON /seed/ jseed,ifrst
+      INTEGER hvlue,lvlue,testv,nextn
+      SAVE  nextn
 !
-      IF (IFRST .EQ. 0) THEN
-        NEXTN = JSEED
-        IFRST=1
-      ENDIF
+      IF (ifrst .eq. 0) THEN
+        nextn=jseed
+        ifrst=1
+      END IF
 !
-      HVLUE = NEXTN / MOBYMP
-      LVLUE = MOD(NEXTN, MOBYMP)
-      TESTV = MPLIER*LVLUE - MOMDMP*HVLUE
-      IF (TESTV .GT. 0) THEN
-        NEXTN = TESTV
+      hvlue = nextn / mobymp
+      lvlue = MOD(nextn, mobymp)
+      testv = mplier*lvlue - momdmp*hvlue
+      IF (testv .gt. 0) THEN
+        nextn = testv
       ELSE
-        NEXTN = TESTV + MODLUS
-      ENDIF
-      RESULT = REAL(NEXTN)/REAL(MODLUS)
-
-      END SUBROUTINE RANDGEN
+        nextn = testv + modlus
+      END IF
+      result = REAL(nextn) / REAL(modlus)
+!
+      END SUBROUTINE randgen
 !
 !
-      BLOCKDATA RANDBD
-      COMMON / SEED /JSEED,IFRST
+      BLOCK DATA randbd
+      COMMON /seed/ jseed,ifrst
 !
-      DATA JSEED,IFRST/123456789,0/
+      DATA jseed,ifrst/123456789,0/
 !
-      END BLOCKDATA RANDBD
+      END BLOCKDATA randbd
