@@ -53,19 +53,24 @@
     NSAssert([aType isEqualToString:@"DensityCensus"], @"Unknown type");
     NSMutableString *contents = [NSMutableString stringWithCapacity:2048];
     [contents appendFormat:@"'%@'%c", header, 10];
-    [contents appendFormat:@"%g, %g, %d, %d, %g, ", params.clint, params.stt, params.numa, params.numo, params.dist];
-    [contents appendFormat:@"%g, %d, %d, %d, %d, %d%c", params.thh, params.ltmin, params.ltmax, params.ifx, params.iry, params.ns, 10];
-    [contents appendFormat:@"%d, %d, %d, %d, %d, %d, ", params.km, params.imv, params.kdt, iprint, jprint, ishow];
-    [contents appendFormat:@"%d, %g, %g, %d, %d, %g, %g%c", maxjb, params.r3s, params.vgh, params.it, params.iv, params.pd, params.ps, 10];
-    [contents appendFormat:@"%g, %g, %g, %g%c", params.f[0], params.f[1], params.f[2], params.f[3], 10];
-    [contents appendFormat:@"%g, %g, %g, %g%c%c", params.step[0], params.step[1], params.step[2], params.step[3], 10, 10];
+    [contents appendFormat:@"%d, %d, %d, %g, %d, %d, %d, %d, %g, %g%c", params.ifx, params.iry, params.kdt, params.dist, params.km, params.ltmin, params.ltmax, params.ns, params.pd, params.vgh, 10];
+    [contents appendFormat:@"%d, %d, %g, %g, %d, %d%c%c", params.it, params.iv, params.ps, params.thh, params.numa, params.numo, 10, 10];
     for (int i = 0; i < params.nvals; i++) {
         if (params.iry == 1) {
-            [contents appendFormat:@"%g, %d, %g%c", params.r[i], params.nsize[i], params.angle[i], 10];
+            [contents appendFormat:@"%g, %d, %g", params.r[i], params.nsize[i], params.angle[i]];
         } else {
-            [contents appendFormat:@"%g, %d%c", params.r[i], params.nsize[i], 10];
+            [contents appendFormat:@"%g, %d", params.r[i], params.nsize[i]];
+        }
+        if (elevations[i] == -1) {
+            [contents appendFormat:@"%c", 10];
+        } else {
+            [contents appendFormat:@", %g%c", elevations[i], 10];
         }
     }
+    [contents appendFormat:@"%c%g, %g, %d, %g, %g, %g, %g%c", 10, params.stt, params.clint, maxjb, params.f[0], params.f[1], params.f[2], params.f[3], 10];
+    [contents appendFormat:@"%g, %g, %g%c", params.step[0], params.step[1], params.step[2], 10];
+    [contents appendFormat:@"%d, %d, %d%c", iprint, jprint, ishow, 10];
+    [contents appendFormat:@"%d, %g, %g%c", params.imv, params.r3s, params.step[3], 10];
     return [contents dataUsingEncoding:NSUTF8StringEncoding];
 }
 
@@ -78,6 +83,8 @@
 
     if ([self parseInputColumns:contents]) {
         NSLog(@"Parsed column-arranged data");
+    } else if ([self parseInputOldColumns:contents]) {
+        NSLog(@"Parsed old column-arranged data");
     } else if ([self parseInputRows:contents withCommas:YES]) {
         NSLog(@"Parsed comma-separated data");
     } else if ([self parseInputRows:contents withCommas:NO]) {
@@ -112,6 +119,111 @@
 }
 
 - (BOOL)parseInputColumns:(NSString *)input
+{
+	NSScanner* scanner = [NSScanner scannerWithString:input];
+
+	if (![scanner scanString:@"'" intoString:nil]) return NO; /* Skip the opening quote */
+	if (![scanner scanUpToString:@"'" intoString:&header]) return NO;
+    [header retain];
+	if (![scanner scanString:@"'" intoString:nil]) return NO; /* Skip the closing quote */
+
+	if (![scanner scanInt:&params.ifx]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanInt:&params.iry]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanInt:&params.kdt]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanDouble:&params.dist]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+    if (![scanner scanInt:&params.km]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanInt:&params.ltmin]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanInt:&params.ltmax]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanInt:&params.ns]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanDouble:&params.pd]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanDouble:&params.vgh]) return NO;
+
+	if (![scanner scanInt:&params.it]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanInt:&params.iv]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanDouble:&params.ps]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanDouble:&params.thh]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanInt:&params.numa]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanInt:&params.numo]) return NO;
+
+    int i = 0;
+    unsigned currentLine;
+    while (i < MAX_OBSERVATIONS) {
+        unsigned potentialLine = [scanner scanLocation];
+        if ([scanner scanDouble:(params.r + i)]) {
+            currentLine = potentialLine; /* This really is a new line */
+        } else {
+            i--; /* What we thought was the previous line, was just the start of this one */
+            break;
+        }
+        if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+        if (![scanner scanInt:(params.nsize + i)]) break;
+        if (params.iry == 1) {
+            if (![scanner scanString:@"," intoString:nil]) break; /* Skip the comma separator */
+            if (![scanner scanDouble:(params.angle + i)]) return NO;
+        }
+        i++;
+        // and maybe there's an elevation parameter here too
+        if ([scanner scanString:@"," intoString:nil]) {
+            if (![scanner scanDouble:(elevations + i)]) return NO;
+        } else {
+            elevations[i] = -1;
+        }
+    }
+    if (i >= 1) {
+        params.nvals = i;
+        [scanner setScanLocation:currentLine];
+    } else {
+        return NO;
+    }
+
+	if (![scanner scanDouble:&params.stt]) return NO;
+    if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanDouble:&params.clint]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanInt:&params.maxjb]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+    for (int i = 0; i < NUM_SHAPE_PARAMS - 1; i++) {
+		if (![scanner scanDouble:&params.f[i]]) return NO;
+		if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	}
+    if (![scanner scanDouble:&params.f[NUM_SHAPE_PARAMS - 1]]) return NO;
+
+    if (![scanner scanDouble:&params.step[0]]) return NO;
+    if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+    if (![scanner scanDouble:&params.step[1]]) return NO;
+    if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+    if (![scanner scanDouble:&params.step[2]]) return NO;
+
+	if (![scanner scanInt:&params.iprint]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanInt:&params.jprint]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanInt:&params.ishow]) return NO;
+
+    if (![scanner scanInt:&params.imv]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+	if (![scanner scanDouble:&params.r3s]) return NO;
+	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
+    if (![scanner scanDouble:&params.step[NUM_SHAPE_PARAMS - 1]]) return NO;
+
+    return YES;
+}
+
+- (BOOL)parseInputOldColumns:(NSString *)input
 {
 	NSScanner* scanner = [NSScanner scannerWithString:input];
 
@@ -294,6 +406,26 @@
 - (void)calculate
 {
     [self setValue:@"" forKey:@"completeMsg"];
+    [self calculationWork];
+
+    [NSThread detachNewThreadSelector:@selector(calculationThread:) toTarget:self withObject:nil];
+    calculationTimer = nil;
+}
+
+- (void)calculationThread:(id)ignored
+{
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    //[self calculationWork];
+    [pool release];
+}
+
+const double PI = 3.14159254;
+double deg2rad(double deg) {
+    return deg / 180 * PI;
+}
+
+- (void)calculationWork
+{
     NSLog(@"Calculating to %@ and %@", outFile, graphFile);
     params.iprint = iprint;
     params.jprint = jprint;
@@ -307,6 +439,23 @@
     unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:outFile]);
     unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:graphFile]);
 
+    int elevationCount = 0;
+    double sumOfSquaredElevations = 0;
+    for (int i = 0; i < params.nvals; i++) {
+        if (elevations[i] != -1) {
+            double horizontalDistance = params.r[i];
+            if (params.km == 2) horizontalDistance *= 1000;
+            elevationCount++;
+            double elevation = horizontalDistance * tan(deg2rad(elevations[i]));
+            sumOfSquaredElevations += elevation * elevation;
+        }
+    }
+    if (elevationCount) {
+        double thh = sqrt(sumOfSquaredElevations / elevationCount);
+        NSLog(@"Overriding THH %g with %g", params.thh, thh);
+        params.thh = thh;
+    }
+
     calculate_density(&params, hdr, out, graph, strlen(hdr), strlen(out), strlen(graph));
 
     NSString *message;
@@ -317,20 +466,6 @@
         message = [NSString stringWithFormat:@"Calculation failed: Detailed results in %@", outFile];
     }
     [self setValue:message forKey:@"completeMsg"];
-
-    [NSThread detachNewThreadSelector:@selector(calculationThread:) toTarget:self withObject:nil];
-    calculationTimer = nil;
-}
-
-- (void)calculationThread:(id)ignored
-{
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    [self calculationWork];
-    [pool release];
-}
-
-- (void)calculationWork
-{
 }
 
 @end
