@@ -951,7 +951,7 @@
 !     510 then goes back to its beginning to select another Y value,
 !     and so on until all NVALS selections have been made.
 !
-  500      bsty(jr)=r(jx)
+  500      bsty(jr)=y(jx)
            nbsz(jr)=nsize(jx) 
 !
   510 CONTINUE
