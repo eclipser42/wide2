@@ -1,6 +1,6 @@
 /*
  *  mnps2.h
- *  Wildlife Density
+ *  WildlifeDensity
  *
  *  Created by David Morgan on Mon Aug 02 2004.
  *  Copyright (c) 2004 __MyCompanyName__. All rights reserved.
