@@ -69,9 +69,9 @@
 !     Data are entered into the program by means of an appropriately
 !     formatted tab- or comma-separated dataset in a file named
 !     '<filename>.dat'.  It outputs two files:  the first, named
-!     '<filename>_results', prints out final values of the parameters
+!     '<filename>.results', prints out final values of the parameters
 !     of the dataset supplied, together with some of the main attributes
-!     of the observing situation;  the second, named 'Outfile2.txt',
+!     of the observing situation;  the second, named '<filename>.graphData',
 !     sets out the original frequency distribution and the calculated
 !     frequency distribution of best fit in a column format suitable
 !     as input to a graphing application such as MS 'Excel'.
@@ -391,7 +391,7 @@
 !     This program uses double precision for all real numbers.
 !
 !
-      SUBROUTINE calculate_density (params, header, outfile)
+      SUBROUTINE calculate_density (params, header, outfile, graph_file)
 !
 !
       IMPLICIT NONE
@@ -408,11 +408,13 @@
       DOUBLE PRECISION f(4), step(4), r(5000)
       INTEGER nsize(5000)
       DOUBLE PRECISION angle(5000)
+      INTEGER complete
+      DOUBLE PRECISION estden, sden
       END TYPE CALC_PARAMS
 
       TYPE (CALC_PARAMS) params
 !
-      CHARACTER*(*) header, outfile
+      CHARACTER*(*) header, outfile, graph_file
 !
 !     The variables declared below are in alphabetical order.
 !
@@ -961,7 +963,7 @@
           CALL givef (f, h(i), dcoeff, val, clint, pd, ps, r3s, stt,
      &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt,
      &     kprint, kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns,
-     &     msfail, mtest, 'Outfile2.txt')
+     &     msfail, mtest, graph_file)
 
 !
           neval=neval+1
@@ -1019,7 +1021,7 @@
         CALL givef (pstar, hstar, dcoeff, val, clint, pd, ps, r3s, stt,
      &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint,
      &    kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail,
-     &   mtest, 'Outfile2.txt')
+     &   mtest, graph_file)
 !
 !     The next 5 statements test whether a progress report is
 !     required and, if so, provide one.  This procedure occurs
@@ -1049,7 +1051,7 @@
         CALL givef (pstst, hstst, dcoeff, val, clint, pd, ps, r3s, stt,
      &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint,
      &    kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail,
-     &   mtest, 'Outfile2.txt')
+     &   mtest, graph_file)
 !
 !     If IPRINT=1 the program prints out the progress of the
 !     iteration.  This is not normally required.
@@ -1104,7 +1106,7 @@
         CALL givef (pstst, hstst, dcoeff, val, clint, pd, ps, r3s, stt,
      &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint,
      &    kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail,
-     &   mtest, 'Outfile2.txt')
+     &   mtest, graph_file)
 !
         neval=neval+1
         IF ((iprint.eq.1).and.(jprint.eq.1)) GO TO 950
@@ -1138,7 +1140,7 @@
           CALL givef (f, h(i), dcoeff, val, clint, pd, ps, r3s, stt,
      &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt,
      &     kprint, kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns,
-     &     msfail, mtest, 'Outfile2.txt')
+     &     msfail, mtest, graph_file)
 !
           neval=neval+1
           IF ((iprint.eq.1).and.(jprint.eq.1)) THEN
@@ -1316,7 +1318,7 @@
         CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
      &    thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
      &    lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail, mtest,
-     &    'Outfile2.txt')
+     &    graph_file)
 !
         lprint=1
         kprint=0
@@ -1569,9 +1571,12 @@
  1920 CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
      & thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
      & lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail, mtest,
-     & 'Outfile2.txt')
+     & graph_file)
 !
 !
+      params.complete = 1
+      params.estden = estden
+      params.sden = sden
       CLOSE (unit=2)
       RETURN
 !
@@ -1602,7 +1607,7 @@
       SUBROUTINE givef (f, func, s, val, clint, pd, ps, r3s, stt, tcov,
      & thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
      & lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail, mtest,
-     & comparison_file)
+     & graph_file)
 !
 !     Double precision for all real numbers is set, together with
 !     common values, dimensions and symbols for key variables.
@@ -1614,7 +1619,7 @@
       INTEGER iermax,ifx,imv,ios,iry,ishow,it,iv,jj,jl,jrlow,jv
       INTEGER kdt,kprint,kwt,lprint,l10,l20,limit,ltmin,ltmax
       INTEGER max,maxjb,md,msfail,mtest,ns,numa,numo,nvals
-      CHARACTER*(*) comparison_file
+      CHARACTER*(*) graph_file
       DOUBLE PRECISION aprexi,auc,cint,clint,d2l,dd,dds,ddsm,dh,dif
       DOUBLE PRECISION difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed
       DOUBLE PRECISION ermax,err,expd,expdr,expdy,expdv,func
@@ -2432,17 +2437,19 @@
       IF (kprint) 1290,1290,1190
  1190 WRITE (2,1200) rlow
  1200 FORMAT (//,' 99.9% r value (rmin) =',f7.2,' m '/)
-      OPEN (UNIT=3,FILE=comparison_file,STATUS='NEW',IOSTAT=ios,
+      OPEN (UNIT=3,FILE=graph_file,STATUS='NEW',IOSTAT=ios,
      & ERR=1320)
       IF (iry) 1210,1250,1210
  1210 WRITE (3,1220)
  1220 FORMAT (3x,'   Midpt.   Calculated     Observed   ')
       DO 1240 jj=1,l10
         jv=l10-jj+1
-        IF (kdt.gt.1) limit=kdt/clint
-        GO TO 1225
-        limit=dmax/clint
- 1225   IF (jj.gt.limit) GO TO 1290
+      IF (kdt.gt.1) THEN
+         limit = kdt / clint
+      ELSE
+         limit = dmax / clint
+      ENDIF
+      IF (jj.gt.limit) GO TO 1290
         WRITE (3,1230) rout(jv),calcnr(jv),obsdnr(jv)
  1230   FORMAT (5x,f6.1,6x,f7.2,7x,f6.1,4x)
  1240 CONTINUE
@@ -2451,10 +2458,12 @@
  1260 FORMAT (3x,'   Midpt.   Calculated     Observed   ')
       DO 1280 jj=1,l10
         jv=l10-jj+1
-        IF (kdt.gt.1) limit=kdt/clint
-        GO TO 1265
-        limit=dmax/clint
- 1265 IF (jj.gt.limit) GO TO 1290
+      IF (kdt.gt.1) THEN
+        limit = kdt / clint
+      ELSE
+        limit = dmax / clint
+      ENDIF
+      IF (jj.gt.limit) GO TO 1290
       WRITE (3,1270) yout(jv),calcny(jv),obsdny(jv)
  1270   FORMAT (5x,f6.1,6x,f7.2,7x,f6.1,4x)
  1280 CONTINUE
@@ -2465,7 +2474,7 @@
       GO TO 1340
  1310 func=tot+htot
       GO TO 1340
- 1320 WRITE (6,1330) comparison_file,ios
+ 1320 WRITE (6,1330) graph_file,ios
  1330 FORMAT (' Error opening ',a40,' - IOS = ',i6)
 !
 !     If F(2) has been given a high negative value, FUNC is set to

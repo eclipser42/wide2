@@ -19,10 +19,12 @@ typedef struct {
     double step[NUM_SHAPE_PARAMS], r[MAX_OBSERVATIONS];
     int nsize[MAX_OBSERVATIONS];
     double angle[MAX_OBSERVATIONS];
-    int runid;
+    int complete;
+    double estden, sden;
 } calc_params;
 
 //extern void calculate_density(calc_params *params, const char *header,
 //                              int headerlen);
-extern void calculate_density(calc_params *params, const char *header,
-                              const char *outfile, int headerlen, int outfilelen);
+extern void calculate_density(calc_params *params,
+                              const char *header, const char *outfile, const char *graphfile,
+                              int headerlen, int outfilelen, int graphfilelen);
