@@ -381,26 +381,25 @@
 !
 !     The variables declared below are in alphabetical order.
 !
-      INTEGER, DIMENSION :: NSIZE(5000),NBSZ(5000)
+      INTEGER NSIZE(5000),NBSZ(5000)
       INTEGER I,IA,IB,IC,IE,IFLAG,IFX,IG,IH,IMAX
       INTEGER IMIN,IMV,IN,IOS,IPRINT,IR,IRB,IROW,IRY,ISEED,ISHOW,IT,IV
-      INTEGER J,JB,JBSTP,JK,JPRINT,JR,JS,JV,JX,K,KM,KPRINT,KWT,LOOP
+      INTEGER J,JB,JBSTP,JK,JPRINT,JR,JS,JV,JX,K,KDT,KM,KPRINT,KWT,LOOP
       INTEGER LPRINT,LTMIN,LTMAX,MAX,MAXJB,MFAIL,MSFAIL,MTEST,NAP,NEVAL
       INTEGER NLOOP,NOP,NP1,NS,NUMA,NUMEST,NUMO,NVALS
-      REAL A,APPROX,B,C,CF1DIF,CF1SUM,CF2DIF,CF2SUM,CF3DIF,CF3SUM
-      REAL CLINT,DENDIF,DIST,DLIM,DSUM,FRST,PD,PS,SCF1,SCF2,SCF3
-      REAL SDEN,STT
-      DOUBLE PRECISION COEFF1,COEFF2,COEFF3,COEFFNT1,COEFFNT2,COEFFNT3
-      DOUBLE PRECISION DCOEFF,ESTDEN,HMAX,HMIN,HSTAR,HSTD,HMEAN,R3S
-      DOUBLE PRECISION SAVEMN,SNS,STOPC,TEST,TCOEFF1,TCOEFF2,TCOEFF3
-      DOUBLE PRECISION TCOV,TDEN,THH,VGH
-      REAL, DIMENSION :: R(5000),BSTR(5000),Y(5000),BSTY(5000),
-     & DEN(5000),COEFF1(5000),COEFF2(5000),COEFF3(5000),ANGLE(5000)
-      & RANDNAG(5000)
-      DOUBLE PRECISION, DIMENSION :: VAL(80),VALT(80)
-      DOUBLE PRECISION, DIMENSION :: G(5,4),STEP(4),STEPT(4),F(4),FT(4)
-      DOUBLE PRECISION, DIMENSION :: H(4),PBAR(4),PSTAR(4),PSTST(4)
-!     REAL RAND
+      DOUBLE PRECISION A,APPROX,B,C,CF1DIF,CF1SUM,CF2DIF,CF2SUM,CF3DIF
+      DOUBLE PRECISION CF3SUM, CLINT,COEFFNT1,COEFFNT2,COEFFNT3
+      DOUBLE PRECISION DCOEFF, DENDIF,DIST,DLIM,DSUM,FRST, ESTDEN,  FUNC
+      DOUBLE PRECISION HMAX,HMEAN,HMIN,HSTAR,HSTD,HSTST, PD,PS
+      DOUBLE PRECISION SAVEMN, SCF1,SCF2,SCF3,R3S, SDEN, SNS, STOPC, STT
+      DOUBLE PRECISION TEST, TCOEFF1, TCOEFF2, TCOEFF3, TCOV, TDEN, THH
+      DOUBLE PRECISION VGH, X
+      REAL R(5000),BSTR(5000),Y(5000),BSTY(5000), DEN(5000)
+      REAL COEFF1(5000), COEFF2(5000), COEFF3(5000), ANGLE(5000)
+      DOUBLE PRECISION VAL(80),VALT(80)
+      DOUBLE PRECISION G(5,4),STEP(4),STEPT(4),F(4),FT(4)
+      DOUBLE PRECISION H(4),PBAR(4),PSTAR(4),PSTST(4)
+
 !
 !  
 !     The program accepts up to 5000 data values, each being the total
@@ -608,7 +607,7 @@
 !
 !     The stopping criterion (STOPC) is set at a suitable value.
 !
-   18 STOPC=0.00001
+   18 STOPC=0.0008
 !
 !     If progress reports are required (IPRINT=1), the program
 !     prints a heading for them.
@@ -715,6 +714,7 @@
 !
 !
    32 FRST=STT
+
       DO 92 IC=1,80
       VAL(IC)=0.0
       IF (JBSTP.EQ.1) GO TO 91
@@ -747,6 +747,7 @@
 !
 !   
    33 FRST=STT
+
       DO 34 IC=1,80
       VAL(IC)=0.0
       IF (JBSTP.EQ.1) GO TO 91
@@ -803,7 +804,7 @@
 !     and converted to integer form, adding 1 to allow for chopping. 
 !
       CALL SRANDNAG(ISEED)
-      X = RANDNAG()
+      CALL RANDGEN(X)
       JX = INT(X*NVALS + 1)
 !
 !     What happens now depends on whether radial or perpendicular
@@ -914,6 +915,7 @@
 !     The initial simplex of program MINIM is now set up.
 !
 !
+
   103 DO 100 I=1,NOP
   100 G(1,I)=F(I)                                                       
       IROW=2                                                            
@@ -936,8 +938,9 @@
      & IT,IV,KDT,KPRINT,KWT,
      & LPRINT,LTMAX,LTMIN,NUMA,NUMO,
      & NVALS,NS,MSFAIL,MTEST,'Outfile2.txt')
+
 !
-      NEVAL=NEVAL+1                                                     
+      NEVAL=NEVAL+1 
 !                                                                       
 !     All points in the initial simplex become output if IPRINT=1.
 !
@@ -1127,23 +1130,24 @@
      & NVALS,NS,MSFAIL,MTEST,'Outfile2.txt')
 !
       NEVAL=NEVAL +1                                                    
-      IF ((IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) GO TO 530
-      GO TO 550
-  530 J=NEVAL/IPRINT                                                    
-      K=NEVAL-J*IPRINT                                                  
-      IF (K) 540,540,550
-  540 WRITE(2,160) NEVAL, H(I),(F(J),J=1,NOP)                             
-  550 CONTINUE                                                          
+      IF ((IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) THEN
+  530    J=NEVAL/IPRINT                                                    
+         K=NEVAL-J*IPRINT
+         IF (K.LT.0) THEN
+  540       WRITE(2,160) NEVAL, H(I),(F(J),J=1,NOP)
+         ENDIF
+      ENDIF
+  550 CONTINUE
+
       GO TO 580                                                         
   560 DO 570 I=1,NOP                                                    
   570 G(IMAX,I)=PSTAR(I)                                                
       H(IMAX)=HSTAR                                                     
-!                                                                       
+!
 !     If LOOP=NLOOP, tests for convergence begin.  Otherwise
 !     computation goes back to the beginning of the basic loop.
 !
-  580 IF (LOOP.EQ.NLOOP) GO TO 590                                          
-  581 GO TO 180                                                             
+  580 IF (LOOP.NE.NLOOP) GO TO 180                                                             
 !
 !                                                                       
 !   Tests for Convergence -
@@ -1156,7 +1160,7 @@
       DO 600 I=1,NP1                                                    
       HSTD=HSTD+H(I)*H(I)                                               
   600 HMEAN=HMEAN+H(I)                                                  
-      HMEAN=HMEAN/FLOAT(NP1)                                                 
+      HMEAN=HMEAN/FLOAT(NP1)
       HSTD=(HSTD-FLOAT(NP1)*HMEAN*HMEAN)/FLOAT(NP1)                          
       HSTD=SQRT(ABS(HSTD))                                                   
 !                                                                       
@@ -1279,8 +1283,8 @@
 !
   797 IF (JPRINT) 850,850,800
   800 WRITE(2,810) NEVAL                                                   
-  810 FORMAT(5(/),36H PROCESS CONVERGES ON MINIMUM AFTER ,I4,21H FUNCTIO 
-     &N EVALUATIONS///)                                                 
+  810 FORMAT(5(/),36H PROCESS CONVERGES ON MINIMUM AFTER ,I4,
+     &21H FUNCTION EVALUATIONS///)
       WRITE(2,820) (F(I),I=1,NOP)                                          
   820 FORMAT(14H MINIMUM AT   ,4(1X,E13.6))                              
       WRITE(2,830) FUNC                                                    
@@ -1573,7 +1577,7 @@
       RETURN
 !
 !
-  283 WRITE(6,285)INFILE,IOS
+! 283 WRITE(6,285)INFILE,IOS
   285 FORMAT(' Error opening ',A40,' - IOS = ',I6)
 !     STOP
       RETURN
@@ -1614,24 +1618,24 @@
       IMPLICIT NONE
 !
 !
-      INTEGER IERMAX,IFX,IMV,IOSTAT,IRY,ISHOW,IT,IV,JJ,JL,JRLOW,JV
+      INTEGER IERMAX,IFX,IMV,IOS,IRY,ISHOW,IT,IV,JJ,JL,JRLOW,JV
       INTEGER KDT,KPRINT,KWT,LPRINT,L10,L20,LIMIT,LTMIN,LTMAX
       INTEGER MAX,MAXJB,MD,MSFAIL,MTEST,NS,NUMA,NUMO,NVALS 
       CHARACTER*(*) COMPARISON_FILE
       DOUBLE PRECISION APREXI,AUC,CINT,CLINT,D2L,DD,DDS,DDSM,DH,DIF
       DOUBLE PRECISION DIFSQ,DINT,DL,DMAX,DNR,DNRL,DNRH,DVG,E,ED
       DOUBLE PRECISION ERMAX,ERR,EXPD,EXPDR,EXPDY,EXPDV,FUNC
-      DOUBLE PRECISION HCINT,HTOT,OBSD,P,PA,PAD,PAM,PD,PR,PRC,PRR,
-      DOUBLE PRECISION PRMAX,PS,Q,QDD,QDMAX,QMIN,QR,R3S,RMAX,RR
-      DOUBLE PRECISION S,SNS,SS,SSH,SSL,SSMAX,STT,TCOV,TEXPD,THH
-      DOUBLE PRECISION TOPDD,TOPMAX,TOT,TOTE,TR,VEGDD,VEGMAX,VGH
-      DOUBLE PRECISION VH,VISDD,VISMAX,VL,VLOWM,W,WDIFSQ,WH,WL,WM
-      DOUBLE PRECISION WTOT,YH,YL,YY,YYH,YYL,Z,ZH,ZL
-      DOUBLE PRECISION, DIMENSION :: VAL(80)
-      DOUBLE PRECISION, DIMENSION :: ROUT(80),CALCNR(80),OBSDNR(80) 
-      DOUBLE PRECISION, DIMENSION :: YOUT(80),CALCNY(80),OBSDNY(80)  
-      DOUBLE PRECISION, DIMENSION :: G(5,4),STEP(4),STEPT(4),F(4)
-      DOUBLE PRECISION, DIMENSION :: H(4),PBAR(4),PSTAR(4),PSTST(4)         
+      DOUBLE PRECISION HCINT,HTOT,OBSD,P,PA,PAD,PAM,PD,PR,PRC,PRR
+      DOUBLE PRECISION PRMAX,PS,Q,QDD,QDMAX,QMIN,QR,R3S, RLOW
+      DOUBLE PRECISION RMAX,RR, S,SNS,SS,SSH,SSL,SSMAX,STT,TCOV,TEXPD
+      DOUBLE PRECISION THH, TOPDD,TOPMAX,TOT,TOTE,TR,VEGDD,VEGMAX,VGH
+      DOUBLE PRECISION VH,VISDD,VISMAX,VL,VLOWM,W,WDIFSQ,WH, VHOWH,WL
+      DOUBLE PRECISION WM, WTOT,YH,YL,YY,YYH,YYL,Z,ZH,ZL
+      DOUBLE PRECISION VAL(80)
+      DOUBLE PRECISION ROUT(80),CALCNR(80),OBSDNR(80) 
+      DOUBLE PRECISION YOUT(80),CALCNY(80),OBSDNY(80)  
+      DOUBLE PRECISION G(5,4),STEP(4),STEPT(4),F(4)
+      DOUBLE PRECISION H(4),PBAR(4),PSTAR(4),PSTST(4)         
 !
 !     COMMON / common1 /VAL(80),H(4),PBAR(4),PSTAR(4),PSTST(4)
 !     COMMON / common2 /HSTAR,HSTST,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH
@@ -1651,7 +1655,7 @@
 !     FUNC (through HTOT) a very high value if a parameter falls
 !     outside predetermined limits.
 !
-      P=F(1)                                                            
+      P=F(1)
 !
 !     HTOT is a variable used to deflect the search away from
 !     highly improbable values of the parameters.
@@ -2483,7 +2487,7 @@
 !
       END SUBROUTINE SRANDNAG
 
-      REAL FUNCTION RANDNAG()
+      SUBROUTINE RANDGEN(RESULT)
 !
 !
 !  This function returns a pseudo-random number for each invocation.
@@ -2497,6 +2501,8 @@
 !  Algorithms Group (NAG) for UNIX systems.
 !
 !
+      DOUBLE PRECISION RESULT
+
       PARAMETER (MPLIER=16807,MODLUS=2147483647,MOBYMP=127773,
      +           MOMDMP=2836)
 !
@@ -2517,11 +2523,11 @@
       ELSE
         NEXTN = TESTV + MODLUS
       ENDIF
-      RANDNAG = REAL(NEXTN)/REAL(MODLUS)
-!
-      RETURN
-      END FUNCTION RANDNAG
+      RESULT = REAL(NEXTN)/REAL(MODLUS)
 
+      END SUBROUTINE RANDGEN
+!
+!
       BLOCKDATA RANDBD
       COMMON / SEED /JSEED,IFRST
 !
