@@ -56,9 +56,9 @@
 !     provides three different ways of calculating expected values, 
 !     viz:
 !
-!		. radial distance data supplied (IFX=0 and IRY=0);
-!		. perpendicular distance data supplied (IFX=0 and IRY=1);
-!		. fixed-point data supplied (IFX=1 and IRY=0);
+!       . radial distance data supplied (IFX=0 and IRY=0);
+!       . perpendicular distance data supplied (IFX=0 and IRY=1);
+!       . fixed-point data supplied (IFX=1 and IRY=0);
 !
 !
 !     Data are supplied to the program by means of a data file, 
@@ -128,12 +128,12 @@
 !         in metres.
 !
 !    IMV - a parameter used to determine which method of 
-!		  calculating probability is used in the subroutine.
-!		  It either:
-!			. calculates a mean probability value
-!			      within each interval (IMV=0); or
-!		        . calculates the median probability
-!			      value within each interval (IMV=1), viz: 
+!          calculating probability is used in the subroutine.
+!          It either:
+!               . calculates a mean probability value
+!                 within each interval (IMV=0); or
+!               . calculates the median probability
+!                 value within each interval (IMV=1), viz: 
 !
 !            =0  uses the mean value of P(r) in an interval;
 !            =1  uses the median value of P(r).
@@ -275,7 +275,7 @@
 !          the minimization process.
 !
 !     FUNC - the sum of squares of the differences between 
-!		  observed and expected values;
+!          observed and expected values;
 !
 !     MAX - the maximum number of function evaluations to be
 !          allowed (set at 750);
@@ -382,21 +382,21 @@
 !     The variables declared below are in alphabetical order.
 !
       INTEGER, DIMENSION :: NSIZE(5000),NBSZ(5000)
-	  INTEGER I,IA,IB,IC,IE,IFLAG,IFX,IG,IH,IMAX
+      INTEGER I,IA,IB,IC,IE,IFLAG,IFX,IG,IH,IMAX
       INTEGER IMIN,IMV,IN,IOS,IPRINT,IR,IRB,IROW,IRY,ISEED,ISHOW,IT,IV
       INTEGER J,JB,JBSTP,JK,JPRINT,JR,JS,JV,JX,K,KM,KPRINT,KWT,LOOP
-	  INTEGER LPRINT,LTMIN,LTMAX,MAX,MAXJB,MFAIL,MSFAIL,MTEST,NAP,NEVAL
-	  INTEGER NLOOP,NOP,NP1,NS,NUMA,NUMEST,NUMO,NVALS
-	  REAL A,APPROX,B,C,CF1DIF,CF1SUM,CF2DIF,CF2SUM,CF3DIF,CF3SUM
-	  REAL CLINT,DENDIF,DIST,DLIM,DSUM,FRST,PD,PS,SCF1,SCF2,SCF3
-	  REAL SDEN,STT
+      INTEGER LPRINT,LTMIN,LTMAX,MAX,MAXJB,MFAIL,MSFAIL,MTEST,NAP,NEVAL
+      INTEGER NLOOP,NOP,NP1,NS,NUMA,NUMEST,NUMO,NVALS
+      REAL A,APPROX,B,C,CF1DIF,CF1SUM,CF2DIF,CF2SUM,CF3DIF,CF3SUM
+      REAL CLINT,DENDIF,DIST,DLIM,DSUM,FRST,PD,PS,SCF1,SCF2,SCF3
+      REAL SDEN,STT
       DOUBLE PRECISION COEFF1,COEFF2,COEFF3,COEFFNT1,COEFFNT2,COEFFNT3
-	  DOUBLE PRECISION DCOEFF,ESTDEN,HMAX,HMIN,HSTAR,HSTD,HMEAN,R3S
-	  DOUBLE PRECISION SAVEMN,SNS,STOPC,TEST,TCOEFF1,TCOEFF2,TCOEFF3
-	  DOUBLE PRECISION TCOV,TDEN,THH,VGH
+      DOUBLE PRECISION DCOEFF,ESTDEN,HMAX,HMIN,HSTAR,HSTD,HMEAN,R3S
+      DOUBLE PRECISION SAVEMN,SNS,STOPC,TEST,TCOEFF1,TCOEFF2,TCOEFF3
+      DOUBLE PRECISION TCOV,TDEN,THH,VGH
       REAL, DIMENSION :: R(5000),BSTR(5000),Y(5000),BSTY(5000),
      & DEN(5000),COEFF1(5000),COEFF2(5000),COEFF3(5000),ANGLE(5000)
-	 & RANDNAG(5000)
+      & RANDNAG(5000)
       DOUBLE PRECISION, DIMENSION :: VAL(80),VALT(80)
       DOUBLE PRECISION, DIMENSION :: G(5,4),STEP(4),STEPT(4),F(4),FT(4)
       DOUBLE PRECISION, DIMENSION :: H(4),PBAR(4),PSTAR(4),PSTST(4)
@@ -501,7 +501,7 @@
 !
 !     OPEN(UNIT=1,FILE=INFILE,STATUS='OLD',IOSTAT=IOS,ERR=283)
       OPEN(UNIT=2,FILE=OUTFILE,STATUS='NEW',IOSTAT=IOS,ERR=284)
-!     READ(1,!) HEADER,NVALS,CLINT,STT,NUMA,NUMO,DIST,THH,LTMIN,
+!     READ(1,*) HEADER,NVALS,CLINT,STT,NUMA,NUMO,DIST,THH,LTMIN,
 !    & LTMAX,IFX,IRY,NS,KM,IMV,KDT,IPRINT,JPRINT,ISHOW,MAXJB,R3S,
 !    & VGH,IT,IV,PD,PS,(F(I),I=1,NOP),(STEP(I),I=1,NOP),
 !    & (R(IN),IN=1,NVALS),(NSIZE(IN),IN=1,NVALS),
@@ -623,7 +623,7 @@
    30 APPROX = 1.E-20
 !                                                                       
 !     IF NO VALUES OF A,B AND C ARE INPUT , I.E. A IS SET = 0.0 ,    
-!     THEN THE PROGRAM SETS A = 1.0 , B = 0.5 , C = 2.0				
+!     THEN THE PROGRAM SETS A = 1.0 , B = 0.5 , C = 2.0
 !
       IF (ABS(A).LT.APPROX) GO TO 40                                          
   31  GO TO 50
@@ -871,7 +871,7 @@
       DO 88 JS=1,NVALS
       BSTR(JS)=0.0
       NBSZ(JS)=0
-   88 CONTINUE	
+   88 CONTINUE
       GO TO 98
 !
 !
@@ -896,7 +896,7 @@
       DO 48 JS=1,NVALS
       BSTY(JS)=0.0
       NBSZ(JS)=0
-   48 CONTINUE	
+   48 CONTINUE
 !
 !
 !     The calculated set of values, VAL(IC), in each class interval 
@@ -1008,11 +1008,11 @@
 !     (=MAX), the program prints out parameter values provided that
 !     IPRINT and JPRINT have been set at 1.
 !
-	  IF ((NEVAL.GT.MAX) .AND. (IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) THEN
-          J=NEVAL/IPRINT                                                    
-          K=NEVAL-J*IPRINT                                                  
-          IF (K.LE.0) WRITE(2,160) NEVAL,HSTAR,(PSTAR(J),J=1,NOP) 
-	  ENDIF 
+      IF ((NEVAL.GT.MAX) .AND. (IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) THEN
+         J=NEVAL/IPRINT                                                    
+         K=NEVAL-J*IPRINT                                                  
+         IF (K.LE.0) WRITE(2,160) NEVAL,HSTAR,(PSTAR(J),J=1,NOP) 
+      ENDIF 
 !
       IF (HSTAR.LT.HMIN) GO TO 310                                         
       GO TO 380                                                            
@@ -1182,7 +1182,7 @@
 !
 !     If KWT=1, the program calculates a biweighted least squares
 !     value.  This process begins once the number of iterations
-!	  exceeds a predetermined value (=40).
+!     exceeds a predetermined value (=40).
 !
       IF (NEVAL.GT.40) KWT=1
 !
@@ -1200,7 +1200,7 @@
 !     MFAIL is a parameter which counts the number of times a series
 !     of iterations failed to converge on a minimum within the set
 !     maximum number of iterations.
-!	                                                            
+!
   630 MFAIL = MFAIL + 1
       IF ((IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) GO TO 640
       GO TO 845
@@ -1289,7 +1289,7 @@
   840 FORMAT(///16H END  OF  SEARCH/1X,15(1H*)) 
 !
 !
-!	  
+!
   850 CONTINUE   
 !                                                         
 !
@@ -1367,7 +1367,7 @@
       STEP(IE)=STEPT(IE)
   847 CONTINUE
 !
-!     	    	     
+!
   855 CONTINUE  
 !
 !
@@ -1401,7 +1401,7 @@
 !
       IF (NUMEST.LE.1.) GO TO 1484
       DSUM=0.0
-      DO 1450 JB=1,MAXJB	  
+      DO 1450 JB=1,MAXJB
       IF ((DEN(JB)).EQ.0.) GO TO 1450
       DENDIF=(DEN(JB)-ESTDEN)**2.
       DSUM=DSUM+DENDIF
@@ -1409,7 +1409,7 @@
       SDEN=SQRT(DSUM/(NUMEST-1))
 !
       CF1SUM=0.0
-      DO 1451 JB=1,MAXJB	  
+      DO 1451 JB=1,MAXJB
       IF ((COEFF1(JB)).EQ.0.) GO TO 1451
       CF1DIF=(COEFF1(JB)-COEFFNT1)**2.
       CF1SUM=CF1SUM+CF1DIF
@@ -1417,7 +1417,7 @@
       SCF1=SQRT(CF1SUM/(NUMEST-1))
 !
       CF2SUM=0.0
-      DO 1452 JB=1,MAXJB	  
+      DO 1452 JB=1,MAXJB
       IF ((COEFF2(JB)).EQ.0.) GO TO 1452
       CF2DIF=(COEFF2(JB)-COEFFNT2)**2.
       CF2SUM=CF2SUM+CF2DIF
@@ -1556,7 +1556,7 @@
  1517 IF (IFX) 1518,1518,1519
  1518 F(3)=(ESTDEN*2.*DIST*PD*(SNS/2))/1.E4
       GO TO 1520
- 1519 F(3)=ESTDEN*2.*IV*IT*PD/1.E4	       	  	  
+ 1519 F(3)=ESTDEN*2.*IV*IT*PD/1.E4
  1520 CALL GIVEF(F,FUNC,DCOEFF,
      & VAL,CLINT,PD,PS,R3S,
      & STT,TCOV,THH,VGH,
@@ -1619,7 +1619,7 @@
       INTEGER MAX,MAXJB,MD,MSFAIL,MTEST,NS,NUMA,NUMO,NVALS 
       CHARACTER*(*) COMPARISON_FILE
       DOUBLE PRECISION APREXI,AUC,CINT,CLINT,D2L,DD,DDS,DDSM,DH,DIF
-	  DOUBLE PRECISION DIFSQ,DINT,DL,DMAX,DNR,DNRL,DNRH,DVG,E,ED
+      DOUBLE PRECISION DIFSQ,DINT,DL,DMAX,DNR,DNRL,DNRH,DVG,E,ED
       DOUBLE PRECISION ERMAX,ERR,EXPD,EXPDR,EXPDY,EXPDV,FUNC
       DOUBLE PRECISION HCINT,HTOT,OBSD,P,PA,PAD,PAM,PD,PR,PRC,PRR,
       DOUBLE PRECISION PRMAX,PS,Q,QDD,QDMAX,QMIN,QR,R3S,RMAX,RR
@@ -1627,10 +1627,10 @@
       DOUBLE PRECISION TOPDD,TOPMAX,TOT,TOTE,TR,VEGDD,VEGMAX,VGH
       DOUBLE PRECISION VH,VISDD,VISMAX,VL,VLOWM,W,WDIFSQ,WH,WL,WM
       DOUBLE PRECISION WTOT,YH,YL,YY,YYH,YYL,Z,ZH,ZL
-	  DOUBLE PRECISION, DIMENSION :: VAL(80)
+      DOUBLE PRECISION, DIMENSION :: VAL(80)
       DOUBLE PRECISION, DIMENSION :: ROUT(80),CALCNR(80),OBSDNR(80) 
       DOUBLE PRECISION, DIMENSION :: YOUT(80),CALCNY(80),OBSDNY(80)  
-	  DOUBLE PRECISION, DIMENSION :: G(5,4),STEP(4),STEPT(4),F(4)
+      DOUBLE PRECISION, DIMENSION :: G(5,4),STEP(4),STEPT(4),F(4)
       DOUBLE PRECISION, DIMENSION :: H(4),PBAR(4),PSTAR(4),PSTST(4)         
 !
 !     COMMON / common1 /VAL(80),H(4),PBAR(4),PSTAR(4),PSTST(4)
@@ -1736,7 +1736,7 @@
 !     total probability of visibility at DMAX (VISMAX) will be the product of
 !     the probability VEGMAX that the animal is unobscured by vegetation
 !     at distance DMAX, and the probability TOPMAX that it is unobscured
-!     by topography.  VEGMAX will be a function of dMAX (VEGMAX=(1-Q)!!DMAX),
+!     by topography.  VEGMAX will be a function of dMAX (VEGMAX=(1-Q)**DMAX),
 !     while TOPMAX is approximated by the function  
 !     TOPMAX=(1-T)**(LTMAX-DMAX)=(EXP(ln(0.001)/(LTMAX-LTMIN))**(LTMAX-DMAX),
 !     and VISMAX=VEGMAX*TOPMAX.  A first step is to calculate TOPMAX, 
@@ -2511,7 +2511,7 @@
 !
       HVLUE = NEXTN / MOBYMP
       LVLUE = MOD(NEXTN, MOBYMP)
-	  TESTV = MPLIER*LVLUE - MOMDMP*HVLUE
+      TESTV = MPLIER*LVLUE - MOMDMP*HVLUE
       IF (TESTV .GT. 0) THEN
         NEXTN = TESTV
       ELSE
