@@ -19,12 +19,12 @@
 - (void)calculate;
 
 /**
- * Parse input with the observation data separated by spaces
+ * Parse input with the observation data in rows, separated by either commas or spaces
  **/
-- (BOOL)parseInputSpaces:(NSString *)input;
+- (BOOL)parseInputRows:(NSString *)input withCommas:(BOOL)requireCommas;
 
 /**
- * Parse input with the observation data separated by commas
+ * Parse input with the observation data in columns
  **/
-- (BOOL)parseInputCommas:(NSString *)input;
+- (BOOL)parseInputColumns:(NSString *)input;
 @end
