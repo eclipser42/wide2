@@ -410,9 +410,9 @@
       INTEGER nvals, numa, numo, ltmin, ltmax, ifx, iry, ns, km, imv
       INTEGER kdt, iprint, jprint, ishow, maxjb, it, iv
       DOUBLE PRECISION clint, stt, dist, thh, r3s, vgh, pd, ps
-      DOUBLE PRECISION f(4), step(4), r(5000)
-      INTEGER nsize(5000)
-      DOUBLE PRECISION angle(5000)
+      DOUBLE PRECISION f(4), step(4), r(10000)
+      INTEGER nsize(10000)
+      DOUBLE PRECISION angle(10000)
       INTEGER complete, bootstrap
       DOUBLE PRECISION estden, sden
       END TYPE CALC_PARAMS
@@ -423,7 +423,7 @@
 !
 !     The variables declared below are in alphabetical order.
 !
-      INTEGER nsize(5000), nbsz(5000)
+      INTEGER nsize(10000), nbsz(10000)
       INTEGER bootstrap
       INTEGER i, ia, ib, ic, ie, iflag, ifx, ig, ih, imax
       INTEGER imin, imv, in, ios, iprint, ir, irb, irow, iry, iseed
@@ -438,8 +438,8 @@
       DOUBLE PRECISION hstd, hstst, pd, ps, r3s, savemn, scf1, scf2
       DOUBLE PRECISION scf3, sden, sns, stopc, stt, test, tcoeff1
       DOUBLE PRECISION tcoeff2, tcoeff3, tcov, tden, thh, vgh, x, rmax
-      REAL r(5000), bstr(5000), y(5000), bsty(5000)
-      REAL angle(5000)
+      REAL r(10000), bstr(10000), y(10000), bsty(10000)
+      REAL angle(10000)
       DOUBLE PRECISION val(80), valt(80)
       DOUBLE PRECISION g(5, 4), step(4), stept(4), f(4), ft(4)
       DOUBLE PRECISION h(4), pbar(4), pstar(4), pstst(4)
@@ -447,7 +447,7 @@
       DOUBLE PRECISION den(5000)
 !
 !
-!     The program accepts up to 5000 data values, each being the total
+!     The program accepts up to 10000 data values, each being the total
 !     number of observations [N(r) or N(y)] within the class
 !     intervals, beginning with that nearest r=0 or y=0 [R(1),
 !     NSIZE(1) and ANGLE(1), if supplied].  If ANGLE() is not
@@ -649,7 +649,7 @@
       ELSE IF ((iry.eq.2).and.(kdt.gt.1)) THEN
         stopc=0.002
       ELSE
-        stopc=0.001
+        stopc=0.1
       END IF
 !
 !
@@ -733,12 +733,12 @@
 !
 !
 !     NCLASS is the number of distance classes in the selected range.
-!     0.5 is added to avoid counting errors due to 'chopping'.
+!     0.49 is added to avoid counting errors due to 'chopping'.
 !
       IF (kdt.le.1) THEN
-        nclass=int(((f(4)-stt)/clint)+0.5)
+        nclass=int(((f(4)-stt)/clint)+0.49)
       ELSE 
-        nclass=int(((kdt-stt)/clint)+0.5)
+        nclass=int(((kdt-stt)/clint)+0.49)
       END IF
         PRINT *,' Step 380',' nclass=',nclass
 !
@@ -1930,14 +1930,10 @@
 !     TR is the highest r value in the current frequency class;
 !     because the first class computed is that furthest
 !     from the observer or from the transect line - TR is initially
-!     set at RMAX.
+!     set at CLINT*NCLASS, i.e. equal to or just below the
+!     maximum recognition distance.
 !
-      IF (kdt.le.1) THEN
-        tr=dmax
-      ELSE
-        tr=kdt
-      END IF
-!
+      tr=clint*nclass
 !
 !     To compute 'expected' values within each class, each class
 !     is subdivided into subclasses, each of width 800/L10, so that
@@ -1955,16 +1951,14 @@
       cint=clint/float(l20)
       hcint=cint/2.
 !
-!     With perpendicular distance data, RMAX is altered slightly
-!     to become an exact multiple of CINT.
+!     A function ERMAX is defined to be an exact multiple of CLINT
 !
-      IF (iry.lt.1) GO TO 280
-      iermax=(f(4))/cint
-      ermax=iermax*cint
+      iermax=(f(4))/clint
+      ermax=iermax*clint
 !
 !     In the event that PRMAX > 1., HTOT is set to a high value.
 !
-  280 IF (prmax.lt.1.) GO TO 290
+      IF (prmax.lt.1.) GO TO 290
       htot=prmax*1.e06+htot
 !
 !     QR is the proportion of the number of animals originally in
@@ -2029,7 +2023,7 @@
   340   wl=tr-clint
 !
 !     If the entire class lies above both the highest calculated
-!     and highest observed recognition distances, the expected
+!     and highest preset recognition distances, the expected
 !     value (EXPDV) is set at zero and the calculations in Loop
 !     870 are bypassed.
 !
@@ -2293,7 +2287,7 @@
   700     prr=prc*cint
 !
 !     If the median r value in an arc is above both the calculated
-!     and observed highest r values, PRR is set at zero and QR at 1
+!     and preset highest r values, PRR is set at zero and QR at 1
 !
           IF (dnr.ge.ermax.and.dnr.ge.rmax) GO TO 710
 !
