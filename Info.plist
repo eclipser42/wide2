@@ -33,7 +33,7 @@
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
-	<string>Wildlife Density</string>
+	<string>WildlifeDensity</string>
 	<key>CFBundleIconFile</key>
 	<string>WildlifeDensity Icon.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -45,7 +45,7 @@
 	<key>CFBundleSignature</key>
 	<string>WLDN</string>
 	<key>CFBundleVersion</key>
-	<string>0.1a9</string>
+	<string>0.1a11</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
