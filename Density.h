@@ -7,8 +7,11 @@
 {
 	NSString *header;
     NSString *outFile;
+    NSString *graphFile;
     int iprint,jprint,ishow,maxjb;
     calc_params params;
+    BOOL complete;
+    NSString *completeMsg;
 }
 
 - (int)nvals;
