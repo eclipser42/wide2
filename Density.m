@@ -49,7 +49,7 @@
     [contents appendFormat:@"'%@',%c", header, 10];
     [contents appendFormat:@"%d, %f, %f, %d, %d, %f, ", params.nvals, params.clint, params.stt, params.numa, params.numo, params.dist];
     [contents appendFormat:@"%f, %d, %d, %d, %d, %d,%c", params.thh, params.ltmin, params.ltmax, params.ifx, params.iry, params.ns, 10];
-    [contents appendFormat:@"%d, %d, %d, %d, %d, %d, ", params.km, params.imv, params.kdt, params.iprint, params.jprint, params.ishow];
+    [contents appendFormat:@"%d, %d, %d, %d, %d, %d, ", params.km, params.imv, params.kdt, iprint, jprint, ishow];
     [contents appendFormat:@"%d, %f, %f, %d, %d, %f, %f,%c", maxjb, params.r3s, params.vgh, params.it, params.iv, params.pd, params.ps, 10];
     for (int i = 0; i < NUM_SHAPE_PARAMS; i++) {
         [contents appendFormat:@"%f, ", params.f[i]];
@@ -95,9 +95,11 @@
         NSLog(@"Parsing failed");
         return NO;
     }
+    iprint = params.iprint;
+    jprint = params.jprint;
+    ishow = params.ishow;
     maxjb = params.maxjb;
 
-    [header retain];
     outFile = [[[self fileName] stringByDeletingPathExtension] stringByAppendingPathExtension:@"results"];
     if ([outFile isEqualToString:[self fileName]]) {
         outFile = [outFile stringByAppendingPathExtension:@"results"];
@@ -118,6 +120,9 @@
     const char * out = [outFile UTF8String];
     unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:outFile]);
 
+    params.iprint = iprint;
+    params.jprint = jprint;
+    params.ishow = ishow;
     params.maxjb = maxjb;
     calculate_density(&params, hdr, out, strlen(hdr), strlen(out));
 }
@@ -128,7 +133,7 @@
 
 	if (![scanner scanString:@"'" intoString:nil]) return NO; /* Skip the opening quote */
 	if (![scanner scanUpToString:@"'" intoString:&header]) return NO;
-	//printf("Header is %s\\n", [header cString]);
+    [header retain];
 	if (![scanner scanString:@"'" intoString:nil]) return NO; /* Skip the closing quote */
 
 	if (![scanner scanInt:&params.nvals]) return NO;
@@ -212,7 +217,7 @@
 
 	if (![scanner scanString:@"'" intoString:nil]) return NO; /* Skip the opening quote */
 	if (![scanner scanUpToString:@"'" intoString:&header]) return NO;
-	//printf("Header is %s\\n", [header cString]);
+    [header retain];
 	if (![scanner scanString:@"'" intoString:nil]) return NO; /* Skip the closing quote */
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 
