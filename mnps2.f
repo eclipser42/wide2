@@ -359,6 +359,9 @@
 !           in which an observation falls outside a selected data
 !           range, i.e. where distance is less than STT or more than KDT.
 !
+!     NOVTKS - the number of groups overtaking the observer during a
+!           line transect.
+!
 !     NGROUPS - the total number of observations within the selected
 !           range of distances (= NVALS - NOTIN).
 !
@@ -431,6 +434,7 @@
       INTEGER k, kdt, km, kprint, kwt, loop, lprint, ltmin, ltmax, max
       INTEGER maxjb, mfail, msfail, mtest, nap, neval, notin, ngroups
       INTEGER nloop, nop, np1, ns, numa, numest, numo, nvals, nclass
+      INTEGER novtks
       DOUBLE PRECISION a, approx, b, c, cf1dif, cf1sum, cf2dif, cf2sum
       DOUBLE PRECISION cf3dif, cf3sum, clint, coeffnt1, coeffnt2
       DOUBLE PRECISION coeffnt3, dcoeff, dendif, dist, dlim, dsum
@@ -520,6 +524,7 @@
    30 CONTINUE
 !
    40 OPEN (UNIT=2,FILE=outfile,STATUS='NEW',IOSTAT=ios,ERR=1940)
+      novtks=0
 !
 !     If detection distances were entered in kilometres (KM=1),
 !     then these distances are first converted to metres.
@@ -593,27 +598,49 @@
 !     bypassed and the distance data are recognized as N(y).
 !     At this step, any angle data supplied as negative numbers
 !     (E.g. from the left of a transect line) are also converted to
-!     positive and pooled with the remainder.
+!     positive and pooled with the remainder.  If r=0 and the data 
+!     are line transect (IFX=0), the values are treated as
+!     'overtakes' and made negative (to be ignored later).  
+!     The number of groups overtaking (NOVTKS) is also counted.
 !
   170 IF (iry.eq.2) GO TO 190
-      IF (iry.eq.0) GO TO 210
+      IF (iry.eq.0) GO TO 205
 !
       DO 180 in=1, nvals
-        y(in)=ABS(r(in)*sin((angle(in)*3.14159265)/180.))
+        IF (r(in).eq.0) THEN
+          y(in)=-y(in)
+          novtks=novtks+1
+        ELSE
+          y(in)=ABS(r(in)*sin((angle(in)*3.14159265)/180.))
+        END IF
   180 CONTINUE
 !
       GO TO 210
 !
 !
 !     If perp. distance data were entered as r values, they
-!     are renamed as y values at this stage.  Negative y values
+!     are renamed as y values at this stage, unless r=0 
+!     when they are 'overtakes' and omitted.  Negative y values
 !     submitted to the program (as negative r value) are
 !     converted to positive and pooled with the rest.
+!     The number of groups overtaking (NOVTKS) is not counted,
+!     because they are actually y values, along the transect.
 !
   190 DO 200 in=1,nvals
-        y(in)=ABS(r(in))
+          y(in)=ABS(r(in))
   200 CONTINUE
 !
+      GO TO 210
+!
+!
+!     For IRY=0 and IFX=0, the number of overtakes (NOVTKS) 
+!     is counted.  If IFX=1, they are not counted as overtakes.
+!
+  205 DO 206 in=1,nvals
+        IF ((r(in).eq.0) .and. (IFX.eq.0)) THEN
+          novtks=novtks+1
+        END IF
+  206 CONTINUE
 !
 !     The initial values of 'a', 'b', 'D2L, and 'dmax' are retained
 !     as FT and the corresponding steps as STEPT to make possible
@@ -629,7 +656,7 @@
 !
         dlim=clint*80.
       PRINT *,' r(1)=',r(1),' nsize(1)=',nsize(1),' angle(1)=',angle(1),
-     & 'y(1)=',y(1),' iry=',iry
+     & 'y(1)=',y(1),' iry=',iry,' thh=',thh,' nvals=',nvals
 !
 !     If transect lengths have been expressed in kilometres,
 !     distance data are converted to metres.
@@ -740,7 +767,7 @@
       ELSE 
         nclass=int(((kdt-stt)/clint)+0.49)
       END IF
-        PRINT *,' Step 380',' nclass=',nclass
+        PRINT *,' Step 380',' nclass=',nclass,' novtks=',novtks
 !
 !
       DO 1410 bootstrap=1, maxjb
@@ -800,7 +827,7 @@
           DO 400 ir=1,nvals
              IF (kdt.gt.1 .and. r(ir).ge.kdt)  THEN
                notin=notin+1
-             ELSE IF (r(ir).lt.stt) THEN
+             ELSE IF (r(ir).le.stt) THEN
                notin=notin+1
              ELSE IF ((r(ir)).ge.frst .and. (r(ir)).lt.(frst+clint))
      &        THEN
@@ -814,7 +841,7 @@
 !
 		  ngroups=nvals-notin
         PRINT *,' Step 410',' STT=',stt,' nvals=',nvals,' val(20)=
-     &',val(20),' KDT=',kdt
+     &',val(20),' KDT=',kdt,' notin=',notin,' ngroups=',ngroups
 !
 !     The frequency distribution of the original data is saved,
 !     as VALT(IG).
@@ -869,7 +896,8 @@
   460   CONTINUE
 		  ngroups=nvals-notin
         PRINT *,' Step 460',' STT=',stt,' nvals=',nvals,' val(20)=
-     &',val(20),' KDT=',kdt,' y(20)=',y(20),' ngroups=',ngroups
+     &',val(20),' KDT=',kdt,' y(20)=',y(20),' ngroups=',ngroups,
+     &' notin=',notin
 !
 !     The frequency distribution of the original data is now saved,
 !     as VALT(IG).
@@ -967,17 +995,31 @@
         IF (iry.gt.0) GO TO 570
 !
 !
-!     Either: radial distance data are handled.
+!     Either: radial distance data are handled....
 !
   520     frst=stt
        DO 550 ic=1,nclass
          val(ic)=0.0
 !
+!     The first class for r begins just above the frst value so that
+!     0's are not included because they are 'overtakes'; that variation
+!     is not needed for y values.
+!
+!
+!     A variable NOTIN counts the groups excluded from the data set.
+!
+        notin=0
+!
           DO 540 irb=1,nvals
-             IF ((bstr(irb).ge.frst) .and. (bstr(irb).lt.(frst+clint)))
-     &        THEN
+             IF (kdt.gt.1 .and. bstr(ir).ge.kdt)  THEN
+               notin=notin+1
+             ELSE IF (bstr(irb).le.stt) THEN
+               notin=notin+1
+             ELSE IF ((bstr(irb)).gt.frst .and. (bstr(irb)).le.
+     &         (frst+clint)) THEN
                val(ic)=val(ic)+nbsz(irb)
              END IF
+!
   540     CONTINUE
 !
           frst=frst+clint
@@ -1002,11 +1044,20 @@
         DO 600 ic=1,nclass
           val(ic)=0
 !
-          DO 590 irb=1,nvals
-            IF ((ABS(bsty(irb)).ge.frst) .and. (ABS(bsty(irb)).lt.
-     &       (frst+clint)))  THEN
-              val(ic)=val(ic)+nbsz(irb)
-            END IF
+!     A variable NOTIN counts the groups excluded from the data set.
+!
+          notin=0
+!
+           DO 590 irb=1,nvals
+             IF (kdt.gt.1 .and. abs(bsty(irb)).ge.kdt) THEN
+               notin=notin+1
+             ELSE IF (abs(bsty(irb)).lt.stt) THEN
+               notin=notin+1
+             ELSE IF (ABS(bsty(irb)).ge.frst .and. ABS(bsty(irb)).lt.
+     &         (frst+clint)) THEN
+               val(ic)=val(ic)+nbsz(irb)
+             END IF
+!
   590     CONTINUE
 !
           frst=frst+clint
