@@ -73,7 +73,7 @@
 *
 *     CLINT - the class interval to be used within the program, 
 *          chosen so that 80 x CLINT is less than the observed
-*	   maximum detection distance.
+*          maximum detection distance.
 *
 *     STT - the detection distance value (r or y) from which class 
 *          intervals begin (usually zero).
@@ -221,11 +221,10 @@
 *          F(2):  an estimate of the attenuation coefficient of
 *                 the model under the census conditions;
 *
-*          F(3):  an estimate of the product of the population
-*                 density (D) and 2 x Sum of (movement-corrected 
-*                 transect length) = D2LJ;
+*          F(3):  an estimate of the population density (D),
+*                 expressed in number of individuals per hectare;
 *
-*          F(4):  an estimate of the maximum distance from the
+*          F(4):  an estimate of the maximum distance (in m) from the
 *                 observer at which species recognition is
 *                 possible under the conditions of the census.
 *
@@ -248,8 +247,8 @@
 *          STEP(4):  usually set at zero.
 *
 *          Setting the STEP value at 0.0 for a parameter fixes the F()
-*          value at that supplied to the program.  Where a data set is 
-*          small (say, < 50 detections), STEP(2) should be set at 0.0. 
+*          value at that supplied to the program.  Where a data set (NVALS) 
+*          is small (say, < 50 detections), STEP(2) should be set at 0.0. 
 *          Where the set is very small (say, < 30 detections), STEP(1)
 *          should also be set at 0.0 .
 *
@@ -308,7 +307,21 @@
 *            = 0  except for final computation of FUNC;
 *            = 1  when FUNC comes from simplex method.
 *
-*     D  - the population density ('D').
+*     MFAIL and MSFAIL - two variables used to count the numbers of
+*           times when convergence fails (MFAIL) or when the
+*           detectability coefficient (S) cannot be calculated (MSFAIL).
+*           They are used to correct the numbers of counts used in
+*           computing means and standard deviations of key parameters.
+*
+*     MTEST - a variable used to flag a successful run through Loop 855,
+*           and assist in the computation of MSFAIL at the end of
+*           Subroutine GIVEF.
+*
+*     D2L - the product of the population density and twice the
+*           total transect length - a convenient variable in
+*           calculations.
+*
+*     ESTDEN  - the estimated population density ('D').
 *
 *     P  - the conspicuousness coefficient ('a').
 *
@@ -369,9 +382,10 @@
       INTEGER KDT,KWT,LTMIN,LTMAX,MAX,MAXJB,NS,NUMA,NUMEST,NUMO,NVALS 
       DOUBLE PRECISION VALT(80)
       DIMENSION R(5000),BSTR(5000),Y(5000),BSTY(5000),
-     & DEN(5000),COEFF1(5000),COEFF2(5000),ANGLE(5000)
+     & DEN(5000),COEFF1(5000),COEFF2(5000),COEFF3(5000),ANGLE(5000)
       DIMENSION G(5,4),STEP(4),STEPT(4),F(4),FT(4)
       DOUBLE PRECISION VAL(80),H(4),PBAR(4),PSTAR(4),PSTST(4)
+*     REAL RAND
 *
 *  
 *     The program accepts up to 5000 data values, each being the total
@@ -385,9 +399,10 @@
 *     subroutine, viz.
 *
 *     COMMON / common1 /VAL(80),H(4),PBAR(4),PSTAR(4),PSTST(4)
-*     COMMON / common2 /HSTAR,HSTST,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS
+*     COMMON / common2 /HSTAR,HSTST,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH
+*    &,S,SNS
 *     COMMON / common3 /KM,IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT
-*     COMMON / common4 /LTMAX,LTMIN,MAX,NUMA,NUMO,NVALS,NS
+*     COMMON / common4 /LTMAX,LTMIN,MAX,NUMA,NUMO,NVALS,NS,MSFAIL,MTEST
 
 *     This program is designed to receive a list-directed data file with
 *     a name constructed from RUNID (a character value not more than 10
@@ -478,11 +493,23 @@
 *    & (ANGLE(IN),IN=1,(NVALS*(IRY-IMV)))
 *
 *
+*     F(3) is now raised in value to approximate D2LJ in the case
+*     of line transect data, or D2ut for fixed point data.  D is
+*     also altered from no./ha to no./sq.m.
+*
+      IF (IFX) 105,105,106
+  105 F(3)=(2.*DIST*F(3))/1.E4
+      STEP(3)=(2.*DIST*STEP(3))/1.E4
+      GO TO 107
+  106 F(3)=(2.*IV*IT*F(3))/1.E4
+      STEP(3)=(2.*IV*IT*STEP(3))/1.E4
+*
+*
 *     If a value of the maximum detection distance F(4) has been
 *     entered which exceeds 80 times the class interval, F(4) is
 *     reset at 80 times that interval to avoid computation problems.
 *
-      IF (F(4).GT.(80*CLINT)) F(4)=80*CLINT
+  107 IF (F(4).GT.(80*CLINT)) F(4)=80*CLINT
 *
 *
 *     The header line now begins the program output.
@@ -507,7 +534,7 @@
 *
     5 IF (KM) 7,7,9
     7 WRITE(2,8) CLINT, DIST
-    8 FORMAT(/23H Class Interval Width =,F5.1,
+    8 FORMAT(/23H Class Interval Width =,F7.1,
      &28H m.    Total Distance (xJ) =,F10.3,3H m.)
       GO TO 15
 *
@@ -566,7 +593,7 @@
 *
 *     The stopping criterion (STOPC) is set at a suitable value.
 *
-   18 STOPC=0.0001
+   18 STOPC=0.00001
 *
 *     If progress reports are required (IPRINT=1), the program
 *     prints a heading for them.
@@ -631,11 +658,17 @@
    89 JBSTP=0
       JB=0
       MFAIL=0
+      MSFAIL=0
       TDEN=0.0
       TCOEFF1=0.0
       TCOEFF2=0.0
+      TCOEFF3=0.0
 *
    90 DO 855 JB=1,MAXJB
+*     
+*     The flag variable MTEST is first set at zero.
+*
+      MTEST=0
 *
 *     The program now computes the first distribution of the numbers
 *     detected within each class interval, based on the detection
@@ -880,9 +913,9 @@
       DO 170 I=1,NP1                                                    
       DO 140 J=1,NOP                                                    
   140 F(J)=G(I,J)
-      CALL GIVEF (F,H(I),VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+      CALL GIVEF (F,H(I),VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,S,SNS,
      & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
-     & NUMA,NUMO,NVALS,NS)
+     & NUMA,NUMO,NVALS,NS,MSFAIL,MTEST)
 *
       NEVAL=NEVAL+1                                                     
 *                                                                       
@@ -937,9 +970,9 @@
 *
       DO 270 I=1,NOP                                                    
   270 PSTAR(I)=A*(PBAR(I)-G(IMAX,I))+PBAR(I)                            
-      CALL GIVEF (PSTAR,HSTAR,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+      CALL GIVEF (PSTAR,HSTAR,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,S,SNS,
      & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
-     & NUMA,NUMO,NVALS,NS)
+     & NUMA,NUMO,NVALS,NS,MSFAIL,MTEST)
 *                                                                       
 *     The next 5 statements test whether a progress report is
 *     required and, if so, provide one.  This procedure occurs
@@ -948,11 +981,10 @@
       NEVAL=NEVAL + 1                                                    
 *                                                                           
 *     If the number of function evaluations to date exceeds 750
-*     for any reason, the program sets IPRINT=1 and begins to
-*     print out parameters and function values at each step.
+*     (=MAX), the program prints out parameter values provided that
+*     IPRINT and JPRINT have been set at 1.
 *
-      IF (NEVAL.LT.750) GO TO 279                                            
-      IPRINT=1                                                              
+      IF (NEVAL.LE.MAX) GO TO 279                                            
   279 IF ((IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) GO TO 280
       GO TO 300
   280 J=NEVAL/IPRINT                                                    
@@ -968,9 +1000,9 @@
 *
   310 DO 320 I=1,NOP                                                    
   320 PSTST(I)=C*(PSTAR(I)-PBAR(I))+PSTAR(I)                            
-      CALL GIVEF (PSTST,HSTST,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+      CALL GIVEF (PSTST,HSTST,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,S,SNS,
      & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
-     & NUMA,NUMO,NVALS,NS)
+     & NUMA,NUMO,NVALS,NS,MSFAIL,MTEST)
 *
 *     If IPRINT=1 the program prints out the progress of the
 *     iteration.  This is not normally required.
@@ -1022,9 +1054,9 @@
       H(IMAX)=HSTAR                                                         
   430 DO 440 I=1,NOP                                                    
   440 PSTST(I)=B*G(IMAX,I)+(1.0-B)*PBAR(I)                              
-      CALL GIVEF (PSTST,HSTST,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+      CALL GIVEF (PSTST,HSTST,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,S,SNS,
      & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
-     & NUMA,NUMO,NVALS,NS)
+     & NUMA,NUMO,NVALS,NS,MSFAIL,MTEST)
 *
       NEVAL =NEVAL+1                                                    
       IF ((IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) GO TO 450
@@ -1055,9 +1087,9 @@
       DO 550 I=1,NP1                                                    
       DO 520 J=1,NOP                                                    
   520 F(J)=G(I,J)                                                       
-      CALL GIVEF (F,H(I),VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+      CALL GIVEF (F,H(I),VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,S,SNS,
      & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
-     & NUMA,NUMO,NVALS,NS)
+     & NUMA,NUMO,NVALS,NS,MSFAIL,MTEST)
 *
       NEVAL=NEVAL +1                                                    
       IF ((IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) GO TO 530
@@ -1103,9 +1135,9 @@
   610 F(I)=F(I)+G(J,I)                                                  
       F(I)=F(I)/FLOAT(NP1)                                                   
   620 CONTINUE                                                         
-      CALL GIVEF(F,FUNC,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+      CALL GIVEF(F,FUNC,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,S,SNS,
      & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
-     & NUMA,NUMO,NVALS,NS)
+     & NUMA,NUMO,NVALS,NS,MSFAIL,MTEST)
 *
       NEVAL=NEVAL+1
 *
@@ -1155,7 +1187,8 @@
       LOOP=0                                                            
       GO TO 180                                                         
   720 KWT=1
-      IF (IPRINT) 750,750,730
+      IF ((IPRINT.EQ.1) .AND. (JPRINT.EQ.1)) GO TO 730
+      GO TO 750
   730 WRITE(2,740)                                                         
   740 FORMAT(2H */33H  INITIAL EVIDENCE OF CONVERGENCE)                 
       WRITE(2,745) (F(I),I=1,NOP)  
@@ -1185,7 +1218,8 @@
 *     at zero and computation reverts to the start of the
 *     basic loop.
 *
-  770 TEST=SAVEMN/HMEAN
+  770 IF (HMEAN.EQ.0) GO TO 790
+      TEST=SAVEMN/HMEAN
       IF (TEST.GT.0.99995 .AND. TEST.LT.1.00005)  GO TO 790                                           
   780 IFLAG=0                                                           
       LOOP=0                                                            
@@ -1220,12 +1254,18 @@
   850 CONTINUE   
 *                                                         
 *
+*     MTEST is set at 1 to flag that convergence has occurred.  This
+*     is carried into Subroutine GIVEF to trigger computation of
+*     MSFAIL where computation of S cannot occur.
+*
+      MTEST=1
+*
 *     Program execution returns to the subroutine to yield final pass values 
 *     of F(1), F(2) and F(3).
 *
-      CALL GIVEF(F,FUNC,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+      CALL GIVEF(F,FUNC,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,S,SNS,
      & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
-     & NUMA,NUMO,NVALS,NS)
+     & NUMA,NUMO,NVALS,NS,MSFAIL,MTEST)
 *
       LPRINT=1
       KPRINT=0                                                            
@@ -1244,13 +1284,14 @@
  1436 IF (IFX) 1440,1440,1441
  1440 DEN(JB)=(1.E4*F(3))/(2.*DIST)
       GO TO 1437
- 1441 DEN(JB)=1.E4*F(3)/(2.*IV*IT)
+ 1441 DEN(JB)=(1.E4*F(3))/(2.*IV*IT)
 *
 *     Values of the other parameter estimates are obtained by redefining
 *     the estimates of F(1) and F(2), thus:
 *
  1437 COEFF1(JB)=F(1)
       COEFF2(JB)=F(2)
+      COEFF3(JB)=S
 *
 *
 *     Running totals of DEN, COEFF1 and COEFF2 are now made to
@@ -1259,6 +1300,7 @@
       TDEN = TDEN + DEN(JB)
       TCOEFF1 = TCOEFF1 + COEFF1(JB)
       TCOEFF2 = TCOEFF2 + COEFF2(JB)
+      TCOEFF3 = TCOEFF3 + COEFF3(JB)
 * 
 *                                  
 *     Loop 855 now ends, returning calculations to Line 90 until the maximum
@@ -1269,7 +1311,6 @@
 *
   845 LOOP=0
       IFLAG=0
-      IPRINT=0
       KPRINT=0
 *
       DO 853 I=1,NP1
@@ -1302,6 +1343,14 @@
       COEFFNT2=TCOEFF2/NUMEST
 *
 *
+*     Should MSFAIL be identical to NUMEST, 1 is added to NUMEST to prevent
+*     division by zero at the next step.
+*
+      IF (NUMEST.EQ.MSFAIL) NUMEST=MSFAIL + 1
+      COEFFNT3=TCOEFF3/(NUMEST-MSFAIL)
+      IF (NUMEST.EQ.(MSFAIL+1)) NUMEST=NUMEST - 1
+*
+*
 *     The next step is to calculate the standard errors of each 
 *     parameter, provided that the number of analyses exceeds 1.
 *     Each is the standard deviation of the parameter estimates.
@@ -1331,6 +1380,14 @@
       CF2SUM=CF2SUM+CF2DIF
  1452 CONTINUE
       SCF2=SQRT(CF2SUM/(NUMEST-1))
+      CF3SUM=0.0
+      DO 1453 JB=1,MAXJB
+      IF (COEFF3(JB).EQ.0) GO TO 1453
+      CF3DIF=(COEFF3(JB)-COEFFNT3)**2.
+      CF3SUM=CF3SUM+CF3DIF
+ 1453 CONTINUE
+      IF ((NUMEST-MSFAIL-1).LE.0) GO TO 1484
+      SCF3=SQRT(CF3SUM/(NUMEST-MSFAIL-1))
 *
 *
 *     The products of the program are now output.
@@ -1340,10 +1397,10 @@
 *     by the number of actual parameter estimations made (NUMEST).
 *
  1484 WRITE(2,1471) TCOV
- 1471 FORMAT(/32H Estimated Topographical Cover= ,F7.6) 
+ 1471 FORMAT(/33H Estimated Topographical Cover = ,F7.6) 
 *
       WRITE(2,1472) NUMEST
- 1472 FORMAT(/33H Number of Parameter Estimations= ,I4)
+ 1472 FORMAT(/34H Number of Parameter Estimations =,I4)
 * 
 *
 *     Now follow general headings for the results table.
@@ -1434,6 +1491,9 @@
  2013 WRITE(2,1499)
  1499 FORMAT(2H x,4(18X,1Hx)/1H ,77(1Hx)//)
 *
+      WRITE(2,2017) COEFFNT3,SCF3
+ 2017 FORMAT(/X,31HDetectability Coefficient (S) =,F8.2,6H, SE =,F6.2)
+*
 *
 *     Key model estimates are now output if ISHOW was originally set
 *     at 1.  The best estimates of F(1), F(2) and F(3) must be entered
@@ -1454,9 +1514,9 @@
  1518 F(3)=(ESTDEN*2.*DIST*PD*(SNS/2))/1.E4
       GO TO 1520
  1519 F(3)=ESTDEN*2.*IV*IT*PD/1.E4	       	  	  
- 1520 CALL GIVEF(F,FUNC,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+ 1520 CALL GIVEF(F,FUNC,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,S,SNS,
      & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
-     & NUMA,NUMO,NVALS,NS)
+     & NUMA,NUMO,NVALS,NS,MSFAIL,MTEST)
 *
 *	  
  1525 CONTINUE
@@ -1492,9 +1552,9 @@
 *     program as FUNC.
 *
 *
-      SUBROUTINE GIVEF(F,FUNC,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS,
+      SUBROUTINE GIVEF(F,FUNC,VAL,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,S,SNS,
      & IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT,LTMAX,LTMIN,
-     & NUMA,NUMO,NVALS,NS)
+     & NUMA,NUMO,NVALS,NS,MSFAIL,MTEST)
 *
 *     Double precision for all real numbers is set, together with
 *     common values, dimensions and symbols for key variables.
@@ -1505,11 +1565,14 @@
       DIMENSION R(5000),BSTR(5000),Y(5000),BSTY(5000),
      & DEN(5000),COEFF1(5000),COEFF2(5000)
       DIMENSION G(5,4),STEP(4),STEPT(4),F(4),VAL(80)
+      DIMENSION ROUT(80),CALCNR(80),OBSDNR(80) 
+      DIMENSION YOUT(80),CALCNY(80),OBSDNY(80)           
 *
 *     COMMON / common1 /VAL(80),H(4),PBAR(4),PSTAR(4),PSTST(4)
-*     COMMON / common2 /HSTAR,HSTST,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH,SNS
+*     COMMON / common2 /HSTAR,HSTST,CLINT,PD,PS,R3S,STT,TCOV,THH,VGH
+*    &,S,SNS
 *     COMMON / common3 /KM,IFX,IMV,IRY,ISHOW,IT,IV,KDT,KPRINT,KWT,LPRINT
-*     COMMON / common4 /LTMAX,LTMIN,MAX,NUMA,NUMO,NVALS,NS
+*     COMMON / common4 /LTMAX,LTMIN,MAX,NUMA,NUMO,NVALS,NS,MSFAIL,MTEST
 *
 *     TOT is the progressive value of the sum of squares of the
 *     differences between observed and calculated values.  It is
@@ -1546,7 +1609,11 @@
 *     values appearing in Approximation 1 below.
 *
       IF (Q) 5003,5005,5005
+*
  5003 IMV=1
+*
+*
+*     F(3) is renamed D2L for its run through Subroutine GIVEF.
 *
  5005 D2L=F(3)
 *
@@ -1676,14 +1743,15 @@
 *
 *     The control variable L10 determines the number of classes
 *     for which an expected value is calculated.  It is set equal
-*     to 80 for all situations except those where a strip below
-*     an aircraft is hidden from the observer.
+*     to RMAX/CLINT for all situations except those where a strip
+*     below an aircraft is hidden from the observer.
+*     0.5 is added to remove errors due to 'chopping'.
 *
- 5962 L10=80
+ 5962 L10=(RMAX/CLINT) + 0.5
       TOTE=0.
 *
 *     TR is the highest r value in the current frequency class;
-*     because the first class computed is the 80th - that furthest
+*     because the first class computed is that furthest
 *     from the observer or from the transect line - TR is initially
 *     set at the class width (CLINT) times the number of classes.
 *     This is adjusted upwards by STT if this starting value is 
@@ -1693,14 +1761,14 @@
 *
 *
 *     To compute 'expected' values within each class, each class
-*     is subdivided into a large number (8000/NVALS) of subclasses,
-*     each of width CINT (where CINT is small).  Each subclass
+*     is subdivided into subclasses, each of width 800/L10, so that
+*     CINT is small and L10 x L20=800.  Each subclass
 *     corresponds to an observing arc of width CINT ('delta-r') 
 *     that sweeps forwards ahead of the observer.  L20 is the
-*     number of classes in the inner loop [L20 = (r2-r1)/CINT].
+*     number of classes in the inner loop.
 *     0.5 is added to remove errors due to 'chopping'.
 *
-      L20=8000/NVALS + 0.5
+      L20=(800/L10) + 0.5
 *
 *     CINT ('delta-r') is the width of each subclass; it is set 
 *     at the class width divided by the number of subclasses used.
@@ -2185,7 +2253,19 @@
 *     converged on a minimum, and KPRINT has been set at 1.
 *
  8100 IF (WL.GT.RMAX) GO TO 8140
-      IF (KPRINT) 8140,8140,8110
+*
+*     If D2L has a trial value of zero, calculation of S at this stage 
+*     is bypassed and a record of this non-computation retained
+*     as the temporary variable MSFAIL.  This is done only when the
+*     program has converged on a minimum (MTEST=1) and in the final
+*     pass through Loop 10 (JJ=L10).
+*
+      IF (D2L) 8103,8103,8102
+ 8102 IF (SNS.EQ.0.) SNS=2
+      S=EXPDV/(D2L*PD*(SNS/2)) + S
+      GO TO 8104
+ 8103 IF ((MTEST.EQ.1) .AND. (JJ.EQ.L10)) MSFAIL=MSFAIL + 1
+ 8104 IF (KPRINT) 8140,8140,8110
 *
 *     For output purposes only, EXPDV is redefined as EXPDR in
 *     the case of radial distance data, and as EXPDY in the case
@@ -2193,32 +2273,35 @@
 *     are printed as '0.0' in the output because the 'observations'
 *     are unreal.
 *
- 8110 IF (SNS.EQ.0.) SNS=2
-      S=EXPDV/(D2L*PD*(SNS/2)) + S
-      IF (IRY) 8112,8114,8112                                          
+ 8110 IF (IRY) 8112,8114,8112                                          
  8112 RR=TR-(CLINT/2.)
       EXPDR=EXPDV
       IF (EXPDR) 811,812,812
   811 EXPDR=0.
-  812 WRITE(2,8113) RR,EXPDR,OBSD
+  812 IF (ISHOW.LE.0) GO TO 816
+      WRITE(2,8113) RR,EXPDR,OBSD
  8113 FORMAT(4H  r=,F8.1,5X,10HCalc.N(r)=,F9.2,5X,10HObsd.N(r)=,F9.1)
+  816 ROUT(JJ)=RR
+      CALCNR(JJ)=EXPDR 
+      OBSDNR(JJ)=OBSD            
       GO TO 8116                                                        
  8114 YY=TR-(CLINT/2.)
       EXPDY=EXPDV
       IF (EXPDY) 813,814,814
   813 EXPDY=0.
-  814 WRITE(2,8115) YY,EXPDY,OBSD       
+  814 IF (ISHOW.LE.0) GO TO 817
+      WRITE(2,8115) YY,EXPDY,OBSD       
  8115 FORMAT(4H  y=,F8.1,5X,10HCalc.N(y)=,F9.2,5X,10HObsd.N(y)=,F9.1)
+  817 YOUT(JJ)=YY
+      CALCNY(JJ)=EXPDY 
+      OBSDNY(JJ)=OBSD   
 *
 *     The difference between each observed (OBSD) and expected 
 *     value (EXPDV) for the class is now calculated.
 *
- 8116 IF (ISHOW) 8135,8135,8117
+ 8116 IF (ISHOW) 8140,8140,8117
  8117 WRITE(2,8118) PRC,PRR,QR,E,TOTE,ED,EXPD,EXPDV,S
  8118 FORMAT (1X,9(F12.6,3X))
- 8135 IF (JJ .LT. L10) GO TO 8140
-      WRITE(2,900) S
-  900 FORMAT(//5X,30HDetectability Coefficient (S)=,F8.2)
  8140 DIF=OBSD-EXPDV
 *
 *     Each difference between the expected (EXPDV) and observed
@@ -2275,12 +2358,37 @@
 *
       IF (KPRINT) 8148,8148,8147
  8147 WRITE(2,8150) RLOW
- 8150 FORMAT(/5X,23H 99.9% r value (rmin) =,F7.2,3H m /)
+ 8150 FORMAT(//,23H 99.9% r value (rmin) =,F7.2,3H m /)
+      OPEN(UNIT=3,FILE='Outfile2.txt',STATUS='NEW',IOSTAT=IOS,ERR=286)
+      IF (IRY) 8151,8155,8151
+ 8151 WRITE (3,8152)
+ 8152 FORMAT (3X,38H   Midpt.   Calculated     Observed   )
+      DO 8153 JJ=1,L10
+      JV=L10-JJ+1
+      LIMIT=DMAX/CLINT
+      IF (JJ.GT.LIMIT) GO TO 8148
+      WRITE (3,8154) ROUT(JV),CALCNR(JV),OBSDNR(JV)
+ 8154 FORMAT (5X,F6.1,6X,F7.2,7X,F6.1,4X)
+ 8153 CONTINUE
+      GO TO 8148
+ 8155 WRITE (3,8156)
+ 8156 FORMAT (3X,38H   Midpt.   Calculated     Observed   )
+      DO 8157 JJ=1,L10
+      JV=L10-JJ+1
+      LIMIT=DMAX/CLINT
+      IF (JJ.GT.LIMIT) GO TO 8148
+      WRITE (3,8158) YOUT(JV),CALCNY(JV),OBSDNY(JV)
+ 8158 FORMAT (5X,F6.1,6X,F7.2,7X,F6.1,4X)
+ 8157 CONTINUE                                 
+      CLOSE(UNIT=3)
 *
  8148 IF (LPRINT) 8160,8160,8161
  8160 FUNC=WTOT+HTOT
       GO TO 8180
  8161 FUNC=TOT+HTOT
+      GO TO 8180
+  286 WRITE(6,287)OUTFILE,IOS
+  287 FORMAT(' Error opening ',A40,' - IOS = ',I6)
 *
 *     If F(2) has been given a high negative value, FUNC is set to
 *     a high value before returning to the main program.
@@ -2289,7 +2397,7 @@
        FUNC=(ABS(F(2)-QMIN-1.))*FUNC                                     
  8190 IF (KPRINT) 8200,8200,8191
  8191 WRITE(2,8192) FUNC
- 8192 FORMAT(5X,28HOLS Difference at Minimum:  ,F15.6/)
+ 8192 FORMAT(X,28HOLS Difference at Minimum = ,F15.6/)
  8200 RETURN                                                            
       END SUBROUTINE GIVEF
 *
