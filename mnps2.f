@@ -351,6 +351,17 @@
 !           and assist in the computation of MSFAIL at the end of
 !           Subroutine GIVEF.
 !
+!     NCLASS - the number of distances classes in the range used for the
+!           analysis.  It is either equal to DMAX-STT, or KDT-STT,
+!           depending on whether or not KDT is greater      1.
+!    
+!     NOTIN - a count variable which records the number of occasions
+!           in which an observation falls outside a selected data
+!           range, i.e. where distance is less than STT or more than KDT.
+!
+!     NGROUPS - the total number of observations within the selected
+!           range of distances (= NVALS - NOTIN).
+!
 !     D2L - the product of the population density and twice the
 !           total transect length - a convenient variable in
 !           calculations.
@@ -418,15 +429,15 @@
       INTEGER imin, imv, in, ios, iprint, ir, irb, irow, iry, iseed
       INTEGER ishow, it, iv, j, jbstp, jk, jprint, jr, js, jv, jx
       INTEGER k, kdt, km, kprint, kwt, loop, lprint, ltmin, ltmax, max
-      INTEGER maxjb, mfail, msfail, mtest, nap, neval
-      INTEGER nloop, nop, np1, ns, numa, numest, numo, nvals
+      INTEGER maxjb, mfail, msfail, mtest, nap, neval, notin, ngroups
+      INTEGER nloop, nop, np1, ns, numa, numest, numo, nvals, nclass
       DOUBLE PRECISION a, approx, b, c, cf1dif, cf1sum, cf2dif, cf2sum
       DOUBLE PRECISION cf3dif, cf3sum, clint, coeffnt1, coeffnt2
       DOUBLE PRECISION coeffnt3, dcoeff, dendif, dist, dlim, dsum
       DOUBLE PRECISION estden, frst, func, hmax, hmean, hmin, hstar
       DOUBLE PRECISION hstd, hstst, pd, ps, r3s, savemn, scf1, scf2
       DOUBLE PRECISION scf3, sden, sns, stopc, stt, test, tcoeff1
-      DOUBLE PRECISION tcoeff2, tcoeff3, tcov, tden, thh, vgh, x
+      DOUBLE PRECISION tcoeff2, tcoeff3, tcov, tden, thh, vgh, x, rmax
       REAL r(5000), bstr(5000), y(5000), bsty(5000)
       REAL angle(5000)
       DOUBLE PRECISION val(80), valt(80)
@@ -508,16 +519,15 @@
         angle(ih)=params.angle(ih)
    30 CONTINUE
 !
-!
    40 OPEN (UNIT=2,FILE=outfile,STATUS='NEW',IOSTAT=ios,ERR=1940)
 !
 !     If detection distances were entered in kilometres (KM=1),
 !     then these distances are first converted to metres.
 !
       IF (km.eq.2) THEN
-      DO 42 ih=1,nvals
-        r(ih)=1000*r(ih)
-   42 CONTINUE  
+        DO 42 ih=1,nvals
+          r(ih)=1000*r(ih)
+   42   CONTINUE  
       END IF        
 !
 !
@@ -526,20 +536,17 @@
 !     also altered from no./ha to no./sq.m.
 !
    45 IF (ifx.eq.0) THEN
-   50 IF (km.gt.0) GO TO 60
-      f(3)=(2.*dist*f(3))/1.e4
-      step(3)=(2.*dist*step(3))/1.e4
-      GO TO 80
-!
-   60 f(3)=(2.*dist*1000*f(3))/1.e4
-      step(3)=(2.*dist*1000*step(3))/1.e4
-      GO TO 80
-!
+   50   IF (km.gt.0) GO TO 60
+        f(3)=(2.*dist*f(3))/1.e4
+        step(3)=(2.*dist*step(3))/1.e4
+        GO TO 80
+   60   f(3)=(2.*dist*1000*f(3))/1.e4
+        step(3)=(2.*dist*1000*step(3))/1.e4
+        GO TO 80
       ELSE
-   70 f(3)=(2.*iv*it*f(3))/1.e4
-      step(3)=(2.*iv*it*step(3))/1.e4
+   70   f(3)=(2.*iv*it*f(3))/1.e4
+        step(3)=(2.*iv*it*step(3))/1.e4
       END IF
-!
 !
 !     If a value of the maximum detection distance F(4) has been
 !     entered more than 80 times the class interval, CLINT is
@@ -559,17 +566,17 @@
 !     spent (IT) at fixed points.
 !
       IF (ifx.eq.1) THEN
-  100 WRITE (2,110) clint,it
-  110 FORMAT (/' Class Interval Width =',f7.1,
+  100   WRITE (2,110) clint,it
+  110   FORMAT (/' Class Interval Width =',f7.1,
      &' m.    Total Time Spent =',i5,' min.')
-      GO TO 170
+        GO TO 170
       END IF
 !
       IF (km.eq.0) THEN
-      WRITE (2,140) clint,dist
-  140 FORMAT (/' Class Interval Width =',f7.1,
+        WRITE (2,140) clint,dist
+  140   FORMAT (/' Class Interval Width =',f7.1,
      &' m.    Total Distance (xJ) =',f10.3,' m.')
-      GO TO 170
+        GO TO 170
       END IF
 !
   150 WRITE (2,160) clint,dist
@@ -590,10 +597,12 @@
 !
   170 IF (iry.eq.2) GO TO 190
       IF (iry.eq.0) GO TO 210
+!
       DO 180 in=1, nvals
         y(in)=ABS(r(in)*sin((angle(in)*3.14159265)/180.))
   180 CONTINUE
-        GO TO 210
+!
+      GO TO 210
 !
 !
 !     If perp. distance data were entered as r values, they
@@ -618,7 +627,7 @@
 !     DMAX is given an upper limit (DLIM) which is 80 times the
 !     interval width (CLINT).
 !
-      dlim=clint*80.
+        dlim=clint*80.
       PRINT *,' r(1)=',r(1),' nsize(1)=',nsize(1),' angle(1)=',angle(1),
      & 'y(1)=',y(1),' iry=',iry
 !
@@ -626,7 +635,7 @@
 !     distance data are converted to metres.
 !
       IF (km.gt.0) THEN
-  230 dist=dist*1000
+        dist=dist*1000
       END IF
 !
 !
@@ -635,36 +644,35 @@
 !     distance data to the limit of visibility, or perpendicular
 !     distance data to a distance limit (KDT>1).
 !
-  240 IF ((iry.eq.1).or.((iry.eq.2).and.(kdt.le.1))) GO TO 260
-      IF ((iry.eq.2).and.(kdt.gt.1)) GO TO 250 
-      stopc=0.001
-      GO TO 270
-  250 stopc=0.002
-      GO TO 270
-  260 stopc=0.0001
+  240 IF ((iry.eq.1) .or. ((iry.eq.2).and.(kdt.le.1))) THEN
+        stopc=0.0001
+      ELSE IF ((iry.eq.2).and.(kdt.gt.1)) THEN
+        stopc=0.002
+      ELSE
+        stopc=0.001
+      END IF
 !
 !
 !     If progress reports are required (IPRINT=1), the program
 !     prints a heading for them.
 !
-  270 IF (iprint.eq.1) THEN
-      WRITE (2,280) iprint
-  280 FORMAT (' PROGRESS REPORT EVERY', i4, ' FUNCTION EVALUATIONS'/
+      IF (iprint.eq.1) THEN
+        WRITE (2,280) iprint
+  280   FORMAT (' PROGRESS REPORT EVERY', i4, ' FUNCTION EVALUATIONS'/
      &/' EVAL. NO.  FUNC. VALUE ', 10x, 'PARAMETERS')
       END IF
 !
 !     The term 'APPROX' is used to test closeness to zero.
 !
-      approx=1.e-20
+        approx=1.e-20
 !
-!     IF NO VALUES OF A,B AND C ARE INPUT , I.E. A IS SET = 0.0 ,
-!     THEN THE PROGRAM SETS A = 1.0 , B = 0.5 , C = 2.0
+!     If no values have been submitted in the input, the program sets 
+!     the step variations at: a=1.0, b=0.5, and c= 2.0
 !
       IF (abs(a) .lt. approx) THEN
         a=1.0
         b=0.5
         c=2.0
-
       END IF
 !
 !     NAP is the number of parameters to be varied (i.e. with STEP
@@ -690,18 +698,24 @@
         GO TO 310
   300   nap=nap+1
   310 CONTINUE
-      IF (nap) 320,320,370
-  320 kprint=1
-      sns=float(ns)
-      IF (sns.eq.0.) sns=2.
+!
+        IF (nap.ge.1) GO TO 370
+!
+  320   kprint=1
+        sns=float(ns)
+        IF (sns.eq.0.) sns=2.
+!
       IF (km.gt.0) THEN
-  330 estden=(1.e6*f(3))/(2.*dist)
+  330   estden=(1.e6*f(3))/(2.*dist)
       END IF
       GO TO 370
-  340 IF (ifx) 350,350,360
-  350 estden=(1.e4*f(3))/(2.*dist)
-      GO TO 370
-  360 estden=(1.e4*f(3))/(2.*iv*it)
+!
+  340 IF (ifx.eq.1) THEN
+        estden=(1.e4*f(3))/(2.*dist)
+      ELSE 
+        estden=(1.e4*f(3))/(2.*iv*it)
+      END IF
+!      
       GO TO 1470
 !
 !
@@ -712,13 +726,24 @@
   370 jbstp=0
       mfail=0
       msfail=0
-      tden=0.0
+      tden=0.0 
       tcoeff1=0.0
       tcoeff2=0.0
       tcoeff3=0.0
 !
+!
+!     NCLASS is the number of distance classes in the selected range.
+!     0.5 is added to avoid counting errors due to 'chopping'.
+!
+      IF (kdt.le.1) THEN
+        nclass=int(((f(4)-stt)/clint)+0.5)
+      ELSE 
+        nclass=int(((kdt-stt)/clint)+0.5)
+      END IF
+        PRINT *,' Step 380',' nclass=',nclass
+!
+!
       DO 1410 bootstrap=1, maxjb
-
          params.bootstrap = bootstrap
 !
 !     The flag variable MTEST is first set at zero.
@@ -733,7 +758,6 @@
 !     In subsequent runs through Loop 1410, bootstrapping applies
 !     (JBSTP=1) and a bootstrapped distribution is used instead.
 !
-!
 !     The number detected within each class [VAL(IC)], is the sum of the
 !     numbers in each class in which the R(IN) or Y(IN) values fall.
 !     Calculating the various VAL(IC) values first requires
@@ -741,7 +765,11 @@
 !     concerned, then adding all the NSIZE(IN) values which fall
 !     within that class.  This will be done for each class interval
 !     in turn, beginning with the calculation of VAL(1) for the
-!     nearest class to r=0 or y=0.
+!     nearest class to r=0 or STT or y=0 or STT.  If a minimum value in the
+!     range (STT) has been specified, or a maximum value for r or y of KDT 
+!     (>1), the program also computes the number of data clusters (NOTIN) 
+!     below STT and above KDT and subtracts it from NVALS to give the 
+!     correct magnitude of NVALS for use in later calculations.
 !
 !     An alternative computation works with perpendicular distance
 !     values (see below).
@@ -754,26 +782,51 @@
 !
 !
   380   frst=stt
-  
-        DO 410 ic=1,80
-          val(ic)=0.0
-          IF (jbstp.eq.1) GO TO 480
+!
+!
+      DO 410 ic=1,nclass
+        val(ic)=0.0
+!
+!     Computation goes to Step 480 if bootstrapping has begun (JBSTP=1).
+!
+        IF (jbstp.eq.1) THEN
+          GO TO 480
+        END IF
+!
+!     A variable NOTIN counts the groups excluded from the data set.
+!
+        notin=0
 !
           DO 400 ir=1,nvals
-            IF (r(ir).gt.frst.and.r(ir).le.(frst+clint)) GO TO 390
-            GO TO 400
-  390       val(ic)=val(ic)+nsize(ir)
+             IF (kdt.gt.1 .and. r(ir).ge.kdt)  THEN
+               notin=notin+1
+             ELSE IF (r(ir).lt.stt) THEN
+               notin=notin+1
+             ELSE IF ((r(ir)).ge.frst .and. (r(ir)).lt.(frst+clint))
+     &        THEN
+               val(ic)=val(ic)+nsize(ir)
+             END IF
+!
   400     CONTINUE
+!
           frst=frst+clint
-  410   CONTINUE
+  410 CONTINUE
+!
+		  ngroups=nvals-notin
+        PRINT *,' Step 410',' STT=',stt,' nvals=',nvals,' val(20)=
+     &',val(20),' KDT=',kdt
 !
 !     The frequency distribution of the original data is saved,
 !     as VALT(IG).
 !
-        DO 420 ig=1,80
+        DO 420 ig=1,nclass
           valt(ig)=val(ig)
   420   CONTINUE
-        IF (nap.le.0) GO TO 1320
+!
+        IF (nap.le.0) THEN 
+          GO TO 1320
+        END IF
+!
 !
         jbstp=1
         GO TO 620
@@ -787,26 +840,48 @@
 !
   430   frst=stt
 !
-        DO 460 ic=1,80
+        DO 460 ic=1,nclass
           val(ic)=0.0
-          IF (jbstp.eq.1) GO TO 480
 !
-          DO 450 ir=1,nvals
-            IF (abs(y(ir)).ge.frst.and.abs(y(ir)).lt.(frst+clint))
-     &       GO TO 440
-            GO TO 450
-  440       val(ic)=val(ic)+nsize(ir)
+!     Computation goes to Step 480 if bootstrapping has begun (JBSTP=1).
+!
+        IF (jbstp.eq.1) THEN
+          GO TO 480
+        END IF
+!
+!     A variable NOTIN counts the groups excluded from the data set.
+!
+          notin=0
+!
+           DO 450 ir=1,nvals
+             IF (kdt.gt.1 .and. abs(y(ir)).ge.kdt) THEN
+               notin=notin+1
+             ELSE IF (abs(y(ir)).lt.stt) THEN
+               notin=notin+1
+             ELSE IF (ABS(y(ir)).ge.frst .and. ABS(y(ir)).lt.
+     &         (frst+clint)) THEN
+               val(ic)=val(ic)+nsize(ir)
+             END IF
+!
   450     CONTINUE
+!
           frst=frst+clint
   460   CONTINUE
+		  ngroups=nvals-notin
+        PRINT *,' Step 460',' STT=',stt,' nvals=',nvals,' val(20)=
+     &',val(20),' KDT=',kdt,' y(20)=',y(20),' ngroups=',ngroups
 !
 !     The frequency distribution of the original data is now saved,
 !     as VALT(IG).
 !
-        DO 470 ig=1,80
+        DO 470 ig=1,nclass
           valt(ig)=val(ig)
   470   CONTINUE
-        IF (nap.le.0) GO TO 1320
+!
+        IF (nap.le.0) THEN
+          GO TO 1320
+        END IF  
+!
 !
         jbstp=1
         GO TO 620
@@ -816,16 +891,17 @@
 !     the corresponding group NSIZE(IN) are to be chosen at random
 !     with replacement, based on a randomly-selected value of IN,
 !     which ranges between 1 and NVALS, the total number of groups of
-!     animals detected.  Loop 95 selects these values.
+!     animals detected.  Loop 510 selects these values.
 !
 !
-  480   iseed=0
-        DO 510 jr=1,nvals
+  480     iseed=0
+!
+      DO 510 jr=1,nvals
 !
 !     A seed value is first chosen, based on the (sequential) values of
 !     R in the data input, the size of the data set provided (NVALS),
 !     the stage reached in the main backstrapping loop (bootstrap),
-!     and the relevant step (JR) in Loop 95.  This should minimize
+!     and the relevant step (JR) in Loop 510.  This should minimize
 !     the likelihood of common seed values being submitted in
 !     different random number searches.
 !     In this way, no two seed values are likely either to be
@@ -835,8 +911,8 @@
 !
 !     An upper limit is placed on ISEED to prevent integer overflow.
 !
-          IF (iseed.gt.150000) iseed=iseed/100
-          iseed = iseed + (r(jr)*724*jr)/bootstrap
+       IF (iseed.gt.150000) iseed=iseed/100
+         iseed = iseed + (r(jr)*724*jr)/bootstrap
 !
 !     A random number between 0 and 1 is now called from the Subroutine
 !     SRANDNAG, multiplied by NVALS to give it a value between 0 and
@@ -848,8 +924,7 @@
           jx = INT(x*nvals + 1)
 !
 !     What happens now depends on whether radial or perpendicular
-!     distance measurements are being used.
-!
+!     distance measurements are being used.  !
 !
           IF (iry.gt.0) GO TO 500
 !
@@ -859,12 +934,13 @@
 !     redefined as BSTR(JR), the JRth bootstrapped value of R.  The
 !     corresponding value of NSIZE, NSIZE(JX), is now redefined
 !     as NBSZ(JR), the JRth bootstrapped value of NSIZE. Loop
-!     95 then goes back to its beginning to select another R value,
+!     510 then goes back to its beginning to select another R value,
 !     and so on until all NVALS selections have been made.
 !
-  490     bstr(jr)=r(jx)
-          nbsz(jr)=nsize(jx)
-          GO TO 510
+  490      bstr(jr)=r(jx)
+           nbsz(jr)=nsize(jx) 
+!
+        GO TO 510
 !
 !     Or: perpendicular distance computations are made.
 !
@@ -872,13 +948,13 @@
 !     redefined as BSTY(JR), the JRth bootstrapped value of Y.  The
 !     corresponding value of NSIZE, NSIZE(JX), is now redefined
 !     as NBSZ(JR), the JRth bootstrapped value of NSIZE. Loop
-!     95 then goes back to its beginning to select another Y value,
+!     510 then goes back to its beginning to select another Y value,
 !     and so on until all NVALS selections have been made.
 !
-  500     bsty(jr)=y(jx)
-          nbsz(jr)=nsize(jx)
+  500      bsty(jr)=r(jx)
+           nbsz(jr)=nsize(jx) 
 !
-  510   CONTINUE
+  510 CONTINUE
 !
 !
 !     There should now be a new set of (N=NVALS) R (or Y) and NSIZE
@@ -893,17 +969,21 @@
 !
 !     Either: radial distance data are handled.
 !
-  520   frst=stt
-        DO 550 ic=1,80
-          val(ic)=0
+  520     frst=stt
+       DO 550 ic=1,nclass
+         val(ic)=0.0
+!
           DO 540 irb=1,nvals
-            IF ((bstr(irb).gt.frst).and.(bstr(irb).le.(frst+clint))) GO
-     &       TO 530
-            GO TO 540
-  530       val(ic)=val(ic)+nbsz(irb)
+             IF ((bstr(irb).ge.frst) .and. (bstr(irb).lt.(frst+clint)))
+     &        THEN
+               val(ic)=val(ic)+nbsz(irb)
+             END IF
   540     CONTINUE
+!
           frst=frst+clint
-  550   CONTINUE
+!
+  550  CONTINUE
+!
 !
 !     BSTR(IRB) values need to be reassigned at this point
 !     or some values will be carried into subsequent loop
@@ -918,16 +998,19 @@
 !
 !     Or: perpendicular distance data are handled.
 !
-  570   frst=stt
-        DO 600 ic=1,80
+  570    frst=stt
+        DO 600 ic=1,nclass
           val(ic)=0
+!
           DO 590 irb=1,nvals
-            IF ((bsty(irb).ge.frst) .and. (bsty(irb).lt.(frst+clint)))
-     &       GO TO 580
-            GO TO 590
-  580       val(ic)=val(ic)+nbsz(irb)
+            IF ((ABS(bsty(irb)).ge.frst) .and. (ABS(bsty(irb)).lt.
+     &       (frst+clint)))  THEN
+              val(ic)=val(ic)+nbsz(irb)
+            END IF
   590     CONTINUE
+!
           frst=frst+clint
+!
   600   CONTINUE
 !
 !     BSTY(IRB) values need to be reassigned at this point
@@ -944,17 +1027,17 @@
 !     is now printed out for the set of data concerned if JPRINT=1.
 !
 !
-  620   IF (jprint) 660,660,630
-  630   WRITE (2,640) bootstrap
-  640   FORMAT (///'  Bootstrap Replicate No. =',i4/)
-        WRITE (2,650) (val(i),i=1,80)
-  650   FORMAT (8f10.4,//)
+  620   IF (jprint.eq.1) THEN
+          WRITE (2,640) bootstrap
+  640     FORMAT (///'  Bootstrap Replicate No. =',i4/)
+          WRITE (2,650) (val(i),i=1,nclass)
+  650     FORMAT (8f10.4,//)
+        END IF
 !
 !
 !     The initial simplex of program MINIM is now set up.
 !
 !
-
   660   DO 670 i=1,nop
   670     g(1,i)=f(i)
         irow=2
@@ -972,8 +1055,8 @@
   700       f(j)=g(i,j)
           CALL givef (f, h(i), dcoeff, val, clint, pd, ps, r3s, stt,
      &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt,
-     &     kprint, kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns,
-     &     msfail, mtest, graph_file)
+     &     kprint, kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, 
+     &     ns,msfail, mtest, graph_file)
 
 !
           neval=neval+1
@@ -1031,8 +1114,8 @@
   820     pstar(i)=a*(pbar(i)-g(imax,i))+pbar(i)
         CALL givef (pstar, hstar, dcoeff, val, clint, pd, ps, r3s, stt,
      &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint,
-     &    kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail,
-     &   mtest, graph_file)
+     &   kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, 
+     &   msfail,mtest, graph_file)
 !
 !     The next 5 statements test whether a progress report is
 !     required and, if so, provide one.  This procedure occurs
@@ -1061,8 +1144,8 @@
   840     pstst(i)=c*(pstar(i)-pbar(i))+pstar(i)
         CALL givef (pstst, hstst, dcoeff, val, clint, pd, ps, r3s, stt,
      &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint,
-     &    kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail,
-     &   mtest, graph_file)
+     &   kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, 
+     &   msfail, mtest, graph_file)
 !
 !     If IPRINT=1 the program prints out the progress of the
 !     iteration.  This is not normally required.
@@ -1119,8 +1202,8 @@
   940     pstst(i)=b*g(imax,i)+(1.0-b)*pbar(i)
         CALL givef (pstst, hstst, dcoeff, val, clint, pd, ps, r3s, stt,
      &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint,
-     &    kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail,
-     &   mtest, graph_file)
+     &   kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, 
+     &   msfail, mtest, graph_file)
 !
         neval=neval+1
         IF ((iprint.eq.1).and.(jprint.eq.1)) GO TO 950
@@ -1156,8 +1239,8 @@
  1010       f(j)=g(i,j)
           CALL givef (f, h(i), dcoeff, val, clint, pd, ps, r3s, stt,
      &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt,
-     &     kprint, kwt, lprint, ltmax, ltmin, numa, numo, nvals, ns,
-     &     msfail, mtest, graph_file)
+     &     kprint, kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, 
+     &     ns, msfail, mtest, graph_file)
 !
           neval=neval+1
           IF ((iprint.eq.1).and.(jprint.eq.1)) THEN
@@ -1208,8 +1291,8 @@
  1080   CONTINUE
         CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
      &    thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
-     &    lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail, mtest, 'O
-     &utfile2.txt')
+     &    lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
+     &    mtest, graph_file)
 !
         neval=neval+1
 !
@@ -1222,7 +1305,7 @@
 !     If the number of evaluations has exceeded the value of MAX
 !     set (=750), the convergence process is judged not to have
 !     succeeded in this case.  If so, this particular run of Loop
-!     855 is assumed to have yielded a 'no result'.  A counting
+!     1410 is assumed to have yielded a 'no result'.  A counting
 !     variable (MFAIL) is given a value of 1, to be subtracted from
 !     the value of MAXJB later, and the next run through the loop
 !     begins.
@@ -1311,19 +1394,16 @@
 !     convergence on a minimum.
 !
  1250   IF (jprint.eq.1) THEN
-        WRITE (2, 1270) neval
- 1270   FORMAT (5(/),' PROCESS CONVERGES ON MINIMUM AFTER ', i4,
+          WRITE (2, 1270) neval
+ 1270     FORMAT (5(/),' PROCESS CONVERGES ON MINIMUM AFTER ', i4,
      &' FUNCTION EVALUATIONS'///)
-        WRITE (2, 1280) (f(i), i=1, nop)
- 1280   FORMAT (' MINIMUM AT   ',4(1x,e13.6))
-        WRITE (2, 1290) func
- 1290   FORMAT (//' MINIMUM FUNCTION VALUE   ',e13.6)
-        WRITE (2, 1300)
- 1300   FORMAT (///' END  OF  SEARCH'/1x,15('*'))
+          WRITE (2, 1280) (f(i), i=1, nop)
+ 1280     FORMAT (' MINIMUM AT   ',4(1x,e13.6))
+          WRITE (2, 1290) func
+ 1290     FORMAT (//' MINIMUM FUNCTION VALUE   ',e13.6)
+          WRITE (2, 1300)
+ 1300     FORMAT (///' END  OF  SEARCH'/1x,15('*'))
         END IF
-!
-!
-        CONTINUE
 !
 !
 !     MTEST is set at 1 to flag that convergence has occurred.  This
@@ -1335,12 +1415,12 @@
 !     Program execution returns to the subroutine to yield final pass
 !     values of F(1), F(2) and F(3).
 !
-        lprint=1
+       lprint=1
 !
         CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
      &    thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
-     &    lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail, mtest,
-     &    graph_file)
+     &    lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
+     &    mtest, graph_file)
 !
 !
         kprint=0
@@ -1354,8 +1434,8 @@
 !     line transect data, and by 2Vt in the case of fixed-point data.
 !
         IF (km.gt.0) THEN
-        den(bootstrap)=(1.e6*f(3))/(2.*dist)
-        GO TO 1370
+          den(bootstrap)=(1.e6*f(3))/(2.*dist)
+          GO TO 1370
         END IF
 !
         IF (ifx.eq.0) THEN
@@ -1476,25 +1556,27 @@
 !     The products of the program are now output.
 !
 !
-!     The estimated topographical cover (TCOV) is first, followed
-!     by the number of actual parameter estimations made (NUMEST).
+!     The number of animal groups in the selected range (NGROUPS) is 
+!     first, followed by the estimated topographical cover (TCOV), 
+!     then the number of actual parameter estimations made (NUMEST).
 !
- 1470 WRITE (2,1480) tcov
- 1480 FORMAT (/' Estimated Topographical Cover = ',f7.6)
+ 1470 WRITE (2,1475) ngroups
+ 1475 FORMAT (/' Number in Groups in Distance Range = ',i4)
+!
+      WRITE (2,1480) tcov
+ 1480 FORMAT (' Estimated Topographical Cover = ',f7.6)
 !
       WRITE (2,1490) numest
- 1490 FORMAT (/' Number of Parameter Estimations =',i4)
+ 1490 FORMAT (' Number of Parameter Estimations =',i4)
 !
 !
 !     Now follow general headings for the results table.
 !  
 !
       WRITE (2,1500)
- 1500 FORMAT (//' Calculated values were:'/)
+ 1500 FORMAT (//' Estimated Parameter Values:'//)
       kprint=1
 !
-      WRITE (2,1510)
- 1510 FORMAT (//' ESTIMATED PARAMETER VALUES:'//)
       WRITE (2,1520)
  1520 FORMAT (' ',77('x')/' x',4(18x,'x'))
       WRITE (2,1530)
@@ -1582,7 +1664,7 @@
  1850 FORMAT (' x',4(18x,'x')/' ',77('x')//)
 !
       WRITE (2,1860) coeffnt3,scf3
- 1860 FORMAT (/x,'Detectability Coefficient (S) =',f8.2,', SE =',f6.2/)
+ 1860 FORMAT (x,'Detectability Coefficient (S) =',f8.2,', SE =',f6.2)
 !
 !
 !     Key model estimates are now output if ISHOW was originally set
@@ -1595,7 +1677,7 @@
 !
       f(1)=coeffnt1
       f(2)=coeffnt2
-      DO 1870 jv=1,80
+      DO 1870 jv=1,nclass
  1870   val(jv)=valt(jv)
 !
       IF (km.eq.0) GO TO 1890
@@ -1608,8 +1690,8 @@
 !
  1920 CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
      & thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
-     & lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail, mtest,
-     & graph_file)
+     & lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
+     & mtest,graph_file)
 !
 !
       params.complete = 1
@@ -1644,8 +1726,8 @@
 !
       SUBROUTINE givef (f, func, s, val, clint, pd, ps, r3s, stt, tcov,
      & thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
-     & lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail, mtest,
-     & graph_file)
+     & lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
+     & mtest, graph_file)
 !
 !     Double precision for all real numbers is set, together with
 !     common values, dimensions and symbols for key variables.
@@ -1656,7 +1738,7 @@
 !
       INTEGER iermax,ifx,imv,ios,iry,ishow,it,iv,jj,jl,jrlow,jv
       INTEGER kdt,kprint,kwt,lprint,l10,l20,limit,ltmin,ltmax
-      INTEGER max,md,msfail,mtest,ns,numa,numo,nvals
+      INTEGER max,md,msfail,mtest,ns,numa,numo,nvals,nclass
       CHARACTER*(*) graph_file
       DOUBLE PRECISION aprexi,auc,cint,clint,d2l,dd,dds,ddsm,dh,dif
       DOUBLE PRECISION difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed
@@ -1716,9 +1798,9 @@
 !
    30 d2l=f(3)
 !
-!     HTOT is set to a higher value if D2L<0.0001
+!     HTOT is set to a higher value if D2L<0.01
 !
-      IF (d2l.ge.0.0001) GO TO 50
+      IF (d2l.ge.0.001) GO TO 50
       htot=1.e+6+htot
 !
 !     HTOT is set high if a>400
@@ -1726,9 +1808,9 @@
    50 IF (p.lt.400) GO TO 70
       htot=1.e+6+htot
 !
-!     HTOT is set high if a<0.0099
+!     HTOT is set high if a<0.01
 !
-   70 IF (p.ge..0099) GO TO 90
+   70 IF (p.ge.0.01) GO TO 90
       htot=abs((p-2.)*1.e06)+htot
 !
 !     RMAX is set at zero if DMAX is equal to or less than THH
@@ -1841,12 +1923,8 @@
       pam=pa/ddsm
       prmax=pam/ssmax
 !
-!     The control variable L10 determines the number of classes
-!     for which an expected value is calculated.  It is set equal
-!     to RMAX-STT/CLINT for all situations.
-!     0.5 is added to remove errors due to 'chopping'.
 !
-  260 l10=int(((rmax-stt)/clint)+0.5)
+  260 l10=nclass
       tote=0.
 !
 !     TR is the highest r value in the current frequency class;
@@ -1854,7 +1932,11 @@
 !     from the observer or from the transect line - TR is initially
 !     set at RMAX.
 !
-      tr=rmax
+      IF (kdt.le.1) THEN
+        tr=dmax
+      ELSE
+        tr=kdt
+      END IF
 !
 !
 !     To compute 'expected' values within each class, each class
@@ -1877,7 +1959,7 @@
 !     to become an exact multiple of CINT.
 !
       IF (iry.lt.1) GO TO 280
-  270 iermax=(f(4))/cint
+      iermax=(f(4))/cint
       ermax=iermax*cint
 !
 !     In the event that PRMAX > 1., HTOT is set to a high value.
@@ -1909,12 +1991,11 @@
 !
       DO 1180 jj=1,l10
 !
-!     MD is the hth class in the series from MD=80 to MD=1 (or 2,
-!     in situations where the most central belt is obscured).
-!     0.5 is added to enable rounding to the nearest integer
-!     despite chopping by the program.)  
+!     MD is the hth class in the series, calculated in the reverse
+!     order to JJ (going from MD=L10 downwards) because computations 
+!     begin at RMAX and continue at progressively decreasing r values.
 !
-        md=int((tr/clint)+0.5)
+        md=nclass-jj+1
 !
 !     OBSD is the observed value for the hth arc, as supplied
 !     in the input to the program.
@@ -1950,7 +2031,7 @@
 !     If the entire class lies above both the highest calculated
 !     and highest observed recognition distances, the expected
 !     value (EXPDV) is set at zero and the calculations in Loop
-!     20 are bypassed.
+!     870 are bypassed.
 !
         IF (wl.gt.rmax.and.wl.gt.ermax) GO TO 350
         GO TO 360
@@ -2437,7 +2518,9 @@
 !
 !
  1080   dif=obsd-expdv
-!  
+        IF (kprint.eq.1) THEN
+          PRINT *,' jj=',jj,' md=',md,' tr=',tr,' wl=',wl,' dif=',dif
+        END IF 
 !
 !      If an upper limit of KDT (>1) has been set for the input
 !      data range, the computed difference between observed and
@@ -2509,7 +2592,7 @@
       IF (kprint.eq.0) GO TO 1290
 !
       WRITE (2,1200) rlow
- 1200 FORMAT (/,' 99.9% r value (rmin) =',f7.2,' m '/)
+ 1200 FORMAT (//,' 99.9% r value (rmin) =',f7.2,' m ')
       OPEN (UNIT=3,FILE=graph_file,STATUS='NEW',IOSTAT=ios,
      & ERR=1320)
       IF (iry.gt.0) GO TO 1250
@@ -2518,9 +2601,9 @@
       DO 1240 jj=1,l10
         jv=l10-jj+1
       IF (kdt.gt.1) THEN
-         limit = kdt / clint
+         limit = (kdt-stt) / clint
       ELSE
-         limit = dmax / clint
+         limit = (dmax-stt) / clint
       END IF
       IF (jj.gt.limit) GO TO 1290
       WRITE (3,1230) rout(jv),calcnr(jv),obsdnr(jv)
@@ -2532,9 +2615,9 @@
       DO 1280 jj=1,l10
         jv=l10-jj+1
       IF (kdt.gt.1) THEN
-        limit = kdt / clint
+        limit = (kdt-stt) / clint
       ELSE
-        limit = dmax / clint
+        limit = (dmax-stt) / clint
       END IF
       IF (jj.gt.limit) GO TO 1290
       WRITE (3,1270) yout(jv),calcny(jv),obsdny(jv)
