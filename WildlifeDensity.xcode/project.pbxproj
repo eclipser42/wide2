@@ -504,7 +504,7 @@
 				LIBRARY_STYLE = DYNAMIC;
 				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
-				PRODUCT_NAME = "Wildlife Density";
+				PRODUCT_NAME = WildlifeDensity;
 				WRAPPER_EXTENSION = app;
 				XLF_QFIXED = YES;
 			};
@@ -597,7 +597,7 @@
 			explicitFileType = wrapper.application;
 			includeInIndex = 0;
 			isa = PBXFileReference;
-			path = "Wildlife Density.app";
+			path = WildlifeDensity.app;
 			refType = 3;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
