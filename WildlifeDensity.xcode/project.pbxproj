@@ -84,6 +84,55 @@
 //192
 //193
 //194
+//1A0
+//1A1
+//1A2
+//1A3
+//1A4
+		1A10376A071BEC19003F3AC7 = {
+			fileRef = 42F1A90306CDEF58002282CE;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		1A221BD1071BCDDB00596C57 = {
+			fileRef = 420B008E06C6F75800695CAB;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		1A221BF3071BD19B00596C57 = {
+			isa = PBXFileReference;
+			lastKnownFileType = archive.ar;
+			name = libxl.a;
+			path = "XLF-static/libxl.a";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		1A221BF7071BD1E700596C57 = {
+			fileRef = 1A221BF3071BD19B00596C57;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		1AA5AD8A0746264500DCE606 = {
+			isa = PBXFileReference;
+			lastKnownFileType = image.tiff;
+			path = "WildlifeDensity Icon.tiff";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		1AA5AD8B0746264500DCE606 = {
+			fileRef = 1AA5AD8A0746264500DCE606;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+//1A0
+//1A1
+//1A2
+//1A3
+//1A4
 //2A0
 //2A1
 //2A2
@@ -106,8 +155,6 @@
 		};
 		2A37F4AAFDCFA73011CA2CEA = {
 			children = (
-				42F1A90306CDEF58002282CE,
-				42F1A90406CDEF58002282CE,
 				2A37F4ABFDCFA73011CA2CEA,
 				2A37F4AFFDCFA73011CA2CEA,
 				2A37F4B8FDCFA73011CA2CEA,
@@ -174,6 +221,7 @@
 		};
 		2A37F4B8FDCFA73011CA2CEA = {
 			children = (
+				1AA5AD8A0746264500DCE606,
 				2A37F4B9FDCFA73011CA2CEA,
 				2A37F4B6FDCFA73011CA2CEA,
 				420B004F06C6E96000695CAB,
@@ -206,6 +254,9 @@
 		};
 		2A37F4C3FDCFA73011CA2CEA = {
 			children = (
+				1A221BF3071BD19B00596C57,
+				42F1A90306CDEF58002282CE,
+				42F1A90406CDEF58002282CE,
 				1058C7A6FEA54F5311CA2CBB,
 				1058C7A8FEA54F5311CA2CBB,
 			);
@@ -358,12 +409,6 @@
 			tabWidth = 4;
 			usesTabs = 0;
 		};
-		420B008F06C6F75800695CAB = {
-			fileRef = 420B008E06C6F75800695CAB;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		4295D9CA06C73467005558C3 = {
 			fileEncoding = 4;
 			indentWidth = 4;
@@ -379,23 +424,17 @@
 			isa = PBXFileReference;
 			lastKnownFileType = archive.ar;
 			name = libxlf90_r.a;
-			path = /opt/ibmcmp/xlf/8.1/lib/libxlf90_r.a;
-			refType = 0;
-			sourceTree = "<absolute>";
+			path = "XLF-static/libxlf90_r.a";
+			refType = 4;
+			sourceTree = "<group>";
 		};
 		42F1A90406CDEF58002282CE = {
 			isa = PBXFileReference;
 			lastKnownFileType = archive.ar;
 			name = libxlfmath.a;
-			path = /opt/ibmcmp/xlf/8.1/lib/libxlfmath.a;
-			refType = 0;
-			sourceTree = "<absolute>";
-		};
-		42F1A90506CDEF58002282CE = {
-			fileRef = 42F1A90306CDEF58002282CE;
-			isa = PBXBuildFile;
-			settings = {
-			};
+			path = "XLF-static/libxlfmath.a";
+			refType = 4;
+			sourceTree = "<group>";
 		};
 		42F1A90606CDEF58002282CE = {
 			fileRef = 42F1A90406CDEF58002282CE;
@@ -461,9 +500,9 @@
 				GCC_PREFIX_HEADER = WildlifeDensity_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = /opt/ibmcmp/xlf/8.1/lib;
+				LIBRARY_SEARCH_PATHS = "XLF-static /Users/james/dev/WiDe/WildlifeDensity/XLF-static";
 				LIBRARY_STYLE = DYNAMIC;
-				OTHER_LDFLAGS = "-lxlfmath -lxlf90";
+				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
 				PRODUCT_NAME = "Wildlife Density";
 				WRAPPER_EXTENSION = app;
@@ -487,6 +526,7 @@
 				420B005106C6E96000695CAB,
 				420B005606C6E99600695CAB,
 				420B007306C6EED000695CAB,
+				1AA5AD8B0746264500DCE606,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -515,7 +555,7 @@
 				8D15AC320486D014006FF6A4,
 				420B005706C6E99600695CAB,
 				420B007406C6EED000695CAB,
-				420B008F06C6F75800695CAB,
+				1A221BD1071BCDDB00596C57,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -532,8 +572,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D15AC340486D014006FF6A4,
-				42F1A90506CDEF58002282CE,
+				1A10376A071BEC19003F3AC7,
 				42F1A90606CDEF58002282CE,
+				1A221BF7071BD1E700596C57,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
