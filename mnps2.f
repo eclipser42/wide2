@@ -1,49 +1,47 @@
-!     PROGRAM mnps2.f
+!     PROGRAM WildlifeDensity  (File mnps2.f)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
 !     point methods, together with estimates of other parameters of the
-!     observing situation.  It has been designed primarily for use in
+!     observing situation.  It is intended primarily for use in
 !     ground surveys of mammal and bird populations in terrestrial
-!     habitats, though a variant can work with aerial surveys using both
-!     fixed-wing aircraft and helicopters.
+!     habitats, and with aerial surveys using helicopters.  It is
+!     capable, with modification, of being used with aerial survey
+!     data collected from fixed-wing aircraft.
 !
-!     [The program as written does not allow for normal aerial survey
-!     density estimation, or estimation where a segment of the viewing
-!     arc is missing; for these types of data, program MNPSAS should
-!     be used instead.]
-!
-!     MNPS2 works by modelling mathematically the frequency distributions
-!     of the numbers sighted under uniform observing conditions over a
-!     range of distances from either the observer or the transect line.
-!     Curve-fitting is achieved by using the simplex method to minimize
-!     the sum of squares of the differences between the observed and
-!     calculated numbers across the frequency distribution.
+!     WildlifeDensity works by mathematical modelling of the frequency
+!     distributions of animal numbers detected under uniform observing 
+!     conditions over a range of distances from either an observer
+!     or a transect line.  Curve-fitting is achieved by using the 
+!     simplex method to seek parameter values which minimize the ordinary
+!     least squares fit between the observed and calculated numbers across
+!     the range of detection distances.
 !
 !     Based on the 'best-fit' solution so obtained, the program returns
 !     population density estimates, estimates of other parameters of the
 !     model and related information on the system in which the original
 !     observations were made. Standard errors of the parameters are
-!     obtained by bootstrap sampling of data from the original data set.
+!     obtained by 'bootstrap' resampling of data from the original data set.
 !
 !
-!     MNPS2 has been written by David Morgan, Department of Zoology,
-!     University of Melbourne, Vic. 3010, Australia.
+!     The WildlifeDensity model was designed by David Morgan, Department
+!     of Zoology, The University of Melbourne, Vic. 3010, Australia.
 !
 !
 !     ******************************************************************
 !
 !
-!     MNPS2 consists of a MAIN program and two subroutines,
-!     SUBROUTINE GIVEF and SUBROUTINE SRANDNAG.
+!     File mnps2.f has been written in Fortran, and consists of a 
+!     main subroutine, SUBROUTINE calculate_density, and two subsidiary
+!     subroutines: SUBROUTINE GIVEF and SUBROUTINE SRANDNAG.
 !
 !
-!     The main program determines parameter values for a least
+!     The main subroutine determines parameter values for a least
 !     squares fit between calculated and observed frequencies,
-!     using the simplex method in a way derived from
-!     Nelder & Mead, The Computer Journal, January, 1965.  [Original
-!     'MINIM' program by D.E.Shaw, Divn. of Mathematical Statistics,
-!     CSIRO, Australia.]
+!     using the simplex method.  Its design is derived from
+!     Nelder & Mead, The Computer Journal, January, 1965, as used in
+!     the 'MINIM' program by D.E.Shaw, Divn. of Mathematical Statistics,
+!     CSIRO, Australia, though extensively modified since.
 !
 !     Subroutine GIVEF calculates the sum of squares by using the
 !     mathematical model, and returns this to the main program.
@@ -52,18 +50,35 @@
 !     by the main program.
 !
 !
-!     The program accepts several alternative types of data and
-!     provides three different ways of calculating expected values,
-!     viz:
+!     The program computes density estimates based on the numbers of
+!     animals detected either at various horizontal radial distances (r)
+!     from an observer or at various horizontal distances (y) perpendicular
+!     to a transect line.  It accepts several alternative types of distance
+!     data, as determined by appropriate values of the control parameters
+!     IFX, IRY and IMV supplied with the data, viz:
 !
-!       . radial distance data supplied (IFX=0 and IRY=0);
-!       . perpendicular distance data supplied (IFX=0 and IRY=1);
-!       . fixed-point data supplied (IFX=1 and IRY=0);
+!       . radial distance data supplied (IFX=0, IRY=0 and IMV=0 or 1);
+!       . perpendicular distances calculated from radial distance
+!           and horizontal detection angle data supplied
+!           (IFX=0, IRY=1 and IMV=0 or 1);
+!       . perpendicular distance data supplied (IFX=0, IRY=1 and IMV=1);
+!       . fixed-observer distance data supplied (IFX=1, IRY=0 and IMV=0
+!           or 1);
 !
 !
-!     Data are supplied to the program by means of a data file,
-!     'IN<num>.dat'.  The parameters supplied in the input via the
-!     data file are, in sequence:
+!     Data are entered into the program by means of an appropriately
+!     formatted tab- or comma-separated dataset in a file named
+!     '<filename>.dat'.  It outputs two files:  the first, named
+!     '<filename>_results', prints out final values of the parameters
+!     of the dataset supplied, together with some of the main attributes
+!     of the observing situation;  the second, named 'Outfile2.txt',
+!     sets out the original frequency distribution and the calculated
+!     frequency distribution of best fit in a column format suitable
+!     as input to a graphing application such as MS 'Excel'.
+!
+!
+!     The parameters supplied in the input via the data file are, in 
+!     sequence:
 !
 !
 !     A header line - to label and describe the data set.
@@ -72,8 +87,8 @@
 !          in the sample submitted for modelling.
 !
 !     CLINT - the class interval to be used within the program,
-!          chosen so that 80 x CLINT is less than the observed
-!          maximum detection distance.
+!          chosen so that 80 x CLINT is at least equal to the 
+!          maximum radial detection distance.
 !
 !     STT - the detection distance value (r or y) from which class
 !          intervals begin (usually zero).
@@ -82,103 +97,113 @@
 !          ahead of a moving observer on a transect.
 !
 !     NUMO - the number of individuals overtaking the observer
-!          from behind.
+!          from behind during a transect.
 !
 !     DIST - the transect length corrected for the effect of
-!          animal movement (=LJ).
+!          animal movement.
 !
 !     THH - the vertical distance between observer eye level
 !          and the median horizontal plane occupied by
 !          the population, best represented by the root mean
-!          square of the measured vertical differences.
+!          square of the measured vertical height differences.
 !
 !     LTMIN - the approximate minimum distance at which an animal
-!          may be obscured from the observer by topography.
+!          may be obscured from the observer by topography. Set
+!          at 999 if the topography is approximately level.
 !
 !     LTMAX - the p=0.001 upper-limit distance at which an animal
-!          may be detected by the observer in the absence of
-!          vegetation cover.
+!          may be detected by the observer in uneven topography
+!          in the absence of vegetation cover.  Set at 0 if the
+!          topography is approximately level.
 !
 !     IFX - a parameter to modify the computations appropriately
-!          where data are collected by fixed observer sampling, viz:
+!          where data are collected by an observer sampling from
+!          a fixed point, viz:
 !
-!            =0  handles data from transects;
-!            =1  handles data from fixed point sampling.
+!            = 0  handles data from line transects;
+!            = 1  handles data from fixed point sampling.
 !
-!     IRY - a parameter to control the computations within
-!          the subroutine for transect data, viz:
+!     IRY - a parameter to control computations to model different 
+!           types of line transect data, viz:
 !
-!            =0  handles N(r) radial distance transect data;
-!            =1  handles N(y) perpendicular distance data.
+!            = 0  models radial distance transect data N(r);
+!            = 1  models perpendicular distance data N(y).
 !
-!     NS - the number of sides of the transect line used during
-!          a survey, viz:
+!     NS - the number of sides of the transect line used for
+!          observations during a line transect survey, viz:
 !
-!            =0  not transect data, so not relevant (fixed point);
-!            =1  handles data from only one side of the line;
-!            =2  handles data from both sides of the transect line.
+!            = 0  not transect data (fixed point), so not relevant;
+!            = 1  handles data from only one side of the line;
+!            = 2  handles data from both sides of the transect line.
 !
-!     KM - a parameter to modify the program if distance are
-!          measured in kilometres, viz:
+!     KM - a parameter to modify the program if transect lengths and
+!          detection distances are measured in kilometres, viz:
 !
-!            =0  distances are measured in metres;
-!            =1  distances measured in kilometres.
+!            = 0  all distances are measured in metres;
+!            = 1  transect lengths are measured in kilometres
+!                   and detection distances in metres;
+!            = 2  both transect lengths and detection distances
+!                 are measured in metres.
 !
-!         The program as written assumes that all distances are
-!         in metres.
-!
-!    IMV - a parameter used to determine which method of
-!          calculating probability is used in the subroutine.
+!    IMV - a parameter used to determine the method of
+!          calculating probability used in Subroutine GIVEF.
 !          It either:
-!               . calculates a mean probability value
-!                 within each interval (IMV=0); or
-!               . calculates the median probability
-!                 value within each interval (IMV=1), viz:
 !
-!            =0  uses the mean value of P(r) in an interval;
-!            =1  uses the median value of P(r).
+!            = 0  uses the mean value of P(r) in an interval;
+!            = 1  uses the median value of P(r) in the interval.
 !
-!          [If perpendicular distances are being supplied as raw
+!          [If perpendicular distances from the transect line
+!          are calculated beforehand and supplied to the program as
 !          input data instead of providing radial distances and
-!          angles, put IMV=1 as well as IRY (or IFX) =1.  This removes
+!          angles, put IMV=1 as well as IRY=1.  This removes
 !          a need for angle data, but also precludes the possibility
 !          of calculating median probabilities when such data are
 !          supplied.   (The program resets IMV=0 once the data have
 !          been entered.)]
 !
-!          IMV is set at 1 within the program if the attenuation
+!          IMV is also set at 1 within the program if the
 !          coefficient becomes negative or if the data are
 !          visual observations.
 !
-!     KDT - a control parameter to indicate some properties of
+!     KDT - a control parameter to indicate attributes of the
 !          observational data supplied to the program, viz:
 !
 !            = 0  for visual and flushing data;
-!            = 1  for auditory data.
+!            = 1  for auditory data;
+!            > 1  the maximum class interval boundary distance (in m) 
+!                 when visual data are from a limited distance range.
 !
-!          If KDT=0, the program sets IMV=1 within the
+!          If KDT=0 or > 1, the program sets IMV=1 within the
 !          subroutine.
 !
-!     IPRINT - a parameter to control the output of progress
-!          evaluations from the main program, viz:
+!     IPRINT - a parameter which directs the program to print out
+!          progress sum of squares and parameter values to allow
+!          perusal of the progress of the minimization process.
 !
 !            = 0  no progress evaluations;
-!            = 1  reports initial convergence (with the parameter
-!                 and function values there), overrunning of MAX,
-!                 and a progress report on the minimization every
-!                 function evaluation;
+!            = 1  If JPRINT=0, reports initial convergence and the
+!                 function and parameter values of the initial
+!                 simplex from each bootstrap iteration series;
+!                 If JPRINT=1, directs printing of these values at
+!                 individual steps through the function minimization 
+!                 process, and informs the  user if the process
+!                 failed to converge on a minimum within 750
+!                 steps (the limit set).
 !
-!     JPRINT - a second parameter to control the progress of the
-!          main program, viz.:
-!
-!            = 0  no frequency distributions or internal summaries;
+!     JPRINT - a parameter to enable perusal of the original and
+!           bootstrapped frequency distributions, viz:
+!       
+!            = 0  no frequency distributions or internal output;
 !            = 1  prints the frequency distributions of the original
-!                 and backstrapped data and the final outcome of
-!                 each data set function minimization;
+!                 and bootstrapped data and makes possible perusal
+!                 of the function minimization process if IRPRINT=1.
 !
-!     ISHOW - a control parameter which outputs in sequence: PRC,
+!     ISHOW - a parameter which prints out the values of the
+!          following functions, in sequence, for each class interval
+!          across the distance range for the final result: PRC,
 !          PRR, QR, E, TOTE (total E), ED, EXPD, EXPDV and the
-!          detectability coefficient S.
+!          detectability coefficient S (see comments within
+!          Subroutine GIVEF.
 !
 !            = 0  no output;
 !            = 1  produces output.
@@ -186,13 +211,16 @@
 !     MAXJB  -  the number of sets of iterations used to derive
 !          the backstrapped series of model parameters and
 !          calculate standard errors.  This is best set at between
-!          500 and 2000.
+!          500 and 2000.  Fewer sets saves computation time but
+!          increases the size of confidence intervals of parameters.
 !
 !     R3S - three times the estimated interquartile range of all
 !          the deviations between the calculated and observed
 !          values, used in the process of converging on an
-!          internal minimum.  Its default value is 100 if no R3S
-!          value is supplied in the input.
+!          internal minimum in the case of perpendicular distance
+!          data (IRY=1) when the number of iterations (NEVAL)
+!          for a data set exceeds 40.  Its default value is 100 if
+!          no R3S value is supplied in the input.
 !
 !     VGH - the approximate average height of vegetation cover
 !          in the animal's habitat in situations where the observer
@@ -201,28 +229,35 @@
 !
 !     IT - the duration of a fixed-point census (in min.).
 !
-!     IV - the mean speed of animal movement (in m/min), used in
-!          fixed observer censuses only.
+!     IV - the overall mean speed of animal movement (in m/min),
+!          used in fixed observer censuses only.
 !
 !     PD - the proportion of the population observable at the
-!          time of a census, taken as =1 as the default.
+!          time of a census, usually taken =1.
 !
 !     PS - in fixed-point censuses, the proportion of the circle
-!          scanned by the observer during the census.
+!          scanned by the observer during the census (usually
+!          either 0.5 or 1).
 !
 !
-!     F  - the model parameter values used in the search for the
-!          minimum point.  Four initial F values are required:
+!     F  - the model's parameter values used in the search for the
+!          minimum point.  Four initial F values are required
+!          as input to the program:
 !
 !          F(1):  an estimate of the conspicuousness coefficient
 !                 of the species under the conditions of the
 !                 census;
 !
-!          F(2):  an estimate of the attenuation coefficient of
-!                 the model under the census conditions;
+!          F(2):  an estimate of either the overall lateral vegetation
+!                 cover (c) between observer and animals, or of the
+!                 attenuation coefficient (b) of animal sounds in the 
+!                 observing situation under the census conditions;
 !
 !          F(3):  an estimate of the population density (D),
-!                 expressed in number of individuals per hectare;
+!                 expressed in number of individuals per hectare if
+!                 transect lengths are in m, or in number of 
+!                 individuals per sq km if transect lengths are
+!                 in kilometres;
 !
 !          F(4):  an estimate of the maximum distance (in m) from the
 !                 observer at which species recognition is
@@ -246,12 +281,11 @@
 !
 !          STEP(4):  usually set at zero.
 !
-!          Setting the STEP value at 0.0 for a parameter fixes the F()
+!          Setting the STEP value at 0.0 for a parameter fixes an F()
 !          value at that supplied to the program.  Where a data set
 !          (NVALS) is small (say, < 50 detections), STEP(2) should be
-!          set at 0.0
-!          Where the set is very small (say, < 30 detections), STEP(1)
-!          should also be set at 0.0 .
+!          set at 0.0 .  Where the set is very small (say, < 30 
+!          detections), STEP(1) should also be set at 0.0 .
 !
 !
 !    R() - the radial detection distances (r) originally measured
@@ -259,8 +293,8 @@
 !          were collected.
 !
 !    NSIZE() - the size of each cluster (group) of animals at the
-!          moment of detection, submitted in the same order as the
-!          corresponding R() values.
+!          moment of detection, listed in the data input in the same
+!          order as the corresponding R() values.
 !
 !    ANGLE() - the horizontal angle between the direction of a transect
 !          and the bearing to a cluster of animals at the moment of
@@ -279,7 +313,7 @@
 !          observed and expected values;
 !
 !     MAX - the maximum number of function evaluations to be
-!          allowed (set at 750);
+!          allowed (arbitrarily set at 750);
 !
 !     Three coefficients used in the search for a minimum value, viz:
 !
@@ -296,8 +330,9 @@
 !          before testing for final convergence.
 !
 !     KWT - a control parameter which directs calculation of
-!          a biweighted least squares once the number of
-!          iterations exceeds a predetermined value.
+!          a biweighted least squares in the case of perpendicular
+!          distance data once the number of iterations exceeds 
+!          a predetermined value (=40).
 !
 !            = 0  for normal least squares computation,
 !            = 1  for biweighted least squares.
@@ -326,12 +361,11 @@
 !
 !     P  - the conspicuousness coefficient ('a').
 !
-!     Q  - for auditory data (where KDT=1), the
-!          conspicuousness coefficient ('b').
-!
-!        - for visual data (where KDT=0), the mean vegetation
-!          cover proportion in the habitat between animal and
+!     Q  - for visual data (where KDT=0 or >1), the mean vegetation
+!          cover proportion (c) in the habitat between animal and
 !          observer.
+!        - for auditory data (where KDT=1), the conspicuousness 
+!          coefficient ('b').
 !
 !     S  - a coefficient of detectability, usable in density estimation
 !          by direct calculation.
@@ -365,7 +399,7 @@
       SEQUENCE        ! SEQUENCE indicates not to insert internal
                       ! padding for data alignment
       INTEGER nvals, numa, numo, ltmin, ltmax, ifx, iry, ns, km, imv
-      INTEGER iprint, jprint, ishow, maxjb, it, iv, kdt
+      INTEGER kdt, iprint, jprint, ishow, maxjb, it, iv
       DOUBLE PRECISION clint, stt, dist, thh, r3s, vgh, pd, ps
       DOUBLE PRECISION f(4), step(4), r(5000)
       INTEGER nsize(5000)
@@ -406,10 +440,8 @@
 !     supplied and IRY=0 or =2, computation still proceeds.
 !
 !     This program is designed to receive a list-directed data file with
-!     a name constructed from RUNID (a character value not more than 10
-!     characters long).  The filename constructed will be IN'runid'.DAT.
-!     RUNID is also used to construct the output file name of the form
-!     OUT'runnid'.DAT.
+!     a name of the form <filename>.dat and either spaces or commas
+!     separating the values.
 !
 !     The header line should begin with the computer run number each
 !     time to avoid confusion, and be bounded by quotation marks.  Other
@@ -455,33 +487,40 @@
         f(ig)=params.f(ig)
         step(ig)=params.step(ig)
    10 CONTINUE
-      PRINT *,'IRY=',iry
+!
+!     Care is required to ensure that the group size data is submitted
+!     in PRECISELY the same sequence as the corresponding R(IN) data,
+!     and omit overtaking cases where r=0.
 !
       DO 20 ih=1,nvals
         r(ih)=params.r(ih)
         nsize(ih)=params.nsize(ih)
    20 CONTINUE
 !
+!     The same requirement applies to data on observing angles.
+!
       IF ((iry.eq.1).and.(imv.eq.1)) GO TO 40
       DO 30 ih=1,nvals
         angle(ih)=params.angle(ih)
    30 CONTINUE
-      PRINT *,' Step 23 ',ih,r(10),nsize(10),angle(10)
-!
-!
-!     Care in required to ensure that the group size data is submitted
-!     in PRECISELY the same sequence as the corresponding R(IN) data,
-!     and omit overtaking cases where r=0.
 !
 !
    40 OPEN (UNIT=2,FILE=outfile,STATUS='NEW',IOSTAT=ios,ERR=1940)
+!
+!     If detection distances were entered in kilometres (KM=2),
+!     then these distances are first converted to metres.
+!
+      IF (km .lt. 2) GO TO 45
+      DO 42 ih=1,nvals
+        r(ih)=1000*r(ih)
+   42 CONTINUE          
 !
 !
 !     F(3) is now raised in value to approximate D2LJ in the case
 !     of line transect data, or D2ut for fixed point data.  D is
 !     also altered from no./ha to no./sq.m.
 !
-      IF (ifx) 50,50,70
+   45 IF (ifx) 50,50,70
    50 IF (km.gt.0) GO TO 60
       f(3)=(2.*dist*f(3))/1.e4
       step(3)=(2.*dist*step(3))/1.e4
@@ -524,7 +563,7 @@
      &' m.    Total Time Spent =',i5,' min.')
       GO TO 170
 !
-  120 IF (km) 130,130,150
+  120 IF (km-1) 130,150,150
   130 WRITE (2,140) clint,dist
   140 FORMAT (/' Class Interval Width =',f7.1,
      &' m.    Total Distance (xJ) =',f10.3,' m.')
@@ -539,26 +578,25 @@
 !     from the transect line, and the data supplied are radial
 !     distances and angles, perpendicular distances are now calculated
 !     for the data entered initially,  this action being
-!     prompted by IMY having a zero value.  If perpendicular
+!     prompted by IMV having a zero value.  If perpendicular
 !     distance data as such were supplied (IMV=1), this step is
 !     bypassed and the distance data recognized as Y(IN).
 !
   170 IF ((iry.eq.0).and.(imv.eq.1)) GO TO 190
       IF (iry.lt.0) GO TO 210
       DO 180 in=1, nvals
-        PRINT *, in, angle(in)
         y(in)=r(in)*sin((angle(in)*3.14159265)/180.)
   180 CONTINUE
-      PRINT *, 'Step 14', ' Y(10)=', y(10), ' IMV=', imv, ' IRY=', iry
-      GO TO 210
+        GO TO 210
 !
 !
-!     If IMV was set at 1 because angle data have been supplied,
-!     then IMV is reset at 0 to avoid changing later calculations.
+!     If perp. distance data were inputted as r values, they
+!     are renamed as y values at this stage.  If IMV was set at 1 
+!     because angle data have been supplied, then IMV is reset at 0 
+!     to avoid changing later calculations.
 !
   190 DO 200 in=1,nvals
         y(in)=r(in)
-        PRINT *,'Step 28',' IN= ',in,' Y(IN) ',y(in),' R(IN) ',r(in)
   200 CONTINUE
       IF (imv.eq.1) imv=0
 !
@@ -570,19 +608,17 @@
         ft(ia)=f(ia)
         stept(ia)=step(ia)
   220 CONTINUE
-      PRINT *,'Step 11',' IRY= ',iry
 !
 !     DMAX is given an upper limit (DLIM) which is 80 times the
 !     interval width (CLINT).
 !
       dlim=clint*80.
 !
-!     If transect lengths have been expressed in kilometres (KM=1),
+!     If transect lengths have been expressed in kilometres,
 !     distance data are converted to metres.
 !
-      IF (km) 240,240,230
+      IF (km-1) 240,230,230
   230 dist=dist*1000.
-      PRINT *,' Step 17 ',' DIST= ',dist
 !
 !     The stopping criterion (STOPC) is set at a suitable value.
 !
@@ -603,7 +639,7 @@
 !     IF NO VALUES OF A,B AND C ARE INPUT , I.E. A IS SET = 0.0 ,
 !     THEN THE PROGRAM SETS A = 1.0 , B = 0.5 , C = 2.0
 !
-      IF (abs(a) .ge. approx) THEN
+      IF (abs(a) .lt. approx) THEN
 
         a=1.0
         b=0.5
@@ -695,7 +731,7 @@
 !
 !
   380   frst=stt
-
+  
         DO 410 ic=1,80
           val(ic)=0.0
           IF (jbstp.eq.1) GO TO 480
@@ -727,7 +763,7 @@
 !
 !
   430   frst=stt
-
+!
         DO 460 ic=1,80
           val(ic)=0.0
           IF (jbstp.eq.1) GO TO 480
@@ -1409,7 +1445,7 @@
 !
 !
 !     Now follow general headings for the results table.
-!
+!  
 !
       WRITE (2,1500)
  1500 FORMAT (//' Calculated values were:'/)
@@ -1465,10 +1501,10 @@
 !     The second coefficient is either a cover proportion or a sound
 !     attenuation coefficient, decided by the values of KDT.
 !
- 1710 IF (kdt) 1720,1720,1780
+ 1710 IF (kdt .eq. 1) GO TO 1780
  1720 WRITE (2,1730)
  1730 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/
-     &' x COVER ',6x,'x',3(18x,'x'))
+     &' x COVER      ',6x,'x',3(18x,'x'))
       IF (maxjb-1) 1740,1740,1760
  1740 WRITE (2,1750) coeffnt2
  1750 FORMAT (' x PROPORTION  (c)  x',4x,f10.4,4x,
@@ -1543,8 +1579,8 @@
 !
 !
 !     This version of Subroutine GIVEF will handle ground survey
-!     data [and also aerial survey data for which there is complete
-!     visibility ahead of the aircraft].  The subroutine
+!     data and also aerial survey data for which there is complete
+!     visibility ahead of the observer.  The subroutine
 !     handles data divided into up to 80 classes, beginning its
 !     computations at radial distances which exceed the maximum
 !     recognition distance, and working inwards.
@@ -1707,7 +1743,7 @@
 !     value equal to (cover height) x (distance d)/ (observer-animal
 !     height difference).
 !
-  160 IF (kdt) 170,170,230
+  160 IF (kdt .eq. 1) GO TO 230
 !
 !     If the calculated cover proportion is less than zero, the
 !     program adds an arbitrary 100 to the accumulating total
@@ -1722,7 +1758,7 @@
 !     to the proportion of the direct-line distance potentially
 !     obscured by that ground vegetation.
 !
-  180 IF (kdt) 190,190,230
+  180 IF (kdt .eq. 1) GO TO 230
   190 IF (vgh) 210,210,200
   200 dvg=vgh*dmax/thh
       IF (dmax.le.dvg) GO TO 210
@@ -1743,8 +1779,8 @@
 !
   230 qdmax=q*dmax
 !
-!     To prevent overflow during computations, and upper limit of
-!     70 and a lower limit of -68 are set to DMAX.
+!     To prevent overflow during computations, an upper limit of
+!     70 and a lower limit of -68 are set to QDMAX.
 !
       IF (qdmax.lt.70.) GO TO 240
       qdmax=70.
@@ -2079,7 +2115,7 @@
 !     (DVG) will have a value equal to (cover height) x (distance d)/
 !     (observer-animal height difference).
 !
-  600     IF (kdt) 610,610,650
+  600     IF (kdt .eq. 1) GO TO 650
   610     IF (vgh) 630,630,620
   620     dvg=vgh*dd/thh
           IF (dd.le.dvg) GO TO 630
@@ -2312,13 +2348,28 @@
         calcny(jj)=expdy
         obsdny(jj)=obsd
 !
-!     The difference between each observed (OBSD) and expected
-!     value (EXPDV) for the class is now calculated.
+!
+!      If the control variable ISHOW has been set at 1, a variety 
+!      of intermediate variables is output.     
 !
  1050   IF (ishow) 1080,1080,1060
  1060   WRITE (2,1070) prc,prr,qr,e,tote,ed,expd,expdv,s
  1070   FORMAT (1x,9(f12.6,3x))
- 1080   dif=obsd-expdv
+!  
+!
+!      If an upper limit of KDT (>1) has been set for the input
+!      data range, the computed difference between observed and
+!      computed values is set at zero.
+!      
+!
+ 1080  IF ((kdt.gt.1).and.(wl.gt.kdt)) dif=0
+!
+!
+!     The difference between each observed (OBSD) and expected
+!     value (EXPDV) for the class is now calculated.
+!
+!
+        dif=obsd-expdv
 !
 !     Each difference between the expected (EXPDV) and observed
 !     (OBSD) value is squared and a running sum of squares total
@@ -2382,8 +2433,10 @@
  1220 FORMAT (3x,'   Midpt.   Calculated     Observed   ')
       DO 1240 jj=1,l10
         jv=l10-jj+1
+        IF (kdt.gt.1) limit=kdt/clint
+        GO TO 1225
         limit=dmax/clint
-        IF (jj.gt.limit) GO TO 1290
+ 1225   IF (jj.gt.limit) GO TO 1290
         WRITE (3,1230) rout(jv),calcnr(jv),obsdnr(jv)
  1230   FORMAT (5x,f6.1,6x,f7.2,7x,f6.1,4x)
  1240 CONTINUE
@@ -2392,9 +2445,11 @@
  1260 FORMAT (3x,'   Midpt.   Calculated     Observed   ')
       DO 1280 jj=1,l10
         jv=l10-jj+1
+        IF (kdt.gt.1) limit=kdt/clint
+        GO TO 1265
         limit=dmax/clint
-        IF (jj.gt.limit) GO TO 1290
-        WRITE (3,1270) yout(jv),calcny(jv),obsdny(jv)
+ 1265 IF (jj.gt.limit) GO TO 1290
+      WRITE (3,1270) yout(jv),calcny(jv),obsdny(jv)
  1270   FORMAT (5x,f6.1,6x,f7.2,7x,f6.1,4x)
  1280 CONTINUE
  1290 CLOSE (unit=3)
