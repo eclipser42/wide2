@@ -7,7 +7,7 @@
 {
 	NSString *header;
     NSString *outFile;
-    int maxjb;
+    int iprint,jprint,ishow,maxjb;
     calc_params params;
 }
 
