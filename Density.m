@@ -8,6 +8,9 @@
 
 #import "Density.h"
 
+#import "Foundation/NSFileManager.h"
+#import <unistd.h>
+
 @implementation Density
 
 - (id)init
@@ -16,7 +19,7 @@
     if (self) {
 
         // Add your subclass-specific initialization here.
-		header = [NSString allocWithZone:[self zone]];
+		header = [[NSString allocWithZone:[self zone]] init];
 		outFile = [NSString allocWithZone:[self zone]];
 
         // If an error occurs here, send a [self release] message and return nil.
@@ -39,6 +42,45 @@
     return @"Density";
 }
 
+- (NSData *)dataRepresentationOfType:(NSString *)aType
+{
+    NSAssert([aType isEqualToString:@"DensityCensus"], @"Unknown type");
+    NSMutableString *contents = [NSMutableString stringWithCapacity:2048];
+    [contents appendFormat:@"'%@',\\n", header];
+    [contents appendFormat:@"%d, %f, %f, %d, %d, %f, ", params.nvals, params.clint, params.stt, params.numa, params.numo, params.dist];
+    [contents appendFormat:@"%f, %d, %d, %d, %d, %d\\n", params.thh, params.ltmin, params.ltmax, params.ifx, params.iry, params.ns];
+    [contents appendFormat:@"%d, %d, %d, %d, %d, %d, ", params.km, params.imv, params.kdt, params.iprint, params.jprint, params.ishow];
+    [contents appendFormat:@"%d, %f, %f, %d, %d, %f, %f\\n", maxjb, params.r3s, params.vgh, params.it, params.iv, params.pd, params.ps];
+    for (int i = 0; i < NUM_SHAPE_PARAMS; i++) {
+        [contents appendFormat:@"%f, ", params.f[i]];
+    }
+    for (int i = 0; i < NUM_SHAPE_PARAMS; i++) {
+        [contents appendFormat:@"%f, ", params.step[i]];
+    }
+    [contents appendString:@"\\n"];
+    for (int i = 0; i < params.nvals; i += 10) {
+        for (int j = i; j < i + 10 && j < params.nvals; j++) {
+            [contents appendFormat:@"%f, ", params.r[j]];
+        }
+        [contents appendFormat:@"%c", '\\n'];
+    }
+    for (int i = 0; i < params.nvals; i += 10) {
+        for (int j = i; j < i + 10 && j < params.nvals; j++) {
+            [contents appendFormat:@"%d, ", params.nsize[j]];
+        }
+        [contents appendString:@"\\n"];
+    }
+	if (params.iry) {
+        for (int i = 0; i < params.nvals; i += 10) {
+            for (int j = i; j < i + 10 && j < params.nvals; j++) {
+                [contents appendFormat:@"%f, ", params.r[j]];
+            }
+            [contents appendString:@"\\n"];
+        }
+    }
+    return [contents dataUsingEncoding:NSUTF8StringEncoding];
+}
+
 - (BOOL)loadDataRepresentation:(NSData *)data ofType:(NSString *)aType
 {
     // Insert code here to read your document from the given data.  You can also choose to override -loadFileWrapperRepresentation:ofType: or -readFromFile:ofType: instead.
@@ -46,13 +88,14 @@
     contents = [contents initWithData:data encoding:NSUTF8StringEncoding];
 
     if ([self parseInputCommas:contents]) {
-        printf("Parsed comma-separated data\\n");
+        NSLog(@"Parsed comma-separated data");
     } else if ([self parseInputSpaces:contents]) {
-        printf("Parsed space-separated data\\n");
+        NSLog(@"Parsed space-separated data");
     } else {
-        printf("Parsing failed\\n");
+        NSLog(@"Parsing failed");
         return NO;
     }
+    maxjb = params.maxjb;
 
     [header retain];
     outFile = [[[self fileName] stringByDeletingPathExtension] stringByAppendingPathExtension:@"results"];
@@ -63,12 +106,19 @@
     return YES;
 }
 
+- (int)nvals
+{
+    return params.nvals;
+}
+
 - (void)calculate
 {
-    printf("Calculating to %s\\n", [outFile cString]);
+    NSLog(@"Calculating to %@", outFile);
     const char * hdr = [header UTF8String];
     const char * out = [outFile UTF8String];
+    unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:outFile]);
 
+    params.maxjb = maxjb;
     calculate_density(&params, hdr, out, strlen(hdr), strlen(out));
 }
 
@@ -78,7 +128,7 @@
 
 	if (![scanner scanString:@"'" intoString:nil]) return NO; /* Skip the opening quote */
 	if (![scanner scanUpToString:@"'" intoString:&header]) return NO;
-	printf("Header is %s\\n", [header cString]);
+	//printf("Header is %s\\n", [header cString]);
 	if (![scanner scanString:@"'" intoString:nil]) return NO; /* Skip the closing quote */
 
 	if (![scanner scanInt:&params.nvals]) return NO;
@@ -162,7 +212,7 @@
 
 	if (![scanner scanString:@"'" intoString:nil]) return NO; /* Skip the opening quote */
 	if (![scanner scanUpToString:@"'" intoString:&header]) return NO;
-	printf("Header is %s\\n", [header cString]);
+	//printf("Header is %s\\n", [header cString]);
 	if (![scanner scanString:@"'" intoString:nil]) return NO; /* Skip the closing quote */
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 
