@@ -8,7 +8,7 @@
  */
 
 #define NUM_SHAPE_PARAMS 4
-#define MAX_OBSERVATIONS 5000
+#define MAX_OBSERVATIONS 10000
 
 // This structure definition MUST be kept in sync with the definition in mnps2.f
 
