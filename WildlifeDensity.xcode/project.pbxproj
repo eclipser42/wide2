@@ -115,19 +115,6 @@
 			settings = {
 			};
 		};
-		1AA5AD8A0746264500DCE606 = {
-			isa = PBXFileReference;
-			lastKnownFileType = image.tiff;
-			path = "WildlifeDensity Icon.tiff";
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		1AA5AD8B0746264500DCE606 = {
-			fileRef = 1AA5AD8A0746264500DCE606;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 //1A0
 //1A1
 //1A2
@@ -221,7 +208,6 @@
 		};
 		2A37F4B8FDCFA73011CA2CEA = {
 			children = (
-				1AA5AD8A0746264500DCE606,
 				422BF474074B760D00FE654A,
 				2A37F4B9FDCFA73011CA2CEA,
 				2A37F4B6FDCFA73011CA2CEA,
@@ -540,7 +526,6 @@
 				420B005106C6E96000695CAB,
 				420B005606C6E99600695CAB,
 				420B007306C6EED000695CAB,
-				1AA5AD8B0746264500DCE606,
 				422BF475074B760D00FE654A,
 			);
 			isa = PBXResourcesBuildPhase;
