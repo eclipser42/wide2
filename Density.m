@@ -73,15 +73,7 @@
             [contents appendFormat:@"%d, ", params.nsize[j]];
         }
         [contents appendFormat:@"%c", 10];
-    }
-	if (params.iry && !params.imv) {
-        for (int i = 0; i < params.nvals; i += 10) {
-            for (int j = i; j < i + 10 && j < params.nvals; j++) {
-                [contents appendFormat:@"%f, ", params.angle[j]];
-            }
-            [contents appendFormat:@"%c", 10];
-        }
-    }
+	}
     return [contents dataUsingEncoding:NSUTF8StringEncoding];
 }
 
@@ -141,7 +133,7 @@
     calculate_density(&params, hdr, out, graph, strlen(hdr), strlen(out), strlen(graph));
     NSString *message;
     if (params.complete) {
-        message = [NSString stringWithFormat:@"Calculation complete:%c%cDensity estimate: %3g Standard error: %3g%c%cDetailed results in %@ and %CgraphData",
+        message = [NSString stringWithFormat:@"Calculation complete %c%cDensity estimate: %3g  Standard error: %3g%c%cDetailed results in %@ and %CgraphData",
             10, 10, params.estden, params.sden, 10, 10, outFile, 0x2026];
     } else {
         message = [NSString stringWithFormat:@"Calculation failed: Detailed results in %@", outFile];
@@ -223,13 +215,6 @@
 	for (int i = 0; i < params.nvals; i++) {
 		if (![scanner scanInt:(params.nsize + i)]) return NO;
 	}
-	if (params.iry && !params.imv) {
-		for (int i = 0; i < params.nvals; i++) {
-			if (![scanner scanDouble:(params.angle + i)])
-             return NO;
-		}
-	}
-
 	return YES;
 }
 
@@ -312,13 +297,6 @@
         }
 		if (![scanner scanString:@"," intoString:nil])
             return NO; /* Skip the comma separator */
-	}
-	if (params.iry && !params.imv) {
-		for (int i = 0; i < params.nvals; i++) {
-			if (![scanner scanDouble:(params.angle + i)])
-                return NO;
-            if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-		}
 	}
 
 	return YES;
