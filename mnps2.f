@@ -81,7 +81,7 @@
 !     sequence:
 !
 !
-!     A header line - to label and describe the data set.
+!     A header line - to identify and label the data set.
 !
 !     NVALS - the total number of individual animal detections
 !          in the sample submitted for modelling.
@@ -290,7 +290,8 @@
 !
 !    R() - the radial detection distances (r) originally measured
 !          in the field, submitted in the order in which the data
-!          were collected.
+!          were collected.  Or the perpendicular distances from the
+!          transect line if these are precalculated and entered directly.
 !
 !    NSIZE() - the size of each cluster (group) of animals at the
 !          moment of detection, listed in the data input in the same
@@ -300,7 +301,10 @@
 !          and the bearing to a cluster of animals at the moment of
 !          detection, and measured in degrees.  These data are
 !          required if computations are to be based on perpendicular
-!          distance modelling; otherwise they are not needed.
+!          distance modelling; otherwise they are not needed.  
+!          The program accepts negative angles in the input (e.g. 
+!          for observation left of a transect line): these are
+!          pooled with positive angles during computations.
 !
 !
 !    In addition, a number of temporary variables are used within
@@ -349,7 +353,7 @@
 !           They are used to correct the numbers of counts used in
 !           computing means and standard deviations of key parameters.
 !
-!     MTEST - a variable used to flag a successful run through Loop 855,
+!     MTEST - a variable used to flag a successful run through Loop 1410,
 !           and assist in the computation of MSFAIL at the end of
 !           Subroutine GIVEF.
 !
@@ -426,11 +430,13 @@
       DOUBLE PRECISION hstd, hstst, pd, ps, r3s, savemn, scf1, scf2
       DOUBLE PRECISION scf3, sden, sns, stopc, stt, test, tcoeff1
       DOUBLE PRECISION tcoeff2, tcoeff3, tcov, tden, thh, vgh, x
-      REAL r(5000), bstr(5000), y(5000), bsty(5000), den(5000)
-      REAL coeff1(5000), coeff2(5000), coeff3(5000), angle(5000)
+      REAL r(5000), bstr(5000), y(5000), bsty(5000)
+      REAL angle(5000)
       DOUBLE PRECISION val(80), valt(80)
       DOUBLE PRECISION g(5, 4), step(4), stept(4), f(4), ft(4)
       DOUBLE PRECISION h(4), pbar(4), pstar(4), pstst(4)
+      DOUBLE PRECISION coeff1(5000), coeff2(5000), coeff3(5000)
+      DOUBLE PRECISION den(5000)
 !
 !
 !     The program accepts up to 5000 data values, each being the total
@@ -581,11 +587,14 @@
 !     prompted by IMV having a zero value.  If perpendicular
 !     distance data as such were supplied (IMV=1), this step is
 !     bypassed and the distance data recognized as Y(IN).
+!     At this step, any angle data supplied as negative numbers
+!     (E.g. from the left of a transect line) are converted to
+!     positive and pooled with the remainder.
 !
   170 IF ((iry.eq.0).and.(imv.eq.1)) GO TO 190
       IF (iry.lt.0) GO TO 210
       DO 180 in=1, nvals
-        y(in)=r(in)*sin((angle(in)*3.14159265)/180.)
+        y(in)=ABS(r(in)*sin((angle(in)*3.14159265)/180.))
   180 CONTINUE
         GO TO 210
 !
@@ -593,10 +602,12 @@
 !     If perp. distance data were inputted as r values, they
 !     are renamed as y values at this stage.  If IMV was set at 1 
 !     because angle data have been supplied, then IMV is reset at 0 
-!     to avoid changing later calculations.
+!     to avoid changing later calculations.  Negative y values
+!     submitted to the program as negative r values are
+!     converted to positive and pooled with the rest.
 !
   190 DO 200 in=1,nvals
-        y(in)=r(in)
+        y(in)=ABS(r(in))
   200 CONTINUE
       IF (imv.eq.1) imv=0
 !
@@ -640,7 +651,6 @@
 !     THEN THE PROGRAM SETS A = 1.0 , B = 0.5 , C = 2.0
 !
       IF (abs(a) .lt. approx) THEN
-
         a=1.0
         b=0.5
         c=2.0
@@ -660,7 +670,7 @@
 !
 !
 !     If all STEP sizes have been set at zero, computation goes
-!     to line 850, calculates the set of values resulting from
+!     to Label 1470, calculates the set of values resulting from
 !     the values of a, b, D2L and dmax supplied, and ends.  Otherwise
 !     it uses NAP to indicate the number of submitted parameters
 !     to be varied during subsequent iterations.
@@ -681,6 +691,7 @@
   350 estden=(1.e4*f(3))/(2.*dist)
       GO TO 370
   360 estden=(1.e4*f(3))/(2.*iv*it)
+      GO TO 1470
 !
 !
 !     To enable parameter estimation using bootstrapping, the basic
@@ -707,7 +718,7 @@
 !     distances [(R(IN)], the numbers in each group [(NSIZE(IN)] and
 !     the class interval (CLINT) preset in the input.
 !
-!     In subsequent runs through Loop 855, bootstrapping applies
+!     In subsequent runs through Loop 1410, bootstrapping applies
 !     (JBSTP=1) and a bootstrapped distribution is used instead.
 !
 !
@@ -1312,7 +1323,7 @@
 !
 !
 !     The estimated 'best fit' values of the parameters from the current
-!     pass through Loop 855 are now computed, tabulated and printed out.
+!     pass through Loop 1410 are now computed, tabulated and printed out.
 !
 !     A density estimate (DEN) is calculated from D2L=F(3) by
 !     correcting units to no./ha, and dividing by 2L in the case of
@@ -1343,7 +1354,7 @@
         tcoeff3=tcoeff3+coeff3(jb)
 !
 !
-!     Loop 855 now ends, returning calculations to Line 90 until the
+!     Loop 1410 now ends, returning calculations to the start until the
 !     maximum preset number of bootstraps (MAXJB) value is reached.
 !     LOOP is reset to zero to enable a new series of iterations in the
 !     basic loop to begin again, as are G(I,J) values.
@@ -1368,7 +1379,7 @@
  1410 CONTINUE
 !
 !
-!     Following completion of the runs through Loop 855, the means and
+!     Following completion of the runs through Loop 1410, the means and
 !     standard errors of each of the parameters are now calculated,
 !     based on the values of the three arrays DEN(JB), COEFF1(JB) and
 !     COEFF2(JB).
@@ -1561,18 +1572,13 @@
      & 'Outfile2.txt')
 !
 !
-!     CLOSE(UNIT=1)
       CLOSE (unit=2)
-!     STOP
       RETURN
 !
 !
-! 283 WRITE(6,285)INFILE,IOS
  1930 FORMAT (' Error opening ',a40,' - IOS = ',i6)
-!     STOP
       RETURN
  1940 WRITE (6,1930) outfile,ios
-!     STOP
       END SUBROUTINE calculate_density
 !
 !     **************************************************************
@@ -1857,7 +1863,7 @@
       expdv=0.
       s=0.
 !
-!     Loop 10, which calculates expected values and compares them
+!     Loop 1180, which calculates expected values and compares them
 !     with observed values, now begins .....
 !
 !
@@ -1987,7 +1993,7 @@
         GO TO 450
   440   yyh=yh-pa*q*aprexi
 !
-!     Loop 20, which calculates the expected number in each
+!     Loop 870, which calculates the expected number in each
 !     arc within the class, and adds them together to produce
 !     a progressive total (EXPD and TEXPD), now begins .....
 !
@@ -2286,12 +2292,12 @@
   860     rlow=dnrl-cint
           jrlow=1
 !
-!     Loop 20 now ends.
+!     Loop 870 now ends.
 !
   870   CONTINUE
 !
 !
-!     Loop 10 is completed by determining the expected value
+!     Loop 1180 is completed by determining the expected value
 !     (EXPDV) in the class; this is arrived at differently for
 !     radial or fixed-point and perpendicular distance data. In
 !     both cases, negative EXPD values (EXPDN) are then added in.
@@ -2310,7 +2316,7 @@
 !     is bypassed and a record of this non-computation retained
 !     as the temporary variable MSFAIL.  This is done only when the
 !     program has converged on a minimum (MTEST=1) and in the final
-!     pass through Loop 10 (JJ=L10).
+!     pass through Loop 1180 (JJ=L10).
 !
         IF (d2l) 920,920,910
   910   IF (sns.eq.0.) sns=2
@@ -2355,21 +2361,21 @@
  1050   IF (ishow) 1080,1080,1060
  1060   WRITE (2,1070) prc,prr,qr,e,tote,ed,expd,expdv,s
  1070   FORMAT (1x,9(f12.6,3x))
-!  
-!
-!      If an upper limit of KDT (>1) has been set for the input
-!      data range, the computed difference between observed and
-!      computed values is set at zero.
-!      
-!
- 1080  IF ((kdt.gt.1).and.(wl.gt.kdt)) dif=0
 !
 !
 !     The difference between each observed (OBSD) and expected
 !     value (EXPDV) for the class is now calculated.
 !
 !
-        dif=obsd-expdv
+ 1080   dif=obsd-expdv
+!  
+!
+!      If an upper limit of KDT (>1) has been set for the input
+!      data range, the computed difference between observed and
+!      computed values is reset at zero.
+!      
+        IF ((kdt.gt.1).and.(wl.gt.kdt)) dif=0
+!
 !
 !     Each difference between the expected (EXPDV) and observed
 !     (OBSD) value is squared and a running sum of squares total
@@ -2418,7 +2424,7 @@
 !
  1170   tr=tr-clint
 !
-!     Loop 10 ends.
+!     Loop 1180 now ends.
 !
  1180 CONTINUE
 !
