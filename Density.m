@@ -46,36 +46,36 @@
 {
     NSAssert([aType isEqualToString:@"DensityCensus"], @"Unknown type");
     NSMutableString *contents = [NSMutableString stringWithCapacity:2048];
-    [contents appendFormat:@"'%@',\\n", header];
+    [contents appendFormat:@"'%@',%c", header, 10];
     [contents appendFormat:@"%d, %f, %f, %d, %d, %f, ", params.nvals, params.clint, params.stt, params.numa, params.numo, params.dist];
-    [contents appendFormat:@"%f, %d, %d, %d, %d, %d\\n", params.thh, params.ltmin, params.ltmax, params.ifx, params.iry, params.ns];
+    [contents appendFormat:@"%f, %d, %d, %d, %d, %d,%c", params.thh, params.ltmin, params.ltmax, params.ifx, params.iry, params.ns, 10];
     [contents appendFormat:@"%d, %d, %d, %d, %d, %d, ", params.km, params.imv, params.kdt, params.iprint, params.jprint, params.ishow];
-    [contents appendFormat:@"%d, %f, %f, %d, %d, %f, %f\\n", maxjb, params.r3s, params.vgh, params.it, params.iv, params.pd, params.ps];
+    [contents appendFormat:@"%d, %f, %f, %d, %d, %f, %f,%c", maxjb, params.r3s, params.vgh, params.it, params.iv, params.pd, params.ps, 10];
     for (int i = 0; i < NUM_SHAPE_PARAMS; i++) {
         [contents appendFormat:@"%f, ", params.f[i]];
     }
     for (int i = 0; i < NUM_SHAPE_PARAMS; i++) {
         [contents appendFormat:@"%f, ", params.step[i]];
     }
-    [contents appendString:@"\\n"];
+    [contents appendFormat:@"%c", 10];
     for (int i = 0; i < params.nvals; i += 10) {
         for (int j = i; j < i + 10 && j < params.nvals; j++) {
             [contents appendFormat:@"%f, ", params.r[j]];
         }
-        [contents appendFormat:@"%c", '\\n'];
+        [contents appendFormat:@"%c", 10];
     }
     for (int i = 0; i < params.nvals; i += 10) {
         for (int j = i; j < i + 10 && j < params.nvals; j++) {
             [contents appendFormat:@"%d, ", params.nsize[j]];
         }
-        [contents appendString:@"\\n"];
+        [contents appendFormat:@"%c", 10];
     }
 	if (params.iry) {
         for (int i = 0; i < params.nvals; i += 10) {
             for (int j = i; j < i + 10 && j < params.nvals; j++) {
                 [contents appendFormat:@"%f, ", params.r[j]];
             }
-            [contents appendString:@"\\n"];
+            [contents appendFormat:@"%c", 10];
         }
     }
     return [contents dataUsingEncoding:NSUTF8StringEncoding];
