@@ -156,7 +156,8 @@
 !
 !          IMV is also set at 1 within the program if the
 !          coefficient becomes negative or if the data are
-!          visual observations.
+!          visual observations. (The two approaches produce
+!          almost identical results.)
 !
 !     KDT - a control parameter to indicate attributes of the
 !          observational data supplied to the program, viz:
@@ -401,7 +402,7 @@
       DOUBLE PRECISION f(4), step(4), r(5000)
       INTEGER nsize(5000)
       DOUBLE PRECISION angle(5000)
-      INTEGER complete
+      INTEGER complete, bootstrap
       DOUBLE PRECISION estden, sden
       END TYPE CALC_PARAMS
 
@@ -412,9 +413,10 @@
 !     The variables declared below are in alphabetical order.
 !
       INTEGER nsize(5000), nbsz(5000)
+      INTEGER bootstrap
       INTEGER i, ia, ib, ic, ie, iflag, ifx, ig, ih, imax
       INTEGER imin, imv, in, ios, iprint, ir, irb, irow, iry, iseed
-      INTEGER ishow, it, iv, j, jb, jbstp, jk, jprint, jr, js, jv, jx
+      INTEGER ishow, it, iv, j, jbstp, jk, jprint, jr, js, jv, jx
       INTEGER k, kdt, km, kprint, kwt, loop, lprint, ltmin, ltmax, max
       INTEGER maxjb, mfail, msfail, mtest, nap, neval
       INTEGER nloop, nop, np1, ns, numa, numest, numo, nvals
@@ -663,7 +665,7 @@
         b=0.5
         c=2.0
 
-      ENDIF
+      END IF
 !
 !     NAP is the number of parameters to be varied (i.e. with STEP
 !     not equal to zero.
@@ -708,7 +710,6 @@
 !     with an initial run.  A number of functions are set at zero first.
 !
   370 jbstp=0
-      jb=0
       mfail=0
       msfail=0
       tden=0.0
@@ -716,7 +717,9 @@
       tcoeff2=0.0
       tcoeff3=0.0
 !
-      DO 1410 jb=1,maxjb
+      DO 1410 bootstrap=1, maxjb
+
+         params.bootstrap = bootstrap
 !
 !     The flag variable MTEST is first set at zero.
 !
@@ -821,7 +824,7 @@
 !
 !     A seed value is first chosen, based on the (sequential) values of
 !     R in the data input, the size of the data set provided (NVALS),
-!     the stage reached in the main backstrapping loop (JB),
+!     the stage reached in the main backstrapping loop (bootstrap),
 !     and the relevant step (JR) in Loop 95.  This should minimize
 !     the likelihood of common seed values being submitted in
 !     different random number searches.
@@ -833,7 +836,7 @@
 !     An upper limit is placed on ISEED to prevent integer overflow.
 !
           IF (iseed.gt.150000) iseed=iseed/100
-          iseed=iseed+(r(jr)*724*jr)/jb
+          iseed = iseed + (r(jr)*724*jr)/bootstrap
 !
 !     A random number between 0 and 1 is now called from the Subroutine
 !     SRANDNAG, multiplied by NVALS to give it a value between 0 and
@@ -942,7 +945,7 @@
 !
 !
   620   IF (jprint) 660,660,630
-  630   WRITE (2,640) jb
+  630   WRITE (2,640) bootstrap
   640   FORMAT (///'  Bootstrap Replicate No. =',i4/)
         WRITE (2,650) (val(i),i=1,80)
   650   FORMAT (8f10.4,//)
@@ -1351,31 +1354,31 @@
 !     line transect data, and by 2Vt in the case of fixed-point data.
 !
         IF (km.gt.0) THEN
-        den(jb)=(1.e6*f(3))/(2.*dist)
+        den(bootstrap)=(1.e6*f(3))/(2.*dist)
         GO TO 1370
         END IF
 !
         IF (ifx.eq.0) THEN
-        den(jb)=(1.e4*f(3))/(2.*dist)
+        den(bootstrap)=(1.e4*f(3))/(2.*dist)
         ELSE
-        den(jb)=(1.e4*f(3))/(2.*iv*it)
+        den(bootstrap)=(1.e4*f(3))/(2.*iv*it)
         END IF
 !
 !     Values of the other parameter estimates are obtained by redefining
 !     the estimates of F(1) and F(2), thus:
 !
- 1370   coeff1(jb)=f(1)
-        coeff2(jb)=f(2)
-        coeff3(jb)=dcoeff
+ 1370   coeff1(bootstrap)=f(1)
+        coeff2(bootstrap)=f(2)
+        coeff3(bootstrap)=dcoeff
 !
 !
 !     Running totals of DEN, COEFF1 and COEFF2 are now made to
 !     enable calculation of mean values after the loop ends.
 !
-        tden=tden+den(jb)
-        tcoeff1=tcoeff1+coeff1(jb)
-        tcoeff2=tcoeff2+coeff2(jb)
-        tcoeff3=tcoeff3+coeff3(jb)
+        tden=tden+den(bootstrap)
+        tcoeff1=tcoeff1+coeff1(bootstrap)
+        tcoeff2=tcoeff2+coeff2(bootstrap)
+        tcoeff3=tcoeff3+coeff3(bootstrap)
 !
 !
 !     Loop 1410 now ends, returning calculations to the start until the
@@ -1405,8 +1408,8 @@
 !
 !     Following completion of the runs through Loop 1410, the means and
 !     standard errors of each of the parameters are now calculated,
-!     based on the values of the three arrays DEN(JB), COEFF1(JB) and
-!     COEFF2(JB).
+!     based on the values of the three arrays DEN(bootstrap),
+!     COEFF1(bootstrap) and COEFF2(bootstrap).
 !
 !     The overall means ESTDEN, COEFFNT1 and COEFFNT2 are calculated
 !     first.  NUMEST is the number of parameter estimations made.
@@ -1414,7 +1417,7 @@
       numest=maxjb-mfail
 !
       IF (numest.eq.0) THEN
-      numest=1
+         numest=1
       END IF
 !
       estden=tden/numest
@@ -1437,32 +1440,33 @@
 !
       IF (numest.le.1.) GO TO 1470
       dsum=0.0
-      DO 1430 jb=1,maxjb
-        IF ((den(jb)).eq.0.) GO TO 1430
-        dendif=(den(jb)-estden)**2.
-        dsum=dsum+dendif
+      DO 1430 bootstrap=1, maxjb
+        IF ((den(bootstrap)) .ne. 0.) THEN
+           dendif=(den(bootstrap)-estden)**2.
+           dsum=dsum+dendif
+        END IF
  1430 CONTINUE
       sden = SQRT(dsum/(numest-1))
 !
       cf1sum=0.0
-      DO 1440 jb=1,maxjb
-        IF ((coeff1(jb)).eq.0.) GO TO 1440
-        cf1dif=(coeff1(jb)-coeffnt1)**2.
+      DO 1440 bootstrap=1, maxjb
+        IF ((coeff1(bootstrap)).eq.0.) GO TO 1440
+        cf1dif=(coeff1(bootstrap)-coeffnt1)**2.
         cf1sum=cf1sum+cf1dif
  1440 CONTINUE
       scf1 = SQRT(cf1sum/(numest-1))
 !
       cf2sum=0.0
-      DO 1450 jb=1,maxjb
-        IF ((coeff2(jb)).eq.0.) GO TO 1450
-        cf2dif=(coeff2(jb)-coeffnt2)**2.
+      DO 1450 bootstrap=1, maxjb
+        IF ((coeff2(bootstrap)).eq.0.) GO TO 1450
+        cf2dif=(coeff2(bootstrap)-coeffnt2)**2.
         cf2sum=cf2sum+cf2dif
  1450 CONTINUE
       scf2=sqrt(cf2sum/(numest-1))
       cf3sum=0.0
-      DO 1460 jb=1,maxjb
-        IF (coeff3(jb).eq.0) GO TO 1460
-        cf3dif=(coeff3(jb)-coeffnt3)**2.
+      DO 1460 bootstrap=1, maxjb
+        IF (coeff3(bootstrap).eq.0) GO TO 1460
+        cf3dif=(coeff3(bootstrap)-coeffnt3)**2.
         cf3sum=cf3sum+cf3dif
  1460 CONTINUE
       IF ((numest-msfail-1).le.0) GO TO 1470
@@ -1652,7 +1656,7 @@
 !
       INTEGER iermax,ifx,imv,ios,iry,ishow,it,iv,jj,jl,jrlow,jv
       INTEGER kdt,kprint,kwt,lprint,l10,l20,limit,ltmin,ltmax
-      INTEGER max,maxjb,md,msfail,mtest,ns,numa,numo,nvals
+      INTEGER max,md,msfail,mtest,ns,numa,numo,nvals
       CHARACTER*(*) graph_file
       DOUBLE PRECISION aprexi,auc,cint,clint,d2l,dd,dds,ddsm,dh,dif
       DOUBLE PRECISION difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed
@@ -1839,21 +1843,18 @@
 !
 !     The control variable L10 determines the number of classes
 !     for which an expected value is calculated.  It is set equal
-!     to RMAX/CLINT for all situations except those where a strip
-!     below an aircraft is hidden from the observer.
+!     to RMAX-STT/CLINT for all situations.
 !     0.5 is added to remove errors due to 'chopping'.
 !
-  260 l10=(rmax/clint)+0.5
+  260 l10=int(((rmax-stt)/clint)+0.5)
       tote=0.
 !
 !     TR is the highest r value in the current frequency class;
 !     because the first class computed is that furthest
 !     from the observer or from the transect line - TR is initially
-!     set at the class width (CLINT) times the number of classes.
-!     This is adjusted upwards by STT if this starting value is
-!     greater than zero.
+!     set at RMAX.
 !
-      tr=clint*float(l10)+stt
+      tr=rmax
 !
 !
 !     To compute 'expected' values within each class, each class
@@ -1911,10 +1912,9 @@
 !     MD is the hth class in the series from MD=80 to MD=1 (or 2,
 !     in situations where the most central belt is obscured).
 !     0.5 is added to enable rounding to the nearest integer
-!     despite chopping by the program.)  To calculate it, TR is
-!     reduced by the starting value (STT) if this exceeds zero.
+!     despite chopping by the program.)  
 !
-        md=int((tr-stt)/clint+0.5)
+        md=int((tr/clint)+0.5)
 !
 !     OBSD is the observed value for the hth arc, as supplied
 !     in the input to the program.
@@ -2035,7 +2035,7 @@
 !     initially equal to the original TR.
 !
           dnrh=tr
-        ENDIF
+        END IF
 !
 !     DH is the direct-line distance to the outer edge of the
 !     observing arc.
@@ -2323,7 +2323,6 @@
 !     the proportion present in the present arc less the
 !     proportion expected to have been detected already.
 !
-!     For fixed-point data, QR remains at 1.
 !
           qr=(1.-prr)*qr
 !
@@ -2396,8 +2395,8 @@
         IF (ishow.le.0) GO TO 990
         IF (jj.eq.1) THEN
         WRITE (2,975) 
-  975   FORMAT (/95HIn order: P(r), g(r), Q(r), P(r).g(r), SUM[P(r).g(r)
-     &], n(r), SUM[n(r)], SUM[n(y)], SUM[d.c.(S)]/)   
+  975   FORMAT (/91HIn order: P(r), g(r), Q(r), P(r).g(r), SUM[P(r).g(r)
+     &], n(r), E{N(r)}, E{N(y)}, SUM[d.c.(S)]/)   
         END IF
         WRITE (2,980) rr,expdr,obsd
   980   FORMAT ('  r=',f8.1,5x,'Calc.N(r)=',f9.2,5x,'Obsd.N(r)=',f9.1)
@@ -2414,8 +2413,8 @@
         IF (ishow.le.0) GO TO 1040
         IF (jj.eq.1) THEN
         WRITE (2,1025) 
- 1025   FORMAT (/95HIn order: P(r), g(r), Q(r), P(r).g(r), SUM[P(r).g(r)
-     &], n(r), SUM[n(r)], SUM[n(y)], SUM[d.c.(S)]/)   
+ 1025   FORMAT (/91HIn order: P(r), g(r), Q(r), P(r).g(r), SUM[P(r).g(r)
+     &], n(r), E{N(r)}, E{N(y)}, SUM[d.c.(S)]/)   
         END IF
         WRITE (2,1030) yy,expdy,obsd
  1030   FORMAT ('  y=',f8.1,5x,'Calc.N(y)=',f9.2,5x,'Obsd.N(y)=',f9.1)
@@ -2522,7 +2521,7 @@
          limit = kdt / clint
       ELSE
          limit = dmax / clint
-      ENDIF
+      END IF
       IF (jj.gt.limit) GO TO 1290
       WRITE (3,1230) rout(jv),calcnr(jv),obsdnr(jv)
  1230 FORMAT (5x,f6.1,6x,f7.2,7x,f6.1,4x)
@@ -2536,7 +2535,7 @@
         limit = kdt / clint
       ELSE
         limit = dmax / clint
-      ENDIF
+      END IF
       IF (jj.gt.limit) GO TO 1290
       WRITE (3,1270) yout(jv),calcny(jv),obsdny(jv)
  1270   FORMAT (5x,f6.1,6x,f7.2,7x,f6.1,4x)
