@@ -19,7 +19,7 @@ typedef struct {
     double step[NUM_SHAPE_PARAMS], r[MAX_OBSERVATIONS];
     int nsize[MAX_OBSERVATIONS];
     double angle[MAX_OBSERVATIONS];
-    int complete;
+    int complete, bootstrap;
     double estden, sden;
 } calc_params;
 
