@@ -1,0 +1,14 @@
+{
+    IBClasses = (
+        {CLASS = Density; LANGUAGE = ObjC; SUPERCLASS = NSDocument; }, 
+        {
+            ACTIONS = {calculate = id; }; 
+            CLASS = DensityController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {document = Density; }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }
+    ); 
+    IBVersion = 1; 
+}
