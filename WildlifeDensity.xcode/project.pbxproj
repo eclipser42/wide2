@@ -386,10 +386,10 @@
 			};
 		};
 		420B008E06C6F75800695CAB = {
+			explicitFileType = sourcecode.fortran;
 			fileEncoding = 7;
 			indentWidth = 4;
 			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.fortran;
 			path = mnps2.f;
 			refType = 4;
 			sourceTree = "<group>";
