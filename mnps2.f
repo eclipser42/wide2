@@ -55,15 +55,14 @@
 !     from an observer or at various horizontal distances (y) perpendicular
 !     to a transect line.  It accepts several alternative types of distance
 !     data, as determined by appropriate values of the control parameters
-!     IFX, IRY and IMV supplied with the data, viz:
+!     IFX and IRY supplied with the data, viz:
 !
-!       . radial distance data supplied (IFX=0, IRY=0 and IMV=0 or 1);
+!       . radial distance data supplied (IFX=0 and IRY=0);
 !       . perpendicular distances calculated from radial distance
 !           and horizontal detection angle data supplied
-!           (IFX=0, IRY=1 and IMV=0 or 1);
-!       . perpendicular distance data supplied (IFX=0, IRY=1 and IMV=1);
-!       . fixed-observer distance data supplied (IFX=1, IRY=0 and IMV=0
-!           or 1);
+!           (IFX=0 and IRY=1);
+!       . perpendicular distance data supplied (IFX=0 and IRY=2);
+!       . fixed-observer distance data supplied (IFX=1 and IRY=0).
 !
 !
 !     Data are entered into the program by means of an appropriately
@@ -127,7 +126,10 @@
 !           types of line transect data, viz:
 !
 !            = 0  models radial distance transect data N(r);
-!            = 1  models perpendicular distance data N(y).
+!            = 1  models perpendicular distance data N(y), using
+!                   radial distance and angle data supplied;
+!            = 2  models perpendicular distance data N(y), using
+!                    perpendicular distance data supplied.
 !
 !     NS - the number of sides of the transect line used for
 !          observations during a line transect survey, viz:
@@ -151,15 +153,6 @@
 !
 !            = 0  uses the mean value of P(r) in an interval;
 !            = 1  uses the median value of P(r) in the interval.
-!
-!          [If perpendicular distances from the transect line
-!          are calculated beforehand and supplied to the program as
-!          input data instead of providing radial distances and
-!          angles, put IMV=1 as well as IRY=1.  This removes
-!          a need for angle data, but also precludes the possibility
-!          of calculating median probabilities when such data are
-!          supplied.   (The program resets IMV=0 once the data have
-!          been entered.)]
 !
 !          IMV is also set at 1 within the program if the
 !          coefficient becomes negative or if the data are
@@ -218,7 +211,7 @@
 !          the deviations between the calculated and observed
 !          values, used in the process of converging on an
 !          internal minimum in the case of perpendicular distance
-!          data (IRY=1) when the number of iterations (NEVAL)
+!          data (IRY=1 or 2) when the number of iterations (NEVAL)
 !          for a data set exceeds 40.  Its default value is 100 if
 !          no R3S value is supplied in the input.
 !
@@ -445,7 +438,8 @@
 !     number of observations [N(r) or N(y)] within the class
 !     intervals, beginning with that nearest r=0 or y=0 [R(1),
 !     NSIZE(1) and ANGLE(1), if supplied].  If ANGLE() is not
-!     supplied and IRY=0 or =2, computation still proceeds.
+!     supplied and IRY==2, computation still proceeds using N(y)
+!     values entered in place of N(r) values.
 !
 !     This program is designed to receive a list-directed data file with
 !     a name of the form <filename>.dat and either spaces or commas
@@ -507,7 +501,7 @@
 !
 !     The same requirement applies to data on observing angles.
 !
-      IF ((iry.eq.1).and.(imv.eq.1)) GO TO 40
+      IF (iry.eq.2) GO TO 40
       DO 30 ih=1,nvals
         angle(ih)=params.angle(ih)
    30 CONTINUE
@@ -555,12 +549,6 @@
    90 FORMAT (1x,a80)
 !
 !
-!     IRY is reduced by 1 for convenience in Fortran computations,
-!     putting IRY=-1 (radial data) or IRY=0 (perp. data).
-!
-      iry=iry-1
-!
-!
 !     The program prints out the class interval width (CLINT) and
 !     either the total transect length (DIST) or the total time
 !     spent (IT) at fixed points.
@@ -585,33 +573,31 @@
 !     If calculations are to be based on perpendicular distances (y)
 !     from the transect line, and the data supplied are radial
 !     distances and angles, perpendicular distances are now calculated
-!     for the data entered initially,  this action being
-!     prompted by IMV having a zero value.  If perpendicular
-!     distance data as such were supplied (IMV=1), this step is
-!     bypassed and the distance data recognized as Y(IN).
+!     for the data entered initially, this action being
+!     prompted by IRY having a value less than 2.  If perpendicular
+!     distance data as such were supplied (IRY=2), this step is
+!     bypassed and the distance data are recognized as N(y).
 !     At this step, any angle data supplied as negative numbers
-!     (E.g. from the left of a transect line) are converted to
+!     (E.g. from the left of a transect line) are also converted to
 !     positive and pooled with the remainder.
 !
-  170 IF ((iry.eq.0).and.(imv.eq.1)) GO TO 190
-      IF (iry.lt.0) GO TO 210
+  170 IF (iry.eq.2) GO TO 190
+      IF (iry.eq.0) GO TO 210
       DO 180 in=1, nvals
         y(in)=ABS(r(in)*sin((angle(in)*3.14159265)/180.))
   180 CONTINUE
         GO TO 210
 !
 !
-!     If perp. distance data were inputted as r values, they
-!     are renamed as y values at this stage.  If IMV was set at 1 
-!     because angle data have been supplied, then IMV is reset at 0 
-!     to avoid changing later calculations.  Negative y values
-!     submitted to the program as negative r values are
+!     If perp. distance data were entered as r values, they
+!     are renamed as y values at this stage.  Negative y values
+!     submitted to the program (as negative r value) are
 !     converted to positive and pooled with the rest.
 !
   190 DO 200 in=1,nvals
         y(in)=ABS(r(in))
   200 CONTINUE
-      IF (imv.eq.1) imv=0
+!
 !
 !     The initial values of 'a', 'b', 'D2L, and 'dmax' are retained
 !     as FT and the corresponding steps as STEPT to make possible
@@ -633,14 +619,25 @@
       IF (km-1) 240,230,230
   230 dist=dist*1000.
 !
-!     The stopping criterion (STOPC) is set at a suitable value.
 !
-  240 stopc=0.0008
+!     The stopping criterion (STOPC) is set at a suitable value,
+!     based on the type of data supplied: radial, perpendicular
+!     distance data to the limit of visibility, or perpendicular
+!     distance data to a distance limit (KDT>1).
+!
+  240 IF ((iry.eq.1).or.((iry.eq.2).and.(kdt.le.1))) GO TO 245
+      IF ((iry.eq.2).and.(kdt.gt.1)) GO TO 243 
+      stopc=0.0001
+      GO TO 247
+  243 stopc=0.001
+      GO TO 247
+  245 stopc=0.00005
+!
 !
 !     If progress reports are required (IPRINT=1), the program
 !     prints a heading for them.
 !
-      IF (iprint) 270,270,250
+  247 IF (iprint) 270,270,250
   250 WRITE (2,260) iprint
   260 FORMAT (' PROGRESS REPORT EVERY', i4, ' FUNCTION EVALUATIONS'/
      &/' EVAL. NO.  FUNC. VALUE ', 10x, 'PARAMETERS')
@@ -737,7 +734,7 @@
 !     values (see below).
 !
 !
-        IF (iry) 380,430,380
+        IF (iry.gt.0) GO TO 430
 !
 !
 !     Either the initial r class totals, VALT(), are calculated...
@@ -841,7 +838,7 @@
 !     distance measurements are being used.
 !
 !
-          IF (iry) 490,500,490
+          IF (iry.gt.0) GO TO 500
 !
 !     Either: radial distance computations are made.
 !
@@ -878,7 +875,7 @@
 !     perpendicular distance data are being handled.
 !
 !
-        IF (iry) 520,570,520
+        IF (iry.gt.0) GO TO 570
 !
 !
 !     Either: radial distance data are handled.
@@ -1315,12 +1312,14 @@
 !     Program execution returns to the subroutine to yield final pass
 !     values of F(1), F(2) and F(3).
 !
+        lprint=1
+!
         CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
      &    thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
      &    lprint, ltmax, ltmin, numa, numo, nvals, ns, msfail, mtest,
      &    graph_file)
 !
-        lprint=1
+!
         kprint=0
 !
 !
@@ -1841,7 +1840,7 @@
 !     With perpendicular distance data, RMAX is altered slightly
 !     to become an exact multiple of CINT.
 !
-      IF (iry) 280,270,280
+      IF (iry.lt.1) GO TO 280
   270 iermax=(f(4))/cint
       ermax=iermax*cint
 !
@@ -1896,12 +1895,12 @@
 !     accumulates the expected frequency values within a class; it
 !     is set at zero before computations for the class begin.
 !
-!     Where the data are perpendicular distance data (IRY=1), TEXPD
+!     Where the data are perpendicular distance data (IRY>0), TEXPD
 !     accumulates the expected frequency values within each class;
 !     it is set at zero before computations for the class begin,
 !     while EXPD is allowed to accumulate.
 !
-        IF (iry) 300,310,300
+        IF (iry.gt.0) GO TO 310
   300   expd=0.
         GO TO 320
   310   texpd=0.
@@ -2031,7 +2030,7 @@
 !     If IMV has been set at zero, calculation of the probability
 !     of detection now follows, using the same approximation to the
 !     exponential integral as previously.  If IMV has been set at
-!     1, computation moves to address 8020.
+!     1, computation moves to address 570.
 !
           IF (imv) 480,480,570
   480     zl=q*dl
@@ -2208,11 +2207,11 @@
 !     CINT units wide at a perpendicular distance y=r from the
 !     transect line.  Because there are one or two such strips, each
 !     L times the area of the individual plot at distance r,
-!     the expected no. = D x NS x LJ x Pd x CINT x g(r) x P(r) x Q(r).
+!     the expected no. = D x NS x LJ x Pd x CINT x g(r) x P(r).
 !     NS must be converted to a floating-point number (SNS) first.
 !
           sns=float(ns)
-          IF (iry) 750,730,750
+          IF (iry.lt.1) GO TO 750
   730     IF (pd.gt.0.) GO TO 740
           ed=d2l*cint*e*(sns/2.)
           GO TO 790
@@ -2247,7 +2246,7 @@
 !     value for the class (while EXPD continues to accumulate
 !     from class to class).
 !
-          IF (iry) 810,800,810
+          IF (iry.lt.1) GO TO 810
   800     texpd=expd+texpd
 !
 !     In preparation for the next arc in the range, DNRL is
@@ -2307,7 +2306,7 @@
 !     radial or fixed-point and perpendicular distance data. In
 !     both cases, negative EXPD values (EXPDN) are then added in.
 !
-        IF (iry) 880,890,880
+        IF (iry.gt.0) GO TO 890
   880   expdv=expd
         GO TO 900
   890   expdv=texpd
@@ -2336,7 +2335,7 @@
 !     are printed as '0.0' in the output because the 'observations'
 !     are unreal.
 !
-  940   IF (iry) 950,1000,950
+  940   IF (iry.gt.0) GO TO 1000
   950   rr=tr-(clint/2.)
         expdr=expdv
         IF (expdr) 960,970,970
@@ -2405,7 +2404,7 @@
 !     procedure over the next few lines is governed by the values
 !     of KWT and LPRINT.
 !
-        IF (iry) 1120,1090,1120
+        IF (iry.lt.1) GO TO 1120
  1090   IF (kwt) 1120,1120,1100
  1100   IF (r3s) 1110,1110,1130
  1110   r3s=100.0
@@ -2417,7 +2416,7 @@
         w=0.
         GO TO 1150
  1140   w=(1-z*z)**2.
- 1150   wdifsq=w*dif*dif
+ 1150   wdifsq=w*dif*dif 
         wtot=wtot+wdifsq
 !
         IF (lprint) 1170,1170,1160
@@ -2439,7 +2438,7 @@
  1200 FORMAT (//,' 99.9% r value (rmin) =',f7.2,' m '/)
       OPEN (UNIT=3,FILE=graph_file,STATUS='NEW',IOSTAT=ios,
      & ERR=1320)
-      IF (iry) 1210,1250,1210
+      IF (iry.gt.0) GO TO 1250
  1210 WRITE (3,1220)
  1220 FORMAT (3x,'   Midpt.   Calculated     Observed   ')
       DO 1240 jj=1,l10
