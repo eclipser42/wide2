@@ -54,7 +54,7 @@
     NSMutableString *contents = [NSMutableString stringWithCapacity:2048];
     [contents appendFormat:@"'%@'%c", header, 10];
     [contents appendFormat:@"%d, %d, %d, %g, %d, %d, %d, %d, %g, %g%c", params.ifx, params.iry, params.kdt, params.dist, params.km, params.ltmin, params.ltmax, params.ns, params.pd, params.vgh, 10];
-    [contents appendFormat:@"%d, %d, %g, %g, %d, %d%c%c", params.it, params.iv, params.ps, params.thh, params.numa, params.numo, 10, 10];
+    [contents appendFormat:@"%d, %d, %g, %g%c%c", params.it, params.iv, params.ps, params.thh, 10, 10];
     for (int i = 0; i < params.nvals; i++) {
         if (params.iry == 1) {
             [contents appendFormat:@"%g, %d, %g", params.r[i], params.nsize[i], params.angle[i]];
@@ -154,10 +154,6 @@
 	if (![scanner scanDouble:&params.ps]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.thh]) return NO;
-	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.numa]) return NO;
-	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.numo]) return NO;
 
     int i = 0;
     unsigned currentLine;
@@ -175,13 +171,13 @@
             if (![scanner scanString:@"," intoString:nil]) break; /* Skip the comma separator */
             if (![scanner scanDouble:(params.angle + i)]) return NO;
         }
-        i++;
         // and maybe there's an elevation parameter here too
         if ([scanner scanString:@"," intoString:nil]) {
             if (![scanner scanDouble:(elevations + i)]) return NO;
         } else {
             elevations[i] = -1;
         }
+        i++;
     }
     if (i >= 1) {
         params.nvals = i;
@@ -301,6 +297,7 @@
             if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 			if (![scanner scanDouble:(params.angle + i)]) return NO;
 		}
+        elevations[i] = -1;
         i++;
 	}
     params.nvals = i;
@@ -380,6 +377,7 @@
 	}
 
 	for (int i = 0; i < params.nvals; i++) {
+        elevations[i] = -1;
 		if (![scanner scanDouble:(params.r + i)]) return NO;
         if (requireCommas) {
             if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -439,6 +437,7 @@ double deg2rad(double deg) {
     unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:outFile]);
     unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:graphFile]);
 
+    // Compute THH
     int elevationCount = 0;
     double sumOfSquaredElevations = 0;
     for (int i = 0; i < params.nvals; i++) {
@@ -454,6 +453,22 @@ double deg2rad(double deg) {
         double thh = sqrt(sumOfSquaredElevations / elevationCount);
         NSLog(@"Overriding THH %g with %g", params.thh, thh);
         params.thh = thh;
+    }
+
+    // Compute NUMA and NUMO
+    params.numa = params.numo = 0;
+    if (params.ifx) {
+        for (int i = 0; i < params.nvals; i++) {
+            params.numa += params.nsize[i];
+        }
+    } else {
+        for (int i = 0; i < params.nvals; i++) {
+            if (params.r[i] > 0) {
+                params.numa += params.nsize[i];
+            } else {
+                params.numo += params.nsize[i];
+            }
+        }
     }
 
     calculate_density(&params, hdr, out, graph, strlen(hdr), strlen(out), strlen(graph));
