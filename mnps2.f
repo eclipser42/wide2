@@ -382,8 +382,13 @@
 !     S  - a coefficient of detectability, usable in density estimation
 !          by direct calculation.
 !
-!     TCOV - the estimated proportion of topographical cover in
-!          the line of sight between observer and animal.
+!     TCOV - a topographical cover value, i.e. the estimated proportion 
+!          of topographical cover in the line of sight between observer 
+!          and animal.
+!
+!     TOPDD - the proportion of the population at a given radial 
+!          distance that is unobscured by topographical cover (such as
+!          hills and ridges).
 !
 !     DMAX - the maximum direct-line detection distance ('dmax').
 !
@@ -560,9 +565,23 @@
    80 IF (f(4).gt.(80*clint)) clint=(f(4))/80
 !
 !
+!     The program now calculates a topographical cover value
+!     (TCOV).  If the topography is effectively level (LTMIN=999)
+!     then TCOV is set at zero and topography has no effect on
+!     computation of the model.  Otherwise, if LTMAX and LTMIN
+!     values are supplied, a TCOV value is calculated.
+!
+      IF (ltmin.ge.999) THEN
+        tcov=0.
+        GO TO 85
+      END IF
+!
+        tcov=1-(exp(log(1/float(nvals))/(ltmax-ltmin)))
+!
+!
 !     The header line now begins the program output.
 !
-      WRITE (2,90) header
+   85 WRITE (2,90) header
    90 FORMAT (1x,a80)
 !
 !
@@ -656,7 +675,7 @@
 !
         dlim=clint*80.
       PRINT *,' r(1)=',r(1),' nsize(1)=',nsize(1),' angle(1)=',angle(1),
-     & 'y(1)=',y(1),' iry=',iry,' thh=',thh,' nvals=',nvals
+     & 'y(1)=',y(1),' iry=',iry,' thh=',thh,' nvals=',nvals,' ifx=',ifx
 !
 !     If transect lengths have been expressed in kilometres,
 !     distance data are converted to metres.
@@ -767,7 +786,8 @@
       ELSE 
         nclass=int(((kdt-stt)/clint)+0.49)
       END IF
-        PRINT *,' Step 380',' nclass=',nclass,' novtks=',novtks
+        PRINT *,' Step 380',' nclass=',nclass,' novtks=',novtks,
+     &' numa=',numa,' numo=',numo
 !
 !
       DO 1410 bootstrap=1, maxjb
@@ -841,7 +861,8 @@
 !
 		  ngroups=nvals-notin
         PRINT *,' Step 410',' STT=',stt,' nvals=',nvals,' val(20)=
-     &',val(20),' KDT=',kdt,' notin=',notin,' ngroups=',ngroups
+     &',val(20),' KDT=',kdt,' notin=',notin,' ngroups=',ngroups,
+     &' CLINT=',clint
 !
 !     The frequency distribution of the original data is saved,
 !     as VALT(IG).
@@ -1614,8 +1635,17 @@
  1470 WRITE (2,1475) ngroups
  1475 FORMAT (/' Number in Groups in Distance Range = ',i4)
 !
+      WRITE (2,1476) numa
+ 1476 FORMAT (' Number of Individuals Detected Ahead = ',i5)
+!
+      WRITE (2,1477) numo
+ 1477 FORMAT (' Number Overtaking (distance unmeasured) = ',i4)
+!
+      WRITE (2,1478) thh
+ 1478 FORMAT (' Height Difference from Eyelevel = ',f5.1,' m')
+!
       WRITE (2,1480) tcov
- 1480 FORMAT (' Estimated Topographical Cover = ',f7.6)
+ 1480 FORMAT (' Topographical Cover Value = ',f6.4)
 !
       WRITE (2,1490) numest
  1490 FORMAT (' Number of Parameter Estimations =',i4)
@@ -1625,7 +1655,7 @@
 !  
 !
       WRITE (2,1500)
- 1500 FORMAT (//' Estimated Parameter Values:'//)
+ 1500 FORMAT (//' Estimated Parameter Values:'/)
       kprint=1
 !
       WRITE (2,1520)
@@ -2256,29 +2286,33 @@
 !
 !     Visibility and audibility will be affected by topographical
 !     features in habitats where the ground is not level. The total
-!     probability of visibility at DD (VISDD) will be the product the
-!     probability VEGDD that the animal is unobscured by vegetation at
-!     distance DD, and the probability TOPDD that it is unobscured by
-!     topography.  VEGDD will be a function of d (VISDD=(1-Q)**DD),
-!     while TOPDD is approximated by the function
+!     probability of visibility at DD (VISDD) will be the product of 
+!     the probability VEGDD that the animal is unobscured by 
+!     vegetation at distance DD, and the probability TOPDD that it 
+!     is unobscured by topography there.  VEGDD will be a function of 
+!     d (VISDD=(1-Q)**DD), while TOPDD is approximated by the function
 !     TOPDD=(1-TCOV)**(DD-LTMIN)=(EXP(ln(0.001)/(LTMAX-LTMIN)))**(DD-LTMIN).
 !     and VISDD=VEGDD*TOPDD.  A first step is to calculate TOPDD,
-!     provided that LTMIN is not very large value or d is
+!     provided that LTMIN is not a very large value or d is
 !     currently less than LTMIN.  [If LTMIN is set at 999 or higher,
 !     topography is assumed not to affect detectability, so TOPDD is set
-!     at 1 and TCOV at zero.  If DD is less than LTMIN, topography is
+!     at 1 and TCOV is zero.  If DD is less than LTMIN, topography is
 !     also assumed not to affect detectability, so TOPDD is again set at
-!     1.]
+!     1.]  If DD exceeds LTMAX, TOPDD is set at 0 to exclude it.
 !
-          IF (ltmin.ge.999.) GO TO 580
-          IF (dd.ge.ltmin) GO TO 590
-          topdd=1.
-          GO TO 600
-  580     topdd=1.
-          tcov=0.
-          GO TO 600
-  590     topdd=(exp(-6.9078/(ltmax-ltmin)))**(dd-ltmin)
-          tcov=1-(exp(-6.9078/(ltmax-ltmin)))
+      IF (ltmin.ge.999) THEN
+            topdd=1.
+            GO TO 600
+        ELSE IF (dd.ge.ltmin) THEN
+            GO TO 590
+        ELSE IF (dd.lt.ltmin) THEN
+            topdd=1.
+            GO TO 600
+        ELSE
+            topdd=1.
+      END IF  
+!
+  590 topdd=(1 - tcov)**(dd-ltmin)
 !
 !     For observing situations where there is 'ground'
 !     cover for only the first part of the direct-line distance
@@ -2289,7 +2323,7 @@
 !     (DVG) will have a value equal to (cover height) x (distance d)/
 !     (observer-animal height difference).
 !
-  600     IF (kdt .eq. 1) GO TO 650
+  600 IF (kdt .eq. 1) GO TO 650
 !
   610     IF (vgh.eq.1) THEN
             dvg=vgh*dd/thh
@@ -2564,7 +2598,8 @@
 !
  1080   dif=obsd-expdv
         IF (kprint.eq.1) THEN
-          PRINT *,' jj=',jj,' md=',md,' tr=',tr,' wl=',wl,' dif=',dif
+          PRINT *,' jj=',jj,' md=',md,' tr=',tr,' topdd=',topdd,
+     &' dif=',dif
         END IF 
 !
 !      If an upper limit of KDT (>1) has been set for the input
@@ -2637,7 +2672,7 @@
       IF (kprint.eq.0) GO TO 1290
 !
       WRITE (2,1200) rlow
- 1200 FORMAT (//,' 99.9% r value (rmin) =',f7.2,' m ')
+ 1200 FORMAT (/,' 99.9% r value (rmin) =',f7.2,' m ')
       OPEN (UNIT=3,FILE=graph_file,STATUS='NEW',IOSTAT=ios,
      & ERR=1320)
       IF (iry.gt.0) GO TO 1250
