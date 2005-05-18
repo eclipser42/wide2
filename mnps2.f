@@ -415,9 +415,9 @@
       TYPE CALC_PARAMS
       SEQUENCE        ! SEQUENCE indicates not to insert internal
                       ! padding for data alignment
-      INTEGER nvals, numa, numo, ltmin, ltmax, ifx, iry, ns, km, imv
+      INTEGER nvals, numa, numo, ifx, iry, ns, km, imv
       INTEGER kdt, iprint, jprint, ishow, maxjb, it, iv
-      DOUBLE PRECISION clint, stt, dist, thh, r3s, vgh, pd, ps
+      DOUBLE PRECISION clint, stt, dist, thh, ltmin, ltmax, r3s, vgh, pd, ps
       DOUBLE PRECISION f(4), step(4), r(10000)
       INTEGER nsize(10000)
       DOUBLE PRECISION angle(10000)
@@ -436,7 +436,7 @@
       INTEGER i, ia, ib, ic, ie, iflag, ifx, ig, ih, imax
       INTEGER imin, imv, in, ios, iprint, ir, irb, irow, iry, iseed
       INTEGER ishow, it, iv, j, jbstp, jk, jprint, jr, js, jv, jx
-      INTEGER k, kdt, km, kprint, kwt, loop, lprint, ltmin, ltmax, max
+      INTEGER k, kdt, km, kprint, kwt, loop, lprint, max
       INTEGER maxjb, mfail, msfail, mtest, nap, neval, notin, ngroups
       INTEGER nloop, nop, np1, ns, numa, numest, numo, nvals, nclass
       INTEGER novtks
@@ -444,9 +444,10 @@
       DOUBLE PRECISION cf3dif, cf3sum, clint, coeffnt1, coeffnt2
       DOUBLE PRECISION coeffnt3, dcoeff, dendif, dist, dlim, dsum
       DOUBLE PRECISION estden, frst, func, hmax, hmean, hmin, hstar
-      DOUBLE PRECISION hstd, hstst, pd, ps, r3s, savemn, scf1, scf2
-      DOUBLE PRECISION scf3, sden, sns, stopc, stt, test, tcoeff1
-      DOUBLE PRECISION tcoeff2, tcoeff3, tcov, tden, thh, vgh, x, rmax
+      DOUBLE PRECISION hstd, hstst, ltmin, ltmax, pd, ps, r3s, savemn,
+      DOUBLE PRECISION scf1, scf2 scf3, sden, sns, stopc, stt, test,
+      DOUBLE PRECISION tcoeff1 tcoeff2, tcoeff3, tcov, tden, thh, vgh,
+      DOUBLE PRECISION x, rmax
       REAL r(10000), bstr(10000), y(10000), bsty(10000)
       REAL angle(10000)
       DOUBLE PRECISION val(80), valt(80)
@@ -571,17 +572,16 @@
 !     computation of the model.  Otherwise, if LTMAX and LTMIN
 !     values are supplied, a TCOV value is calculated.
 !
-      IF (ltmin.ge.999) THEN
-        tcov=0.
-        GO TO 85
+      IF (ltmin.lt.999) THEN
+         tcov = 1-(exp(log(1/float(nvals))/(ltmax-ltmin)))
+      ELSE
+         tcov = 0.
       END IF
-!
-        tcov=1-(exp(log(1/float(nvals))/(ltmax-ltmin)))
 !
 !
 !     The header line now begins the program output.
 !
-   85 WRITE (2,90) header
+      WRITE (2,90) header
    90 FORMAT (1x,a80)
 !
 !
@@ -1818,18 +1818,18 @@
 !
 !
       INTEGER iermax,ifx,imv,ios,iry,ishow,it,iv,jj,jl,jrlow,jv
-      INTEGER kdt,kprint,kwt,lprint,l10,l20,limit,ltmin,ltmax
+      INTEGER kdt,kprint,kwt,lprint,l10,l20,limit
       INTEGER max,md,msfail,mtest,ns,numa,numo,nvals,nclass
       CHARACTER*(*) graph_file
       DOUBLE PRECISION aprexi,auc,cint,clint,d2l,dd,dds,ddsm,dh,dif
       DOUBLE PRECISION difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed
       DOUBLE PRECISION ermax,err,expd,expdr,expdy,expdv,func
-      DOUBLE PRECISION hcint,htot,obsd,p,pa,pad,pam,pd,pr,prc,prr
-      DOUBLE PRECISION prmax,ps,q,qdd,qdmax,qmin,qr,r3s,rlow
-      DOUBLE PRECISION rmax,rr,s,sns,ss,ssh,ssl,ssmax,stt,tcov,texpd
-      DOUBLE PRECISION thh,topdd,topmax,tot,tote,tr,vegdd,vegmax,vgh
-      DOUBLE PRECISION vh,visdd,vismax,vl,vlowm,w,wdifsq,wh,vhowh,wl
-      DOUBLE PRECISION wm,wtot,yh,yl,yy,yyh,yyl,z,zh,zl
+      DOUBLE PRECISION hcint,htot,ltmin,ltmax,obsd,p,pa,pad,pam,pd
+      DOUBLE PRECISION pr,prc,prr,prmax,ps,q,qdd,qdmax,qmin,qr,r3s
+      DOUBLE PRECISION rlow,rmax,rr,s,sns,ss,ssh,ssl,ssmax,stt,tcov
+      DOUBLE PRECISION texpd,thh,topdd,topmax,tot,tote,tr,vegdd
+      DOUBLE PRECISION vegmax,vgh,vh,visdd,vismax,vl,vlowm,w,wdifsq
+      DOUBLE PRECISION wh,vhowh,wlwm,wtot,yh,yl,yy,yyh,yyl,z,zh,zl
       DOUBLE PRECISION val(80)
       DOUBLE PRECISION rout(80),calcnr(80),obsdnr(80)
       DOUBLE PRECISION yout(80),calcny(80),obsdny(80)
@@ -2300,19 +2300,11 @@
 !     also assumed not to affect detectability, so TOPDD is again set at
 !     1.]  If DD exceeds LTMAX, TOPDD is set at 0 to exclude it.
 !
-      IF (ltmin.ge.999) THEN
-            topdd=1.
-            GO TO 600
-        ELSE IF (dd.ge.ltmin) THEN
-            GO TO 590
-        ELSE IF (dd.lt.ltmin) THEN
-            topdd=1.
-            GO TO 600
-        ELSE
-            topdd=1.
-      END IF  
-!
-  590 topdd=(1 - tcov)**(dd-ltmin)
+          IF (ltmin.lt.999 .and. dd.ge.ltmin) THEN
+             topdd = (1 - tcov)**(dd-ltmin)
+          ELSE
+             topdd = 1.
+          END IF
 !
 !     For observing situations where there is 'ground'
 !     cover for only the first part of the direct-line distance
@@ -2323,7 +2315,7 @@
 !     (DVG) will have a value equal to (cover height) x (distance d)/
 !     (observer-animal height difference).
 !
-  600 IF (kdt .eq. 1) GO TO 650
+  600     IF (kdt .eq. 1) GO TO 650
 !
   610     IF (vgh.eq.1) THEN
             dvg=vgh*dd/thh

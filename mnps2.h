@@ -13,9 +13,9 @@
 // This structure definition MUST be kept in sync with the definition in mnps2.f
 
 typedef struct {
-    int nvals,numa,numo,ltmin,ltmax,ifx,iry,ns,km,imv,kdt;
+    int nvals,numa,numo,ifx,iry,ns,km,imv,kdt;
     int iprint,jprint,ishow,maxjb,it,iv;
-    double clint,stt,dist,thh,r3s,vgh,pd,ps,f[NUM_SHAPE_PARAMS];
+    double clint,stt,dist,thh,ltmin,ltmax,r3s,vgh,pd,ps,f[NUM_SHAPE_PARAMS];
     double step[NUM_SHAPE_PARAMS], r[MAX_OBSERVATIONS];
     int nsize[MAX_OBSERVATIONS];
     double angle[MAX_OBSERVATIONS];
