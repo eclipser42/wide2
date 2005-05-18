@@ -25,6 +25,24 @@
         calculationTimer = nil;
         completeMsg = [[NSString allocWithZone:[self zone]] init];
 
+        // Set defaults
+        params.stt = 0;
+        params.clint = 0;
+        maxjb = 500;
+        params.f[0] = 10;
+        params.f[1] = 0.1;
+        params.f[2] = 10;
+        params.f[3] = 10;
+        params.step[0] = 0;
+        params.step[1] = 0;
+        params.step[2] = 0;
+        params.step[3] = 0;
+        params.iprint = 0;
+        params.jprint = 0;
+        params.ishow = 0;
+        params.imv = 0;
+        params.r3s = 100;
+
         // If an error occurs here, send a [self release] message and return nil.
 
     }
@@ -53,7 +71,7 @@
     NSAssert([aType isEqualToString:@"DensityCensus"], @"Unknown type");
     NSMutableString *contents = [NSMutableString stringWithCapacity:2048];
     [contents appendFormat:@"'%@'%c", header, 10];
-    [contents appendFormat:@"%d, %d, %d, %g, %d, %d, %d, %d, %g, %g%c", params.ifx, params.iry, params.kdt, params.dist, params.km, params.ltmin, params.ltmax, params.ns, params.pd, params.vgh, 10];
+    [contents appendFormat:@"%d, %d, %d, %g, %d, %g, %d, %g, %g%c", params.ifx, params.iry, params.kdt, params.dist, params.km, params.ltmin, params.ns, params.pd, params.vgh, 10];
     [contents appendFormat:@"%d, %d, %g, %g%c%c", params.it, params.iv, params.ps, params.thh, 10, 10];
     for (int i = 0; i < params.nvals; i++) {
         if (params.iry == 1) {
@@ -137,9 +155,7 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
     if (![scanner scanInt:&params.km]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.ltmin]) return NO;
-	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.ltmax]) return NO;
+	if (![scanner scanDouble:&params.ltmin]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanInt:&params.ns]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -156,13 +172,13 @@
 	if (![scanner scanDouble:&params.thh]) return NO;
 
     int i = 0;
-    unsigned currentLine;
+    unsigned bottomParams;
     while (i < MAX_OBSERVATIONS) {
         unsigned potentialLine = [scanner scanLocation];
         if ([scanner scanDouble:(params.r + i)]) {
-            currentLine = potentialLine; /* This really is a new line */
+            bottomParams = potentialLine; /* This really is a new line */
         } else {
-            i--; /* What we thought was the previous line, was just the start of this one */
+            i--; /* This is not another line of observations, but the bottom parameters */
             break;
         }
         if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -181,7 +197,7 @@
     }
     if (i >= 1) {
         params.nvals = i;
-        [scanner setScanLocation:currentLine];
+        [scanner setScanLocation:bottomParams];
     } else {
         return NO;
     }
@@ -204,17 +220,17 @@
     if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
     if (![scanner scanDouble:&params.step[2]]) return NO;
 
-	if (![scanner scanInt:&params.iprint]) return NO;
-	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.jprint]) return NO;
-	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.ishow]) return NO;
+	if (![scanner scanInt:&params.iprint]) return YES;
+	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
+	if (![scanner scanInt:&params.jprint]) return YES;
+	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
+	if (![scanner scanInt:&params.ishow]) return YES;
 
-    if (![scanner scanInt:&params.imv]) return NO;
-	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.r3s]) return NO;
-	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-    if (![scanner scanDouble:&params.step[NUM_SHAPE_PARAMS - 1]]) return NO;
+    if (![scanner scanInt:&params.imv]) return YES;
+	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
+	if (![scanner scanDouble:&params.r3s]) return YES;
+	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
+    if (![scanner scanDouble:&params.step[NUM_SHAPE_PARAMS - 1]]) return YES;
 
     return YES;
 }
@@ -240,9 +256,9 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.thh]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.ltmin]) return NO;
+	if (![scanner scanDouble:&params.ltmin]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.ltmax]) return NO;
+	if (![scanner scanDouble:&params.ltmax]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanInt:&params.ifx]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -331,9 +347,9 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.thh]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.ltmin]) return NO;
+	if (![scanner scanDouble:&params.ltmin]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.ltmax]) return NO;
+	if (![scanner scanDouble:&params.ltmax]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanInt:&params.ifx]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -437,9 +453,10 @@ double deg2rad(double deg) {
     unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:outFile]);
     unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:graphFile]);
 
-    // Compute THH
+    // Compute THH and LTMAX
     int elevationCount = 0;
     double sumOfSquaredElevations = 0;
+    params.ltmax = 0;
     for (int i = 0; i < params.nvals; i++) {
         if (elevations[i] != -1) {
             double horizontalDistance = params.r[i];
@@ -447,6 +464,9 @@ double deg2rad(double deg) {
             elevationCount++;
             double elevation = horizontalDistance * tan(deg2rad(elevations[i]));
             sumOfSquaredElevations += elevation * elevation;
+        }
+        if (params.r[i] > params.ltmax) {
+            params.ltmax = params.r[i];
         }
     }
     if (elevationCount) {
