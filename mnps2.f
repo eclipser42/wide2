@@ -417,7 +417,8 @@
                       ! padding for data alignment
       INTEGER nvals, numa, numo, ifx, iry, ns, km, imv
       INTEGER kdt, iprint, jprint, ishow, maxjb, it, iv
-      DOUBLE PRECISION clint, stt, dist, thh, ltmin, ltmax, r3s, vgh, pd, ps
+      DOUBLE PRECISION clint, stt, dist, thh, ltmin, ltmax 
+      DOUBLE PRECISION r3s, vgh, pd, ps
       DOUBLE PRECISION f(4), step(4), r(10000)
       INTEGER nsize(10000)
       DOUBLE PRECISION angle(10000)
@@ -444,9 +445,9 @@
       DOUBLE PRECISION cf3dif, cf3sum, clint, coeffnt1, coeffnt2
       DOUBLE PRECISION coeffnt3, dcoeff, dendif, dist, dlim, dsum
       DOUBLE PRECISION estden, frst, func, hmax, hmean, hmin, hstar
-      DOUBLE PRECISION hstd, hstst, ltmin, ltmax, pd, ps, r3s, savemn,
-      DOUBLE PRECISION scf1, scf2 scf3, sden, sns, stopc, stt, test,
-      DOUBLE PRECISION tcoeff1 tcoeff2, tcoeff3, tcov, tden, thh, vgh,
+      DOUBLE PRECISION hstd, hstst, ltmin, ltmax, pd, ps, r3s, savemn
+      DOUBLE PRECISION scf1, scf2, scf3, sden, sns, stopc, stt, test
+      DOUBLE PRECISION tcoeff1, tcoeff2, tcoeff3, tcov, tden, thh, vgh
       DOUBLE PRECISION x, rmax
       REAL r(10000), bstr(10000), y(10000), bsty(10000)
       REAL angle(10000)
@@ -1829,7 +1830,7 @@
       DOUBLE PRECISION rlow,rmax,rr,s,sns,ss,ssh,ssl,ssmax,stt,tcov
       DOUBLE PRECISION texpd,thh,topdd,topmax,tot,tote,tr,vegdd
       DOUBLE PRECISION vegmax,vgh,vh,visdd,vismax,vl,vlowm,w,wdifsq
-      DOUBLE PRECISION wh,vhowh,wlwm,wtot,yh,yl,yy,yyh,yyl,z,zh,zl
+      DOUBLE PRECISION wh,vhowh,wl,wm,wtot,yh,yl,yy,yyh,yyl,z,zh,zl
       DOUBLE PRECISION val(80)
       DOUBLE PRECISION rout(80),calcnr(80),obsdnr(80)
       DOUBLE PRECISION yout(80),calcny(80),obsdny(80)
