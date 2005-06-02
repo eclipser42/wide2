@@ -3,8 +3,11 @@
 #import "mnps2.h"
 #import <Cocoa/Cocoa.h>
 
+@class DensityController;
+
 @interface Density : NSDocument
 {
+    IBOutlet DensityController *controller;
 	NSString *header;
     NSString *outFile;
     NSString *graphFile;
@@ -17,6 +20,8 @@
 }
 
 - (int)nvals;
+- (int)currentIteration;
+- (int)maxIteration;
 
 /**
  * Parse input with the observation data in rows, separated by either commas or spaces
