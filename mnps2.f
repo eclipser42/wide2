@@ -96,10 +96,14 @@
 !          ahead of a moving observer on a transect.
 !
 !     NUMO - the number of individuals overtaking the observer
-!          from behind during a transect.
+!          from behind during a transect, obtained by totalling
+!          the number of individuals in R=0 observations.
 !
-!     DIST - the transect length corrected for the effect of
-!          animal movement.
+!     DIST - the overall transect length (L), expressed either in
+!          metres or kilometres, or the distance corrected for the 
+!          effect of animal movement (LJ).  (If F(4) is set at
+!          zero, only the overall transect length is needed and
+!          the program calculates its own LJ value.)
 !
 !     THH - the vertical distance between observer eye level
 !          and the median horizontal plane occupied by
@@ -113,7 +117,8 @@
 !     LTMAX - the p=0.001 upper-limit distance at which an animal
 !          may be detected by the observer in uneven topography
 !          in the absence of vegetation cover.  Set at 0 if the
-!          topography is approximately level.
+!          topography is approximately level, and calculated from
+!          the data if current input formats are used.
 !
 !     IFX - a parameter to modify the computations appropriately
 !          where data are collected by an observer sampling from
@@ -353,7 +358,7 @@
 !
 !     NCLASS - the number of distances classes in the range used for the
 !           analysis.  It is either equal to DMAX-STT, or KDT-STT,
-!           depending on whether or not KDT is greater      1.
+!           depending on whether or not KDT is greater than 1.
 !    
 !     NOTIN - a count variable which records the number of occasions
 !           in which an observation falls outside a selected data
@@ -390,18 +395,36 @@
 !          distance that is unobscured by topographical cover (such as
 !          hills and ridges).
 !
-!     DMAX - the maximum direct-line detection distance ('dmax').
+!     DMAX - the maximum direct-line detection distance ('dmax'), 
+!          either submitted to the program as F(4) or calculated.
 !
-!     RMAX - the maximum horizontal detection distance ('rmax').
+!     ESTDMAX - the value of DMAX (= F(4)) calculated from the radial
+!          distance data in the program input if F(4) is set at zero.
 !
-!     ERMAX - a maximum detection distance calculated by the
-!          program.
+!     RMAX - the maximum horizontal detection distance ('rmax'),
+!          calculated from DMAX and THH.
 !
+!     ERMAX - a computational upper-limit maximum detection distance 
+!          used as a range limit in certain cases.
+!    
+!     ESTJ - an overall movement correction factor (J) for line
+!          transects, calculated when transect duration and animal
+!          movement rate data are entered, using an approximation for
+!          the J(k) range 0 < k < 5.
+!
+!     OBSW - the overall observer rate of travel along the line
+!          transects, calculated from the total distance travelled and
+!          the time taken, and expressed in m/min.
+!
+!     RLMEAN - the mean of the natural logarithms of radial distances.
+!
+!     RLSD \u2014 the standard deviation of the natural logarithms of the
+!          radial distances in the data set.
 !
 !     Further explanatory notes are included within the program below.
 !
 !
-!     This program uses double precision for all real numbers.
+!     This program uses double precision for most real numbers.
 !
 !
       SUBROUTINE calculate_density (params, header, outfile, graph_file)
@@ -448,7 +471,8 @@
       DOUBLE PRECISION hstd, hstst, ltmin, ltmax, pd, ps, r3s, savemn
       DOUBLE PRECISION scf1, scf2, scf3, sden, sns, stopc, stt, test
       DOUBLE PRECISION tcoeff1, tcoeff2, tcoeff3, tcov, tden, thh, vgh
-      DOUBLE PRECISION x, rmax
+      DOUBLE PRECISION x, rmax, estj, obsw
+      REAL rltot, rlmean, rlsum, rlsd, rlf4, rdifsq, estdmax
       REAL r(10000), bstr(10000), y(10000), bsty(10000)
       REAL angle(10000)
       DOUBLE PRECISION val(80), valt(80)
@@ -525,13 +549,32 @@
 !
 !     The same requirement applies to data on observing angles.
 !
-      IF (iry.eq.2) GO TO 40
+      IF (iry.eq.2) GO TO 35
       DO 30 ih=1,nvals
         angle(ih)=params.angle(ih)
    30 CONTINUE
 !
-   40 OPEN (UNIT=2,FILE=outfile,STATUS='NEW',IOSTAT=ios,ERR=1940)
+!
+!     Data submitted with the radial distance R() at zero are
+!     overttakes, and should not have their equivalent NSIZE()
+!     value used to generate frequency distributions other than via
+!     the variable NUMO.  This step sets NSIZE at zero in such cases.
+!
+   35 DO 40 ih=1,nvals
+        IF (r(ih).eq.0) THEN
+          nsize(ih) = 0
+        END IF
+   40 CONTINUE
+!         
+!
+      OPEN (UNIT=2,FILE=outfile,STATUS='NEW',IOSTAT=ios,ERR=1940)
       novtks=0
+!
+!
+      PRINT *,'Step 40',' iprint=',iprint,' jprint=',jprint,
+     & ' ishow=',ishow,' it=',it,' iv=',iv,' r(5)=',r(8),' nsize(8)=',
+     & nsize(8)
+!
 !
 !     If detection distances were entered in kilometres (KM=1),
 !     then these distances are first converted to metres.
@@ -551,20 +594,103 @@
    50   IF (km.gt.0) GO TO 60
         f(3)=(2.*dist*f(3))/1.e4
         step(3)=(2.*dist*step(3))/1.e4
-        GO TO 80
+        GO TO 72
    60   f(3)=(2.*dist*1000*f(3))/1.e4
         step(3)=(2.*dist*1000*step(3))/1.e4
-        GO TO 80
+        GO TO 72
       ELSE
    70   f(3)=(2.*iv*it*f(3))/1.e4
         step(3)=(2.*iv*it*step(3))/1.e4
       END IF
+!
+      PRINT *,' Step 70 completed'
+!
+!
+!     If no value of the maximum detection distance F(4) has been
+!     entered (i.e. F(4)=0), an estimated maximum distance is
+!     calculated based on the assumption that the logarithm of
+!     the radial detection distance r is distributed according
+!     to a normal distribution, with a maximum value at the
+!     mean + (2.5 x s.d.), which matches observed values from
+!     large data sets.  This is calculated, then a back-transformation
+!     undertaken to give an F(4) value.
+!
+!     The first step is to calculate a logarithmic detection distance 
+!     total RLTOT, then a logarithmic mean value RLMEAN.
+!
+      estdmax = 0.0
+!
+   72 IF (f(4).eq.0) THEN
+        rltot = 0.0
+        rlmean = 0.0
+        rlsum = 0.0
+        rdifsq = 0.0
+!
+      DO 75 ih=1,nvals
+        rltot = log(r(ih)+1) + rltot
+   75 CONTINUE
+!
+        PRINT *,'Step 75',' rltot=',rltot
+!
+        rlmean = rltot/nvals
+!
+!     A standard error of the logarithmic r (RLSD) is calculated,
+!     followed by the estimated logarithmic maximum distance RLF4,
+!     which is then backtransformed to give an F(4) value.
+!
+        rlsum = 0.0
+      DO 76 ih=1,nvals
+        rdifsq = (log(r(ih)+1) - rlmean)**2.
+        rlsum = rlsum + rdifsq
+   76 CONTINUE
+!
+        PRINT *,'Step 76',' rlmean=',rlmean,' rlsum=',rlsum
+!
+        rlsd = sqrt(rlsum/(nvals-1))
+        rlf4 = rlmean + 2.5*rlsd
+!
+        PRINT *,' rlsd=',rlsd,' rlf4=',rlf4
+!
+        f(4) = EXP(rlf4) - 1
+        estdmax = f(4)
+      END IF
+!
+      PRINT *,' est.f(4) = ',f(4)
 !
 !     If a value of the maximum detection distance F(4) has been
 !     entered more than 80 times the class interval, CLINT is
 !     reset at F(4)/80 to avoid computation problems.
 !
    80 IF (f(4).gt.(80*clint)) clint=(f(4))/80
+!
+! 
+!     The header line now begins the program output.
+!
+      WRITE (2,90) header
+   90 FORMAT (a80)
+!
+!
+!     The program prints out the class interval width (CLINT) and
+!     either the total transect length (DIST) or the total time
+!     spent (IT) at fixed points.
+!
+      IF (ifx.eq.1) THEN
+        WRITE (2,100) clint,it
+  100   FORMAT (/' Class Interval Width =',f7.1,
+     &' m.    Total Time Spent =',i5,' min.')
+        GO TO 170
+      END IF
+!
+      IF (km.eq.0) THEN
+        WRITE (2,140) clint,dist
+  140   FORMAT (/' Class Interval Width =',f7.1,
+     &' m.   Total Transect Length (L) =',f10.3,' m.')
+        GO TO 170
+      END IF
+!
+  150 WRITE (2,160) clint,dist
+  160 FORMAT (/' Class Interval Width =',f7.1,
+     &' m.   Total Transect Length (L) =',f10.3,' km.')
 !
 !
 !     The program now calculates a topographical cover value
@@ -573,40 +699,38 @@
 !     computation of the model.  Otherwise, if LTMAX and LTMIN
 !     values are supplied, a TCOV value is calculated.
 !
-      IF (ltmin.lt.999) THEN
+  170 IF (ltmin.lt.999) THEN
          tcov = 1-(exp(log(1/float(nvals))/(ltmax-ltmin)))
       ELSE
          tcov = 0.
       END IF
 !
 !
-!     The header line now begins the program output.
+!     The program now calculates the mean overall observer movement
+!     rate (w) as OBSW=DIST/IT (DIST in m and IT in min), provided
+!     that an IT value has been entered and the data are from line
+!     transects (IFX=0).  If not, this entire step is bypassed.
 !
-      WRITE (2,90) header
-   90 FORMAT (1x,a80)
+      IF ((it.gt.0) .and. (ifx.eq.0)) THEN
+        obsw=dist/it
 !
+!     Assuming that the actual distance (and not LJ) has been
+!     entered, the movement correction factor (J) is calculated
+!     using an approximation.
 !
-!     The program prints out the class interval width (CLINT) and
-!     either the total transect length (DIST) or the total time
-!     spent (IT) at fixed points.
+        estj = (0.00481082*(iv**4))/(obsw**4) - (0.0731512*(iv**3))/ 
+     &  (obsw**3) + (0.406164*iv**2)/(obsw**2) - ((0.174034*iv)/obsw)
+     &  + 1
 !
-      IF (ifx.eq.1) THEN
-  100   WRITE (2,110) clint,it
-  110   FORMAT (/' Class Interval Width =',f7.1,
-     &' m.    Total Time Spent =',i5,' min.')
-        GO TO 170
-      END IF
+!     The movement-corrected overall distance travelled (LJ) is
+!     calculated, overriding the DIST value submitted originally.
+!     IT and IV are both set at 0 to avoid later computation problems
+!     before the IF . . THEN loop ends.
 !
-      IF (km.eq.0) THEN
-        WRITE (2,140) clint,dist
-  140   FORMAT (/' Class Interval Width =',f7.1,
-     &' m.    Total Distance (xJ) =',f10.3,' m.')
-        GO TO 170
-      END IF
-!
-  150 WRITE (2,160) clint,dist
-  160 FORMAT (/' Class Interval Width =',f7.1,
-     &' m.    Total Distance (xJ) =',f10.3,' km.')
+        dist = estj*dist
+        it = 0
+        iv = 0
+      END IF     
 !
 !
 !     If calculations are to be based on perpendicular distances (y)
@@ -623,7 +747,7 @@
 !     'overtakes' and made negative (to be ignored later).  
 !     The number of groups overtaking (NOVTKS) is also counted.
 !
-  170 IF (iry.eq.2) GO TO 190
+      IF (iry.eq.2) GO TO 190
       IF (iry.eq.0) GO TO 205
 !
       DO 180 in=1, nvals
@@ -676,7 +800,7 @@
 !
         dlim=clint*80.
       PRINT *,' r(1)=',r(1),' nsize(1)=',nsize(1),' angle(1)=',angle(1),
-     & 'y(1)=',y(1),' iry=',iry,' thh=',thh,' nvals=',nvals,' ifx=',ifx
+     & 'y(1)=',y(1),' iry=',iry,' thh=',thh,' nvals=',nvals,' ifx=',ifx 
 !
 !     If transect lengths have been expressed in kilometres,
 !     distance data are converted to metres.
@@ -692,7 +816,7 @@
 !     distance data to a distance limit (KDT>1).
 !
   240 IF ((iry.eq.1) .or. ((iry.eq.2).and.(kdt.le.1))) THEN
-        stopc=0.0001
+        stopc=0.0005
       ELSE IF ((iry.eq.2).and.(kdt.gt.1)) THEN
         stopc=0.002
       ELSE
@@ -899,6 +1023,9 @@
         END IF
 !
 !     A variable NOTIN counts the groups excluded from the data set.
+!     If a group is in the included data set, the number in each
+!     class is totalled in a series of passes through the values 
+!     supplied.
 !
           notin=0
 !
@@ -1067,6 +1194,8 @@
           val(ic)=0
 !
 !     A variable NOTIN counts the groups excluded from the data set.
+!     Numbers in each class are totalled for the groups included
+!     in the data set.
 !
           notin=0
 !
@@ -1645,8 +1774,17 @@
       WRITE (2,1478) thh
  1478 FORMAT (' Height Difference from Eyelevel = ',f5.1,' m')
 !
-      WRITE (2,1480) tcov
- 1480 FORMAT (' Topographical Cover Value = ',f6.4)
+      WRITE (2,1479) estj
+ 1479 FORMAT (' Movement Correction Factor (J) = ',f6.3)
+!
+      WRITE (2,1480) dist
+ 1480 FORMAT (' Adjusted Transect Length (LJ) = ',f10.3,' m')
+!
+      WRITE (2,1481) tcov
+ 1481 FORMAT (' Topographical Cover Value = ',f6.4)
+!
+      WRITE (2,1482) estdmax
+ 1482 FORMAT (' Calculated Maximum Detection Distance =',f8.1,' m')
 !
       WRITE (2,1490) numest
  1490 FORMAT (' Number of Parameter Estimations =',i4)
@@ -1656,14 +1794,14 @@
 !  
 !
       WRITE (2,1500)
- 1500 FORMAT (//' Estimated Parameter Values:'/)
+ 1500 FORMAT (/' Estimated Parameter Values:'/)
       kprint=1
 !
       WRITE (2,1520)
  1520 FORMAT (' ',77('x')/' x',4(18x,'x'))
       WRITE (2,1530)
- 1530 FORMAT (' x    PARAMETER',5x,'x',6x,'VALUE',7x,'x',
-     &'  STANDARD ERROR  ','x',7x,'UNIT',7x,'x')
+ 1530 FORMAT (' x    Parameter',5x,'x',6x,'Value',7x,'x',
+     &'  Standard Error  ','x',7x,'Unit',7x,'x')
       WRITE (2,1540)
  1540 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/' x ESTIMATED'
      &,8x,'x',3(18x,'x'))
@@ -1695,15 +1833,15 @@
 !
  1650 WRITE (2,1660)
  1660 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/
-     &' x CONSPICUOUSNESS  x',3(18x,'x'))
+     &' x Conspicuousness  x',3(18x,'x'))
       IF (maxjb.eq.1) THEN  
       WRITE (2,1680) coeffnt1
- 1680 FORMAT (' x COEFFICIENT  (a) x',4x,f10.4,4x,
+ 1680 FORMAT (' x Coefficient  (a) x',4x,f10.4,4x,
      &'x (indeterminate)  x      metres      x')
       GO TO 1710
       ELSE
       WRITE (2,1700) coeffnt1,scf1
- 1700 FORMAT (' x COEFFICIENT  (a) x',4x,f10.3,4x,'x',4x,f10.3,4x,'x',
+ 1700 FORMAT (' x Coefficient  (a) x',4x,f10.3,4x,'x',4x,f10.3,4x,'x',
      &6x,'metres',6x,'x')
       END IF
 !
@@ -1713,37 +1851,37 @@
  1710 IF (kdt.eq.1) GO TO 1780
  1720 WRITE (2,1730)
  1730 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/
-     &' x COVER      ',6x,'x',3(18x,'x'))
+     &' x Cover      ',6x,'x',3(18x,'x'))
       IF (maxjb.eq.1) THEN  
       WRITE (2,1750) coeffnt2
- 1750 FORMAT (' x PROPORTION  (c)  x',4x,f10.4,4x,
+ 1750 FORMAT (' x Proportion   (c)  x',4x,f10.4,4x,
      &'x (indeterminate)  x                  x')
       GO TO 1840
       ELSE
       WRITE (2,1770) coeffnt2,scf2
- 1770 FORMAT (' x PROPORTION  (c)  x',4x,f10.4,4x,'x',4x,f10.4,4x,'x',
+ 1770 FORMAT (' x Proportion  (c)  x',4x,f10.4,4x,'x',4x,f10.4,4x,'x',
      &4x,'         ',5x,'x')
       GO TO 1840
       END IF
 !
  1780 WRITE (2,1790)
  1790 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/
-     &' x ATTENUATION',6x,'x',3(18x,'x'))
+     &' x Attenuation',6x,'x',3(18x,'x'))
       IF (maxjb.eq.1) THEN
       WRITE (2,1810) coeffnt2
- 1810 FORMAT (' x COEFFICIENT  (b) x',4x,f10.4,4x,
+ 1810 FORMAT (' x Coefficient  (b) x',4x,f10.4,4x,
      &'x (indeterminate)  x    per  metre    x')
       GO TO 1840
       ELSE
       WRITE (2,1830) coeffnt2,scf2
- 1830 FORMAT (' x COEFFICIENT  (b) x',4x,f10.4,4x,'x',4x,f10.4,4x,'x',
+ 1830 FORMAT (' x Coefficient  (b) x',4x,f10.4,4x,'x',4x,f10.4,4x,'x',
      &4x,'per metre',5x,'x')
       END IF
 !
 !     The table is now ruled off.
 !
  1840 WRITE (2,1850)
- 1850 FORMAT (' x',4(18x,'x')/' ',77('x')//)
+ 1850 FORMAT (' x',4(18x,'x')/' ',77('x')/)
 !
       WRITE (2,1860) coeffnt3,scf3
  1860 FORMAT (x,'Detectability Coefficient (S) =',f8.2,', SE =',f6.2)
@@ -2035,8 +2173,8 @@
 !
 !     A function ERMAX is defined to be an exact multiple of CLINT
 !
-      iermax=(f(4))/clint
-      ermax=iermax*clint
+      iermax=int((f(4))/clint)
+      ermax=float(iermax)*clint
 !
 !     In the event that PRMAX > 1., HTOT is set to a high value.
 !
@@ -2665,7 +2803,7 @@
       IF (kprint.eq.0) GO TO 1290
 !
       WRITE (2,1200) rlow
- 1200 FORMAT (/,' 99.9% r value (rmin) =',f7.2,' m ')
+ 1200 FORMAT (' 99.9% r value (rmin) =',f7.2,' m ')
       OPEN (UNIT=3,FILE=graph_file,STATUS='NEW',IOSTAT=ios,
      & ERR=1320)
       IF (iry.gt.0) GO TO 1250
@@ -2674,9 +2812,9 @@
       DO 1240 jj=1,l10
         jv=l10-jj+1
       IF (kdt.gt.1) THEN
-         limit = (kdt-stt) / clint
+         limit = int((kdt-stt) / clint)
       ELSE
-         limit = (dmax-stt) / clint
+         limit = int((dmax-stt) / clint)
       END IF
       IF (jj.gt.limit) GO TO 1290
       WRITE (3,1230) rout(jv),calcnr(jv),obsdnr(jv)
@@ -2688,9 +2826,9 @@
       DO 1280 jj=1,l10
         jv=l10-jj+1
       IF (kdt.gt.1) THEN
-        limit = (kdt-stt) / clint
+        limit = int((kdt-stt) / clint)
       ELSE
-        limit = (dmax-stt) / clint
+        limit = int((dmax-stt) / clint)
       END IF
       IF (jj.gt.limit) GO TO 1290
       WRITE (3,1270) yout(jv),calcny(jv),obsdny(jv)
