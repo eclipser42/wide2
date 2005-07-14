@@ -7,6 +7,7 @@
 //
 
 #import "Density.h"
+#import "DensityController.h"
 
 #import "Foundation/NSFileManager.h"
 #import <unistd.h>
@@ -27,7 +28,7 @@
 
         // Set defaults
         params.stt = 0;
-        params.clint = 0;
+        params.clint = 20;
         maxjb = 500;
         params.f[0] = 10;
         params.f[1] = 0.1;
@@ -136,6 +137,16 @@
     return params.nvals;
 }
 
+- (int)currentIteration
+{
+    return params.bootstrap;
+}
+
+- (int)maxIteration
+{
+    return params.maxjb;
+}
+
 - (BOOL)parseInputColumns:(NSString *)input
 {
 	NSScanner* scanner = [NSScanner scannerWithString:input];
@@ -176,10 +187,10 @@
     while (i < MAX_OBSERVATIONS) {
         unsigned potentialLine = [scanner scanLocation];
         if ([scanner scanDouble:(params.r + i)]) {
-            bottomParams = potentialLine; /* This really is a new line */
+            bottomParams = potentialLine; /* potentialLine really was a new line */
         } else {
-            i--; /* This is not another line of observations, but the bottom parameters */
-            break;
+            i--; /* potentialLine was not a new line of observations, but the middle of the bottom parameters */
+            break; /* finish and back up */
         }
         if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
         if (![scanner scanInt:(params.nsize + i)]) break;
@@ -501,6 +512,7 @@ double deg2rad(double deg) {
         message = [NSString stringWithFormat:@"Calculation failed: Detailed results in %@", outFile];
     }
     [self setValue:message forKey:@"completeMsg"];
+    [controller finishCalculation];
 }
 
 @end
