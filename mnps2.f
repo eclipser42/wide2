@@ -1,4 +1,4 @@
-!     PROGRAM WildlifeDensity  (File mnps2.f)
+!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.1a18)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
@@ -253,10 +253,7 @@
 !                 observing situation under the census conditions;
 !
 !          F(3):  an estimate of the population density (D),
-!                 expressed in number of individuals per hectare if
-!                 transect lengths are in m, or in number of 
-!                 individuals per sq km if transect lengths are
-!                 in kilometres;
+!                 expressed in number of individuals per hectare
 !
 !          F(4):  an estimate of the maximum distance (in m) from the
 !                 observer at which species recognition is
@@ -453,7 +450,7 @@
 !
       CHARACTER*(*) header, outfile, graph_file
 !
-!     The variables declared below are in alphabetical order.
+!     The variables declared below are in rough alphabetical order
 !
       INTEGER nsize(10000), nbsz(10000)
       INTEGER bootstrap
@@ -463,7 +460,7 @@
       INTEGER k, kdt, km, kprint, kwt, loop, lprint, max
       INTEGER maxjb, mfail, msfail, mtest, nap, neval, notin, ngroups
       INTEGER nloop, nop, np1, ns, numa, numest, numo, nvals, nclass
-      INTEGER novtks
+      INTEGER novtks, numoin, numain
       DOUBLE PRECISION a, approx, b, c, cf1dif, cf1sum, cf2dif, cf2sum
       DOUBLE PRECISION cf3dif, cf3sum, clint, coeffnt1, coeffnt2
       DOUBLE PRECISION coeffnt3, dcoeff, dendif, dist, dlim, dsum
@@ -549,7 +546,7 @@
 !
 !     The same requirement applies to data on observing angles.
 !
-      IF (iry.eq.2) GO TO 35
+      IF (iry.eq.2) GO TO 40
       DO 30 ih=1,nvals
         angle(ih)=params.angle(ih)
    30 CONTINUE
@@ -560,11 +557,11 @@
 !     value used to generate frequency distributions other than via
 !     the variable NUMO.  This step sets NSIZE at zero in such cases.
 !
-   35 DO 40 ih=1,nvals
+   40 DO ih=1,nvals
         IF (r(ih).eq.0) THEN
           nsize(ih) = 0
         END IF
-   40 CONTINUE
+      END DO
 !         
 !
       OPEN (UNIT=2,FILE=outfile,STATUS='NEW',IOSTAT=ios,ERR=1940)
@@ -572,8 +569,16 @@
 !
 !
       PRINT *,'Step 40',' iprint=',iprint,' jprint=',jprint,
-     & ' ishow=',ishow,' it=',it,' iv=',iv,' r(5)=',r(8),' nsize(8)=',
-     & nsize(8)
+     & ' ishow=',ishow,' it=',it,' iv=',iv,' r(8)=',r(8),' nsize(8)=',
+     & nsize(8),' r(9)=',r(9),' nsize(9)=',nsize(9),' numa=',numa,
+     & ' numo=',numo
+!
+!
+!     The original values of NUMA and NUMO are retained (as NUMOIN
+!     and NUMAIN) so they can be printed in the output.
+!
+      numoin=numo
+      numain=numa
 !
 !
 !     If detection distances were entered in kilometres (KM=1),
@@ -737,25 +742,26 @@
 !     from the transect line, and the data supplied are radial
 !     distances and angles, perpendicular distances are now calculated
 !     for the data entered initially, this action being
-!     prompted by IRY having a value less than 2.  If perpendicular
+!     prompted by IRY having a value less than 2.  0.001 is added
+!     to raise 0 values to distinguish them from overtakes. If perp.
 !     distance data as such were supplied (IRY=2), this step is
 !     bypassed and the distance data are recognized as N(y).
 !     At this step, any angle data supplied as negative numbers
 !     (E.g. from the left of a transect line) are also converted to
 !     positive and pooled with the remainder.  If r=0 and the data 
 !     are line transect (IFX=0), the values are treated as
-!     'overtakes' and made negative (to be ignored later).  
-!     The number of groups overtaking (NOVTKS) is also counted.
+!     'overtakes', y(in) is made zero, and the number of groups 
+!     overtaking (NOVTKS) is counted.
 !
       IF (iry.eq.2) GO TO 190
       IF (iry.eq.0) GO TO 205
 !
       DO 180 in=1, nvals
         IF (r(in).eq.0) THEN
-          y(in)=-y(in)
+          y(in)=0.0
           novtks=novtks+1
         ELSE
-          y(in)=ABS(r(in)*sin((angle(in)*3.14159265)/180.))
+          y(in)=ABS(r(in)*sin((angle(in)*3.14159265)/180.))+0.001
         END IF
   180 CONTINUE
 !
@@ -780,11 +786,11 @@
 !     For IRY=0 and IFX=0, the number of overtakes (NOVTKS) 
 !     is counted.  If IFX=1, they are not counted as overtakes.
 !
-  205 DO 206 in=1,nvals
+  205 DO in=1,nvals
         IF ((r(in).eq.0) .and. (IFX.eq.0)) THEN
           novtks=novtks+1
         END IF
-  206 CONTINUE
+      END DO
 !
 !     The initial values of 'a', 'b', 'D2L, and 'dmax' are retained
 !     as FT and the corresponding steps as STEPT to make possible
@@ -813,12 +819,12 @@
 !     The stopping criterion (STOPC) is set at a suitable value,
 !     based on the type of data supplied: radial, perpendicular
 !     distance data to the limit of visibility, or perpendicular
-!     distance data to a distance limit (KDT>1).
+!     distance data to a distance limit (KDT>1). Tested on data.
 !
   240 IF ((iry.eq.1) .or. ((iry.eq.2).and.(kdt.le.1))) THEN
-        stopc=0.0005
+        stopc=0.0001
       ELSE IF ((iry.eq.2).and.(kdt.gt.1)) THEN
-        stopc=0.002
+        stopc=0.001
       ELSE
         stopc=0.1
       END IF
@@ -966,13 +972,14 @@
         END IF
 !
 !     A variable NOTIN counts the groups excluded from the data set.
+!     The frequency in the class, VAL(IC), is accumulated too.
 !
         notin=0
 !
           DO 400 ir=1,nvals
              IF (kdt.gt.1 .and. r(ir).ge.kdt)  THEN
                notin=notin+1
-             ELSE IF (r(ir).le.stt) THEN
+             ELSE IF ((r(ir).ne.0) .and. (r(ir).lt.stt)) THEN
                notin=notin+1
              ELSE IF ((r(ir)).ge.frst .and. (r(ir)).lt.(frst+clint))
      &        THEN
@@ -1032,7 +1039,7 @@
            DO 450 ir=1,nvals
              IF (kdt.gt.1 .and. abs(y(ir)).ge.kdt) THEN
                notin=notin+1
-             ELSE IF (abs(y(ir)).lt.stt) THEN
+             ELSE IF ((y(ir).ne.0) .and. (abs(y(ir)).lt.stt)) THEN
                notin=notin+1
              ELSE IF (ABS(y(ir)).ge.frst .and. ABS(y(ir)).lt.
      &         (frst+clint)) THEN
@@ -1046,7 +1053,7 @@
 		  ngroups=nvals-notin
         PRINT *,' Step 460',' STT=',stt,' nvals=',nvals,' val(20)=
      &',val(20),' KDT=',kdt,' y(20)=',y(20),' ngroups=',ngroups,
-     &' notin=',notin
+     &' notin=',notin,' clint=',clint
 !
 !     The frequency distribution of the original data is now saved,
 !     as VALT(IG).
@@ -1089,7 +1096,7 @@
 !     An upper limit is placed on ISEED to prevent integer overflow.
 !
        IF (iseed.gt.150000) iseed=iseed/100
-         iseed = iseed + (r(jr)*724*jr)/bootstrap
+         iseed = iseed + ((r(jr)+jr)*724)/bootstrap
 !
 !     A random number between 0 and 1 is now called from the Subroutine
 !     SRANDNAG, multiplied by NVALS to give it a value between 0 and
@@ -1158,16 +1165,28 @@
 !     A variable NOTIN counts the groups excluded from the data set.
 !
         notin=0
+        numo=0
+        numa=0
 !
           DO 540 irb=1,nvals
              IF (kdt.gt.1 .and. bstr(ir).ge.kdt)  THEN
                notin=notin+1
-             ELSE IF (bstr(irb).le.stt) THEN
+             ELSE IF ((bstr(irb).ne.0) .and. (bstr(irb).lt.stt)) THEN
                notin=notin+1
-             ELSE IF ((bstr(irb)).gt.frst .and. (bstr(irb)).le.
+             ELSE IF ((bstr(irb)).ge.frst .and. (bstr(irb)).lt.
      &         (frst+clint)) THEN
                val(ic)=val(ic)+nbsz(irb)
              END IF
+!
+!     New values of NUMO and NUMA are now required because a different
+!     selection of data values has been made.  This is done by
+!     totalling the R()=0 and R()>0 values in the new sample to get
+!     new NUMO and NUMA values respectively.
+!
+          IF (bstr(irb).eq.0) numo=numo+nsize(irb)
+          IF (((bstr(irb).gt.0) .and. (bstr(irb).gt.stt)) .and. 
+     & ((kdt.gt.1) .and. (bstr(irb).lt.kdt)) .or. ((kdt.eq.0) .and. 
+     & (bstr(irb).gt.kdt)))  numa=numa+nsize(irb)
 !
   540     CONTINUE
 !
@@ -1175,6 +1194,7 @@
 !
   550  CONTINUE
 !
+          ngroups=nvals-notin
 !
 !     BSTR(IRB) values need to be reassigned at this point
 !     or some values will be carried into subsequent loop
@@ -1198,22 +1218,37 @@
 !     in the data set.
 !
           notin=0
+          numa=0
+          numo=0
 !
            DO 590 irb=1,nvals
              IF (kdt.gt.1 .and. abs(bsty(irb)).ge.kdt) THEN
                notin=notin+1
-             ELSE IF (abs(bsty(irb)).lt.stt) THEN
+             ELSE IF ((bsty(irb).ne.0) .and. (abs(bsty(irb)).lt.stt))
+     &         THEN
                notin=notin+1
              ELSE IF (ABS(bsty(irb)).ge.frst .and. ABS(bsty(irb)).lt.
      &         (frst+clint)) THEN
                val(ic)=val(ic)+nbsz(irb)
              END IF
 !
+!     New values of NUMO and NUMA are required because a different
+!     selection of data values has been made.  This is done by
+!     totalling the Y()=0 and Y()>0 values in the new sample to get
+!     new NUMO and NUMA values respectively.
+!
+          IF (bsty(irb).eq.0) numo=numo+nsize(irb)
+          IF (((bsty(irb).gt.0) .and. (bsty(irb).gt.stt)) .and. 
+     & ((kdt.gt.1) .and. (bsty(irb).lt.kdt)) .or. ((kdt.eq.0) .and. 
+     & (bsty(irb).gt.kdt)))  numa=numa+nsize(irb)
+!
   590     CONTINUE
 !
           frst=frst+clint
 !
   600   CONTINUE
+!
+          ngroups=nvals-notin
 !
 !     BSTY(IRB) values need to be reassigned at this point
 !     or some values will be carried into subsequent loop
@@ -1245,17 +1280,19 @@
         irow=2
         DO 690 i=1,nop
           IF (abs(step(i)).lt.approx) GO TO 690
-          DO 680 j=1,nop
-  680       g(irow,j)=f(j)
+            DO j=1,nop
+              g(irow,j)=f(j)
+            END DO
           g(irow,i)=g(irow,i)+step(i)
           irow=irow+1
   690   CONTINUE
         np1=nap+1
         neval=0
         DO 730 i=1,np1
-          DO 700 j=1,nop
-  700       f(j)=g(i,j)
-          CALL givef (f, h(i), dcoeff, val, clint, pd, ps, r3s, stt,
+          DO j=1,nop
+           f(j)=g(i,j)
+          END DO
+        CALL givef (f, h(i), dcoeff, val, clint, pd, ps, r3s, stt,
      &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt,
      &     kprint, kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, 
      &     ns,msfail, mtest, graph_file)
@@ -1531,10 +1568,11 @@
  1130   FORMAT ('  CENTROID OF LAST SIMPLEX  ',8e13.5,(/28x,8e13.5))
         WRITE (2,1140) func
  1140   FORMAT ('  FUNCTION VALUE AT CENTROID   ',e13.6)
+!
         GO TO 1380
 !
 !
- 1150   IF (hstd.lt.stopc) GO TO 1160
+ 1150 IF (hstd.lt.stopc) GO TO 1160
 !
 !     If the standard deviation calculated above is not less than
 !     the criterion set (STOPC), IFLAG and LOOP are set to zero
@@ -1573,11 +1611,11 @@
 !     less than the stopping criterion.  If it is, the process is
 !     said to have converged.  If not, IFLAG and LOOP are both set
 !     at zero and computation reverts to the start of the
-!     basic loop.
+!     basic loop.  STOPC and TEST values tested empirically.
 !
         IF (hmean.eq.0) GO TO 1240
         test=savemn/hmean
-        IF (test.gt.0.99995.and.test.lt.1.00005) GO TO 1240
+        IF (test.gt.0.9999995.and.test.lt.1.0000005) GO TO 1240
         iflag=0
         loop=0
         GO TO 740
@@ -1702,6 +1740,12 @@
          numest=1
       END IF
 !
+!     Each of the following variables is an estimate of a parameter
+!     mean value, beginning with the population mean ESTDEN, then
+!     the other parameters - conspicuousness coefficient COEFFNT1,
+!     cover proportion or attenuation coefficient COEFFNT2 - and the 
+!     detectability coefficient COEFFNT3, in sequence.
+!
       estden=tden/numest
       coeffnt1=tcoeff1/numest
       coeffnt2=tcoeff2/numest
@@ -1710,8 +1754,8 @@
 !     Should MSFAIL be identical to NUMEST, 1 is added to NUMEST to
 !     prevent division by zero at the next step.
 !
-      IF (numest.eq.msfail) numest=msfail+1
-      coeffnt3=tcoeff3/(numest-msfail)
+      IF (numest.eq.msfail) numest=numest+1
+      coeffnt3=tcoeff3/numest
       IF (numest.eq.(msfail+1)) numest=numest-1
 !
 !
@@ -1765,10 +1809,10 @@
  1470 WRITE (2,1475) ngroups
  1475 FORMAT (/' Number in Groups in Distance Range = ',i4)
 !
-      WRITE (2,1476) numa
+      WRITE (2,1476) numain
  1476 FORMAT (' Number of Individuals Detected Ahead = ',i5)
 !
-      WRITE (2,1477) numo
+      WRITE (2,1477) numoin
  1477 FORMAT (' Number Overtaking (distance unmeasured) = ',i4)
 !
       WRITE (2,1478) thh
@@ -2650,7 +2694,7 @@
 !     Calculated values are printed out once the program has
 !     converged on a minimum, and KPRINT has been set at 1.
 !
-  900   IF (wl.gt.rmax) GO TO 1080
+  900   IF ((wl.gt.rmax) .or. ((kdt.gt.1).and.(wl.gt.kdt))) GO TO 1080
 !
 !     If D2L has a trial value of zero, calculation of S at this stage
 !     is bypassed and a record of this non-computation retained
@@ -2763,7 +2807,7 @@
 !     procedure over the next few lines is governed by the values
 !     of KWT and LPRINT.
 !
-        IF (iry.eq.1) THEN
+        IF (iry.ge.1) THEN
           IF (kwt.eq.0) GO TO 1120
           IF (r3s.gt.0) GO TO 1130
           r3s=100.0
