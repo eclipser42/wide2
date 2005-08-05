@@ -596,19 +596,19 @@
 !     also altered from no./ha to no./sq.m.
 !
    45 IF (ifx.eq.0) THEN
-   50   IF (km.gt.0) GO TO 60
-        f(3)=(2.*dist*f(3))/1.e4
-        step(3)=(2.*dist*step(3))/1.e4
-        GO TO 72
-   60   f(3)=(2.*dist*1000*f(3))/1.e4
-        step(3)=(2.*dist*1000*step(3))/1.e4
-        GO TO 72
+         f(3) = (2.*dist*f(3))/1.e4
+         step(3) = (2.*dist*step(3))/1.e4
+   50    IF (km.gt.0) THEN
+   60       f(3) = 1000*f(3)
+            step(3) = 1000*step(3)
+         END IF
       ELSE
-   70   f(3)=(2.*iv*it*f(3))/1.e4
-        step(3)=(2.*iv*it*step(3))/1.e4
+   70    f(3)=(2.*iv*it*f(3))/1.e4
+         step(3)=(2.*iv*it*step(3))/1.e4
+
+         PRINT *,' Step 70 completed'
+         estdmax = 0.0
       END IF
-!
-      PRINT *,' Step 70 completed'
 !
 !
 !     If no value of the maximum detection distance F(4) has been
@@ -622,8 +622,6 @@
 !
 !     The first step is to calculate a logarithmic detection distance 
 !     total RLTOT, then a logarithmic mean value RLMEAN.
-!
-      estdmax = 0.0
 !
    72 IF (f(4).eq.0) THEN
         rltot = 0.0
@@ -2808,19 +2806,19 @@
 !     of KWT and LPRINT.
 !
         IF (iry.ge.1) THEN
-          IF (kwt.eq.0) GO TO 1120
-          IF (r3s.gt.0) GO TO 1130
-          r3s=100.0
-          GO TO 1130
+           IF (kwt.eq.0) THEN
+ 1120         w = 1.
+           ELSE
+ 1130         z = dif/r3s
+              IF (r3s.le.0) r3s=100.0
+              IF (z.le.1.) THEN
+ 1140            w = (1-z*z)**2.
+              ELSE
+                 w = 0.
+              END IF
+           END IF
         END IF
 !
- 1120   w=1.
-        GO TO 1150
- 1130   z=dif/r3s
-        IF (z.le.1.) GO TO 1140
-        w=0.
-        GO TO 1150
- 1140   w=(1-z*z)**2.
  1150   wdifsq=w*dif*dif 
         wtot=wtot+wdifsq
 !
