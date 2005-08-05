@@ -436,8 +436,8 @@
       SEQUENCE        ! SEQUENCE indicates not to insert internal
                       ! padding for data alignment
       INTEGER nvals, numa, numo, ifx, iry, ns, km, imv
-      INTEGER kdt, iprint, jprint, ishow, maxjb, it, iv
-      DOUBLE PRECISION clint, stt, dist, thh, ltmin, ltmax 
+      INTEGER kdt, iprint, jprint, ishow, maxjb
+      DOUBLE PRECISION it, iv, clint, stt, dist, thh, ltmin, ltmax
       DOUBLE PRECISION r3s, vgh, pd, ps
       DOUBLE PRECISION f(4), step(4), r(10000)
       INTEGER nsize(10000)
@@ -456,7 +456,7 @@
       INTEGER bootstrap
       INTEGER i, ia, ib, ic, ie, iflag, ifx, ig, ih, imax
       INTEGER imin, imv, in, ios, iprint, ir, irb, irow, iry, iseed
-      INTEGER ishow, it, iv, j, jbstp, jk, jprint, jr, js, jv, jx
+      INTEGER ishow, j, jbstp, jk, jprint, jr, js, jv, jx
       INTEGER k, kdt, km, kprint, kwt, loop, lprint, max
       INTEGER maxjb, mfail, msfail, mtest, nap, neval, notin, ngroups
       INTEGER nloop, nop, np1, ns, numa, numest, numo, nvals, nclass
@@ -464,11 +464,11 @@
       DOUBLE PRECISION a, approx, b, c, cf1dif, cf1sum, cf2dif, cf2sum
       DOUBLE PRECISION cf3dif, cf3sum, clint, coeffnt1, coeffnt2
       DOUBLE PRECISION coeffnt3, dcoeff, dendif, dist, dlim, dsum
-      DOUBLE PRECISION estden, frst, func, hmax, hmean, hmin, hstar
-      DOUBLE PRECISION hstd, hstst, ltmin, ltmax, pd, ps, r3s, savemn
-      DOUBLE PRECISION scf1, scf2, scf3, sden, sns, stopc, stt, test
-      DOUBLE PRECISION tcoeff1, tcoeff2, tcoeff3, tcov, tden, thh, vgh
-      DOUBLE PRECISION x, rmax, estj, obsw
+      DOUBLE PRECISION estden, estj, frst, func, hmax, hmean, hmin
+      DOUBLE PRECISION hstar, hstd, hstst, it, iv, ltmin, ltmax, obsw
+      DOUBLE PRECISION pd, ps, r3s, rmax, savemn, scf1, scf2, scf3, sden
+      DOUBLE PRECISION sns, stopc, stt, test, tcoeff1, tcoeff2, tcoeff3
+      DOUBLE PRECISION tcov, tden, thh, vgh, x
       REAL rltot, rlmean, rlsum, rlsd, rlf4, rdifsq, estdmax
       REAL r(10000), bstr(10000), y(10000), bsty(10000)
       REAL angle(10000)
@@ -682,7 +682,7 @@
       IF (ifx.eq.1) THEN
         WRITE (2,100) clint,it
   100   FORMAT (/' Class Interval Width =',f7.1,
-     &' m.    Total Time Spent =',i5,' min.')
+     &' m.    Total Time Spent =',f5,' min.')
         GO TO 170
       END IF
 !
@@ -2000,14 +2000,14 @@
       IMPLICIT NONE
 !
 !
-      INTEGER iermax,ifx,imv,ios,iry,ishow,it,iv,jj,jl,jrlow,jv
+      INTEGER iermax,ifx,imv,ios,iry,ishow,jj,jl,jrlow,jv
       INTEGER kdt,kprint,kwt,lprint,l10,l20,limit
       INTEGER max,md,msfail,mtest,ns,numa,numo,nvals,nclass
       CHARACTER*(*) graph_file
       DOUBLE PRECISION aprexi,auc,cint,clint,d2l,dd,dds,ddsm,dh,dif
       DOUBLE PRECISION difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed
       DOUBLE PRECISION ermax,err,expd,expdr,expdy,expdv,func
-      DOUBLE PRECISION hcint,htot,ltmin,ltmax,obsd,p,pa,pad,pam,pd
+      DOUBLE PRECISION hcint,htot,it,iv,ltmin,ltmax,obsd,p,pa,pad,pam,pd
       DOUBLE PRECISION pr,prc,prr,prmax,ps,q,qdd,qdmax,qmin,qr,r3s
       DOUBLE PRECISION rlow,rmax,rr,s,sns,ss,ssh,ssl,ssmax,stt,tcov
       DOUBLE PRECISION texpd,thh,topdd,topmax,tot,tote,tr,vegdd
