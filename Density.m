@@ -73,7 +73,7 @@
     NSMutableString *contents = [NSMutableString stringWithCapacity:2048];
     [contents appendFormat:@"'%@'%c", header, 10];
     [contents appendFormat:@"%d, %d, %d, %g, %d, %g, %d, %g, %g%c", params.ifx, params.iry, params.kdt, params.dist, params.km, params.ltmin, params.ns, params.pd, params.vgh, 10];
-    [contents appendFormat:@"%g, %g, %g, %g%c%c", params.it, params.iv, params.ps, params.thh, 10, 10];
+    [contents appendFormat:@"%g, %g, %g, %g%c%c", params.durn, params.rate, params.ps, params.thh, 10, 10];
     for (int i = 0; i < params.nvals; i++) {
         if (params.iry == 1) {
             [contents appendFormat:@"%g, %d, %g", params.r[i], params.nsize[i], params.angle[i]];
@@ -174,9 +174,9 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.vgh]) return NO;
 
-	if (![scanner scanDouble:&params.it]) return NO;
+	if (![scanner scanDouble:&params.durn]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.iv]) return NO;
+	if (![scanner scanDouble:&params.rate]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.ps]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -295,9 +295,9 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.vgh]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.it]) return NO;
+	if (![scanner scanDouble:&params.durn]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.iv]) return NO;
+	if (![scanner scanDouble:&params.rate]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.pd]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -386,9 +386,9 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.vgh]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.it]) return NO;
+	if (![scanner scanDouble:&params.durn]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.iv]) return NO;
+	if (![scanner scanDouble:&params.rate]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.pd]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
