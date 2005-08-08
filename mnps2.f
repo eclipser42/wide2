@@ -150,7 +150,7 @@
 !            = 1  transect lengths are measured in kilometres
 !                   and detection distances in metres;
 !            = 2  both transect lengths and detection distances
-!                 are measured in metres.
+!                 are measured in kilometres.
 !
 !    IMV - a parameter used to determine the method of
 !          calculating probability used in Subroutine GIVEF.
@@ -226,10 +226,9 @@
 !          is well above the plane of the population and most of
 !          the line of detection is unobstructed.
 !
-!     IT - the duration of a fixed-point census (in min.).
+!     DURN - the duration of a fixed-point census (in min.).
 !
-!     IV - the overall mean speed of animal movement (in m/min),
-!          used in fixed observer censuses only.
+!     RATE - the overall mean rate of animal movement (in m/min)
 !
 !     PD - the proportion of the population observable at the
 !          time of a census, usually taken =1.
@@ -398,6 +397,10 @@
 !     ESTDMAX - the value of DMAX (= F(4)) calculated from the radial
 !          distance data in the program input if F(4) is set at zero.
 !
+!     RESAMP_DIST() - a value of either R() or Y() reselected at
+!          random from the original data as the key part of the 
+!          bootstrapping process.
+!
 !     RMAX - the maximum horizontal detection distance ('rmax'),
 !          calculated from DMAX and THH.
 !
@@ -437,7 +440,7 @@
                       ! padding for data alignment
       INTEGER nvals, numa, numo, ifx, iry, ns, km, imv
       INTEGER kdt, iprint, jprint, ishow, maxjb
-      DOUBLE PRECISION it, iv, clint, stt, dist, thh, ltmin, ltmax
+      DOUBLE PRECISION durn, rate, clint, stt, dist, thh, ltmin, ltmax
       DOUBLE PRECISION r3s, vgh, pd, ps
       DOUBLE PRECISION f(4), step(4), r(10000)
       INTEGER nsize(10000)
@@ -465,12 +468,12 @@
       DOUBLE PRECISION cf3dif, cf3sum, clint, coeffnt1, coeffnt2
       DOUBLE PRECISION coeffnt3, dcoeff, dendif, dist, dlim, dsum
       DOUBLE PRECISION estden, estj, frst, func, hmax, hmean, hmin
-      DOUBLE PRECISION hstar, hstd, hstst, it, iv, ltmin, ltmax, obsw
-      DOUBLE PRECISION pd, ps, r3s, rmax, savemn, scf1, scf2, scf3, sden
-      DOUBLE PRECISION sns, stopc, stt, test, tcoeff1, tcoeff2, tcoeff3
-      DOUBLE PRECISION tcov, tden, thh, vgh, x
+      DOUBLE PRECISION hstar, hstd, hstst, durn, ltmin, ltmax, obsw
+      DOUBLE PRECISION pd, ps, r3s, rate, rmax, savemn, scf1, scf2, scf3
+      DOUBLE PRECISION sden, sns, stopc, stt, test, tcoeff1, tcoeff2
+      DOUBLE PRECISION tcoeff3, tcov, tden, thh, vgh, x
       REAL rltot, rlmean, rlsum, rlsd, rlf4, rdifsq, estdmax
-      REAL r(10000), bstr(10000), y(10000), bsty(10000)
+      REAL r(10000), resamp_dist(10000), y(10000)
       REAL angle(10000)
       DOUBLE PRECISION val(80), valt(80)
       DOUBLE PRECISION g(5, 4), step(4), stept(4), f(4), ft(4)
@@ -525,8 +528,8 @@
       maxjb=params.maxjb
       r3s=params.r3s
       vgh=params.vgh
-      it=params.it
-      iv=params.iv
+      durn=params.durn
+      rate=params.rate
       pd=params.pd
       ps=params.ps
 !
@@ -569,9 +572,52 @@
 !
 !
       PRINT *,'Step 40',' iprint=',iprint,' jprint=',jprint,
-     & ' ishow=',ishow,' it=',it,' iv=',iv,' r(8)=',r(8),' nsize(8)=',
+     & ' ishow=',ishow,' durn=',durn,' rate=',rate,' r(8)=',r(8),
      & nsize(8),' r(9)=',r(9),' nsize(9)=',nsize(9),' numa=',numa,
-     & ' numo=',numo
+     & ' numo=',numo,' nsize(8)='
+!
+!
+!     The header line now begins the program output.
+!
+      WRITE (2,50) header
+   50 FORMAT (a80)
+!
+!
+!     The program prints out the class interval width (CLINT) and
+!     either the total transect length (DIST) or the total time
+!     spent (DURN) at fixed points, then the class interval set
+!     and the total transect length travelled.
+!
+      IF (ifx.eq.1) THEN
+        WRITE (2,60) clint,durn
+   60   FORMAT (/' Class Interval Width =',f7.1,
+     &  ' m.    Total Time Spent =',f7.1,' min.')
+        GO TO 90
+      END IF
+!
+!
+      IF (km.eq.0) THEN
+        WRITE (2,70) clint,dist
+   70   FORMAT (/' Class Interval Width =',f7.1,
+     &  ' m.   Total Transect Length (L) =',f10.3,' m.')
+      ELSE
+        WRITE (2,80) clint,dist
+   80   FORMAT (/' Class Interval Width =',f7.1,
+     &  ' m.   Total Transect Length (L) =',f10.3,' km.')
+      END IF
+!
+!
+!     The program now calculates a topographical cover value
+!     (TCOV).  If the topography is effectively level (LTMIN=999)
+!     then TCOV is set at zero and topography has no effect on
+!     computation of the model.  Otherwise, if LTMAX and LTMIN
+!     values are supplied, a TCOV value is calculated.
+!
+  90  IF (ltmin.lt.999) THEN
+         tcov = 1-(exp(log(1/float(nvals))/(ltmax-ltmin)))
+      ELSE
+         tcov = 0.
+      END IF
 !
 !
 !     The original values of NUMA and NUMO are retained (as NUMOIN
@@ -582,37 +628,66 @@
 !
 !
 !     If detection distances were entered in kilometres (KM=1),
-!     then these distances are first converted to metres.
+!     then these distances are converted to metres.
 !
       IF (km.eq.2) THEN
-        DO 42 ih=1,nvals
+        DO ih=1,nvals
           r(ih)=1000*r(ih)
-   42   CONTINUE  
+        END DO  
       END IF        
+!
+!
+!     The program now calculates the mean overall observer movement
+!     rate (w) as OBSW=DIST/DURN (DIST in m and DURN in min), provided
+!     that an DURN value has been entered and the data are from line
+!     transects (IFX=0).  If not, this entire step is bypassed.
+!
+      IF ((durn.gt.0) .and. (ifx.eq.0)) THEN
+        obsw=dist/durn
+!
+!     Assuming that the actual distance (and not LJ) has been
+!     entered, the movement correction factor (J) is calculated
+!     using an approximation.
+!
+        estj = (0.00481082*(rate**4))/(obsw**4) - (0.0731512*(rate**3)) 
+     &  /(obsw**3) + (0.406164*rate**2)/(obsw**2) - ((0.174034*rate)
+     &  /obsw) + 1
+!
+      PRINT *,'Step 90',' estj=',estj,' obsw=',obsw
+!
+!     The movement-corrected overall distance travelled (LJ) is
+!     calculated, overriding the DIST value submitted originally.
+!     DURN and RATE are both set at 0 to avoid later computation problems
+!     before the IF . . THEN loop ends.
+!
+        dist = estj*dist
+        durn = 0
+        rate = 0
+      END IF     
 !
 !
 !     F(3) is now raised in value to approximate D2LJ in the case
 !     of line transect data, or D2ut for fixed point data.  D is
-!     also altered from no./ha to no./sq.m.
+!     also altered from no./ha to no./sq.m. if KM=1.
 !
-   45 IF (ifx.eq.0) THEN
+      IF (ifx.eq.0) THEN
          f(3) = (2.*dist*f(3))/1.e4
          step(3) = (2.*dist*step(3))/1.e4
-   50    IF (km.gt.0) THEN
-   60       f(3) = 1000*f(3)
+         IF (km.gt.0) THEN
+            f(3) = 1000*f(3)
             step(3) = 1000*step(3)
          END IF
       ELSE
-   70    f(3)=(2.*iv*it*f(3))/1.e4
-         step(3)=(2.*iv*it*step(3))/1.e4
-
-         PRINT *,' Step 70 completed'
-         estdmax = 0.0
+         f(3)=(2.*rate*durn*f(3))/1.e4
+         step(3)=(2.*rate*durn*step(3))/1.e4
+!
       END IF
 !
 !
+      estdmax = 0.0
+!
 !     If no value of the maximum detection distance F(4) has been
-!     entered (i.e. F(4)=0), an estimated maximum distance is
+!     entered (i.e. F(4)=0), this estimated maximum distance is
 !     calculated based on the assumption that the logarithm of
 !     the radial detection distance r is distributed according
 !     to a normal distribution, with a maximum value at the
@@ -623,17 +698,17 @@
 !     The first step is to calculate a logarithmic detection distance 
 !     total RLTOT, then a logarithmic mean value RLMEAN.
 !
-   72 IF (f(4).eq.0) THEN
+      IF (f(4).eq.0) THEN
         rltot = 0.0
         rlmean = 0.0
         rlsum = 0.0
         rdifsq = 0.0
 !
-      DO 75 ih=1,nvals
+      DO 100 ih=1,nvals
         rltot = log(r(ih)+1) + rltot
-   75 CONTINUE
+  100 CONTINUE
 !
-        PRINT *,'Step 75',' rltot=',rltot
+        PRINT *,'Step 100',' rltot=',rltot
 !
         rlmean = rltot/nvals
 !
@@ -642,12 +717,12 @@
 !     which is then backtransformed to give an F(4) value.
 !
         rlsum = 0.0
-      DO 76 ih=1,nvals
+      DO 110 ih=1,nvals
         rdifsq = (log(r(ih)+1) - rlmean)**2.
         rlsum = rlsum + rdifsq
-   76 CONTINUE
+  110 CONTINUE
 !
-        PRINT *,'Step 76',' rlmean=',rlmean,' rlsum=',rlsum
+        PRINT *,'Step 110',' rlmean=',rlmean,' rlsum=',rlsum
 !
         rlsd = sqrt(rlsum/(nvals-1))
         rlf4 = rlmean + 2.5*rlsd
@@ -664,76 +739,7 @@
 !     entered more than 80 times the class interval, CLINT is
 !     reset at F(4)/80 to avoid computation problems.
 !
-   80 IF (f(4).gt.(80*clint)) clint=(f(4))/80
-!
-! 
-!     The header line now begins the program output.
-!
-      WRITE (2,90) header
-   90 FORMAT (a80)
-!
-!
-!     The program prints out the class interval width (CLINT) and
-!     either the total transect length (DIST) or the total time
-!     spent (IT) at fixed points.
-!
-      IF (ifx.eq.1) THEN
-        WRITE (2,100) clint,it
-  100   FORMAT (/' Class Interval Width =',f7.1,
-     &' m.    Total Time Spent =',f5,' min.')
-        GO TO 170
-      END IF
-!
-      IF (km.eq.0) THEN
-        WRITE (2,140) clint,dist
-  140   FORMAT (/' Class Interval Width =',f7.1,
-     &' m.   Total Transect Length (L) =',f10.3,' m.')
-        GO TO 170
-      END IF
-!
-  150 WRITE (2,160) clint,dist
-  160 FORMAT (/' Class Interval Width =',f7.1,
-     &' m.   Total Transect Length (L) =',f10.3,' km.')
-!
-!
-!     The program now calculates a topographical cover value
-!     (TCOV).  If the topography is effectively level (LTMIN=999)
-!     then TCOV is set at zero and topography has no effect on
-!     computation of the model.  Otherwise, if LTMAX and LTMIN
-!     values are supplied, a TCOV value is calculated.
-!
-  170 IF (ltmin.lt.999) THEN
-         tcov = 1-(exp(log(1/float(nvals))/(ltmax-ltmin)))
-      ELSE
-         tcov = 0.
-      END IF
-!
-!
-!     The program now calculates the mean overall observer movement
-!     rate (w) as OBSW=DIST/IT (DIST in m and IT in min), provided
-!     that an IT value has been entered and the data are from line
-!     transects (IFX=0).  If not, this entire step is bypassed.
-!
-      IF ((it.gt.0) .and. (ifx.eq.0)) THEN
-        obsw=dist/it
-!
-!     Assuming that the actual distance (and not LJ) has been
-!     entered, the movement correction factor (J) is calculated
-!     using an approximation.
-!
-        estj = (0.00481082*(iv**4))/(obsw**4) - (0.0731512*(iv**3))/ 
-     &  (obsw**3) + (0.406164*iv**2)/(obsw**2) - ((0.174034*iv)/obsw)
-     &  + 1
-!
-!     The movement-corrected overall distance travelled (LJ) is
-!     calculated, overriding the DIST value submitted originally.
-!     IT and IV are both set at 0 to avoid later computation problems
-!     before the IF . . THEN loop ends.
-!
-        dist = estj*dist
-        it = 0
-        iv = 0
-      END IF     
+  150 IF (f(4).gt.(80*clint)) clint=(f(4))/80
 !
 !
 !     If calculations are to be based on perpendicular distances (y)
@@ -888,7 +894,7 @@
   340 IF (ifx.eq.1) THEN
         estden=(1.e4*f(3))/(2.*dist)
       ELSE 
-        estden=(1.e4*f(3))/(2.*iv*it)
+        estden=(1.e4*f(3))/(2.*rate*durn)
       END IF
 !      
       GO TO 1470
@@ -1112,14 +1118,13 @@
 !
 !     Either: radial distance computations are made.
 !
-!     The randomly-chosen bootstrapped value of R, R(JX), is now
-!     redefined as BSTR(JR), the JRth bootstrapped value of R.  The
-!     corresponding value of NSIZE, NSIZE(JX), is now redefined
-!     as NBSZ(JR), the JRth bootstrapped value of NSIZE. Loop
+!     The randomly-chosen RESAMP_DIST(JR), the JRth bootstrapped value
+!     of R.  The corresponding value of NSIZE, NSIZE(JX), is now 
+!     redefined as NBSZ(JR), the JRth bootstrapped value of NSIZE. Loop
 !     510 then goes back to its beginning to select another R value,
 !     and so on until all NVALS selections have been made.
 !
-  490      bstr(jr)=r(jx)
+  490      resamp_dist(jr)=r(jx)
            nbsz(jr)=nsize(jx) 
 !
         GO TO 510
@@ -1127,13 +1132,13 @@
 !     Or: perpendicular distance computations are made.
 !
 !     The randomly-chosen bootstrapped value of Y, Y(JX), is now
-!     redefined as BSTY(JR), the JRth bootstrapped value of Y.  The
-!     corresponding value of NSIZE, NSIZE(JX), is now redefined
+!     redefined as RESAMP_DIST(JR), the JRth bootstrapped value of Y. 
+!     The corresponding value of NSIZE, NSIZE(JX), is now redefined
 !     as NBSZ(JR), the JRth bootstrapped value of NSIZE. Loop
 !     510 then goes back to its beginning to select another Y value,
 !     and so on until all NVALS selections have been made.
 !
-  500      bsty(jr)=y(jx)
+  500      resamp_dist(jr)=y(jx)
            nbsz(jr)=nsize(jx) 
 !
   510 CONTINUE
@@ -1167,12 +1172,13 @@
         numa=0
 !
           DO 540 irb=1,nvals
-             IF (kdt.gt.1 .and. bstr(ir).ge.kdt)  THEN
+             IF (kdt.gt.1 .and. resamp_dist(ir).ge.kdt)  THEN
                notin=notin+1
-             ELSE IF ((bstr(irb).ne.0) .and. (bstr(irb).lt.stt)) THEN
+             ELSE IF ((resamp_dist(irb).ne.0) .and. (resamp_dist(irb)
+     &         .lt.stt)) THEN
                notin=notin+1
-             ELSE IF ((bstr(irb)).ge.frst .and. (bstr(irb)).lt.
-     &         (frst+clint)) THEN
+             ELSE IF ((resamp_dist(irb)).ge.frst .and. 
+     &         (resamp_dist(irb)).lt.(frst+clint)) THEN
                val(ic)=val(ic)+nbsz(irb)
              END IF
 !
@@ -1181,10 +1187,11 @@
 !     totalling the R()=0 and R()>0 values in the new sample to get
 !     new NUMO and NUMA values respectively.
 !
-          IF (bstr(irb).eq.0) numo=numo+nsize(irb)
-          IF (((bstr(irb).gt.0) .and. (bstr(irb).gt.stt)) .and. 
-     & ((kdt.gt.1) .and. (bstr(irb).lt.kdt)) .or. ((kdt.eq.0) .and. 
-     & (bstr(irb).gt.kdt)))  numa=numa+nsize(irb)
+          IF (resamp_dist(irb).eq.0) numo=numo+nsize(irb)
+          IF (((resamp_dist(irb).gt.0) .and. (resamp_dist(irb).gt.stt)) 
+     &  .and.((kdt.gt.1) .and. (resamp_dist(irb).lt.kdt)) .or. 
+     &  ((kdt.eq.0).and.(resamp_dist(irb).gt.kdt)))  
+     &   numa=numa+nsize(irb)
 !
   540     CONTINUE
 !
@@ -1194,12 +1201,12 @@
 !
           ngroups=nvals-notin
 !
-!     BSTR(IRB) values need to be reassigned at this point
+!     RESAMP_DIST(IRB) values need to be reassigned at this point
 !     or some values will be carried into subsequent loop
 !     iterations.
 !
         DO 560 js=1,nvals
-          bstr(js)=0.0
+          resamp_dist(js)=0.0
           nbsz(js)=0
   560   CONTINUE
         GO TO 620
@@ -1220,13 +1227,13 @@
           numo=0
 !
            DO 590 irb=1,nvals
-             IF (kdt.gt.1 .and. abs(bsty(irb)).ge.kdt) THEN
+             IF (kdt.gt.1 .and. abs(resamp_dist(irb)).ge.kdt) THEN
                notin=notin+1
-             ELSE IF ((bsty(irb).ne.0) .and. (abs(bsty(irb)).lt.stt))
-     &         THEN
+             ELSE IF ((resamp_dist(irb).ne.0) .and. 
+     &         (abs(resamp_dist(irb)).lt.stt)) THEN
                notin=notin+1
-             ELSE IF (ABS(bsty(irb)).ge.frst .and. ABS(bsty(irb)).lt.
-     &         (frst+clint)) THEN
+             ELSE IF (ABS(resamp_dist(irb)).ge.frst .and. 
+     &         ABS(resamp_dist(irb)).lt.(frst+clint)) THEN
                val(ic)=val(ic)+nbsz(irb)
              END IF
 !
@@ -1235,10 +1242,11 @@
 !     totalling the Y()=0 and Y()>0 values in the new sample to get
 !     new NUMO and NUMA values respectively.
 !
-          IF (bsty(irb).eq.0) numo=numo+nsize(irb)
-          IF (((bsty(irb).gt.0) .and. (bsty(irb).gt.stt)) .and. 
-     & ((kdt.gt.1) .and. (bsty(irb).lt.kdt)) .or. ((kdt.eq.0) .and. 
-     & (bsty(irb).gt.kdt)))  numa=numa+nsize(irb)
+          IF (resamp_dist(irb).eq.0) numo=numo+nsize(irb)
+          IF (((resamp_dist(irb).gt.0) .and. (resamp_dist(irb).gt.
+     &  stt)).and.((kdt.gt.1) .and. (resamp_dist(irb).lt.kdt)) .or. 
+     & ((kdt.eq.0) .and. (resamp_dist(irb).gt.kdt)))  
+     &  numa=numa+nsize(irb)
 !
   590     CONTINUE
 !
@@ -1248,12 +1256,12 @@
 !
           ngroups=nvals-notin
 !
-!     BSTY(IRB) values need to be reassigned at this point
+!     RESAMP_DIST(IRB) values need to be reassigned at this point
 !     or some values will be carried into subsequent loop
 !     iterations.
 !
         DO 610 js=1,nvals
-          bsty(js)=0.0
+          resamp_dist(js)=0.0
           nbsz(js)=0
   610   CONTINUE
 !
@@ -1291,7 +1299,7 @@
            f(j)=g(i,j)
           END DO
         CALL givef (f, h(i), dcoeff, val, clint, pd, ps, r3s, stt,
-     &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt,
+     &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt,
      &     kprint, kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, 
      &     ns,msfail, mtest, graph_file)
 
@@ -1315,6 +1323,7 @@
 !
 !     HMAX and HMIN are the maximum and minimum function values
 !     of the current simplex.
+!
 !
 !
   740   loop=loop+1
@@ -1350,7 +1359,7 @@
         DO 820 i=1,nop
   820     pstar(i)=a*(pbar(i)-g(imax,i))+pbar(i)
         CALL givef (pstar, hstar, dcoeff, val, clint, pd, ps, r3s, stt,
-     &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint,
+     &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
      &   kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, 
      &   msfail,mtest, graph_file)
 !
@@ -1380,7 +1389,7 @@
   830   DO 840 i=1,nop
   840     pstst(i)=c*(pstar(i)-pbar(i))+pstar(i)
         CALL givef (pstst, hstst, dcoeff, val, clint, pd, ps, r3s, stt,
-     &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint,
+     &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
      &   kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, 
      &   msfail, mtest, graph_file)
 !
@@ -1438,7 +1447,7 @@
   930   DO 940 i=1,nop
   940     pstst(i)=b*g(imax,i)+(1.0-b)*pbar(i)
         CALL givef (pstst, hstst, dcoeff, val, clint, pd, ps, r3s, stt,
-     &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint,
+     &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
      &   kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, 
      &   msfail, mtest, graph_file)
 !
@@ -1475,7 +1484,7 @@
           DO 1010 j=1,nop
  1010       f(j)=g(i,j)
           CALL givef (f, h(i), dcoeff, val, clint, pd, ps, r3s, stt,
-     &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt,
+     &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt,
      &     kprint, kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, 
      &     ns, msfail, mtest, graph_file)
 !
@@ -1527,7 +1536,7 @@
           f(i)=f(i)/FLOAT(np1)
  1080   CONTINUE
         CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
-     &    thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
+     &    thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint, kwt,
      &    lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
      &    mtest, graph_file)
 !
@@ -1656,7 +1665,7 @@
        lprint=1
 !
         CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
-     &    thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
+     &    thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint, kwt,
      &    lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
      &    mtest, graph_file)
 !
@@ -1679,7 +1688,7 @@
         IF (ifx.eq.0) THEN
         den(bootstrap)=(1.e4*f(3))/(2.*dist)
         ELSE
-        den(bootstrap)=(1.e4*f(3))/(2.*iv*it)
+        den(bootstrap)=(1.e4*f(3))/(2.*rate*durn)
         END IF
 !
 !     Values of the other parameter estimates are obtained by redefining
@@ -1753,8 +1762,9 @@
 !     prevent division by zero at the next step.
 !
       IF (numest.eq.msfail) numest=numest+1
-      coeffnt3=tcoeff3/numest
+      coeffnt3=tcoeff3/(numest-msfail)
       IF (numest.eq.(msfail+1)) numest=numest-1
+      PRINT *,' maxjb=',maxjb,' mfail=',mfail,' msfail=',msfail
 !
 !
 !     The next step is to calculate the standard errors of each
@@ -1948,10 +1958,10 @@
  1890 IF (ifx.eq.1) GO TO 1910
       f(3)=(estden*2.*dist*pd*(sns/2))/1.e4
       GO TO 1920
- 1910 f(3)=estden*2.*iv*it*pd/1.e4
+ 1910 f(3)=estden*2.*rate*durn*pd/1.e4
 !
  1920 CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
-     & thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
+     & thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint, kwt,
      & lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
      & mtest,graph_file)
 !
@@ -1987,7 +1997,7 @@
 !
 !
       SUBROUTINE givef (f, func, s, val, clint, pd, ps, r3s, stt, tcov,
-     & thh, vgh, sns, ifx, imv, iry, ishow, it, iv, kdt, kprint, kwt,
+     & thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint, kwt,
      & lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
      & mtest, graph_file)
 !
@@ -2005,7 +2015,7 @@
       DOUBLE PRECISION aprexi,auc,cint,clint,d2l,dd,dds,ddsm,dh,dif
       DOUBLE PRECISION difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed
       DOUBLE PRECISION ermax,err,expd,expdr,expdy,expdv,func
-      DOUBLE PRECISION hcint,htot,it,iv,ltmin,ltmax,obsd,p,pa,pad,pam,pd
+      DOUBLE PRECISION hcint,htot,ltmin,ltmax,obsd,p,pa,pad,pam,pd
       DOUBLE PRECISION pr,prc,prr,prmax,ps,q,qdd,qdmax,qmin,qr,r3s
       DOUBLE PRECISION rlow,rmax,rr,s,sns,ss,ssh,ssl,ssmax,stt,tcov
       DOUBLE PRECISION texpd,thh,topdd,topmax,tot,tote,tr,vegdd
@@ -2805,21 +2815,23 @@
 !     procedure over the next few lines is governed by the values
 !     of KWT and LPRINT.
 !
-        IF (iry.ge.1) THEN
+ 1090   IF (iry.ge.1) THEN
            IF (kwt.eq.0) THEN
- 1120         w = 1.
+              w = 1.
            ELSE
- 1130         z = dif/r3s
+              z = dif/r3s
               IF (r3s.le.0) r3s=100.0
               IF (z.le.1.) THEN
- 1140            w = (1-z*z)**2.
+                 w = (1-z*z)**2.
               ELSE
                  w = 0.
               END IF
            END IF
+        ELSE
+          w = 1
         END IF
 !
- 1150   wdifsq=w*dif*dif 
+        wdifsq=w*dif*dif 
         wtot=wtot+wdifsq
 !
         IF (lprint.eq.1) THEN
