@@ -1,4 +1,4 @@
-!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.1a18)
+!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.1a20)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
@@ -581,45 +581,7 @@
 !
       WRITE (2,50) header
    50 FORMAT (a80)
-!
-!
-!     The program prints out the class interval width (CLINT) and
-!     either the total transect length (DIST) or the total time
-!     spent (DURN) at fixed points, then the class interval set
-!     and the total transect length travelled.
-!
-      IF (ifx.eq.1) THEN
-        WRITE (2,60) clint,durn
-   60   FORMAT (/' Class Interval Width =',f7.1,
-     &  ' m.    Total Time Spent =',f7.1,' min.')
-        GO TO 90
-      END IF
-!
-!
-      IF (km.eq.0) THEN
-        WRITE (2,70) clint,dist
-   70   FORMAT (/' Class Interval Width =',f7.1,
-     &  ' m.   Total Transect Length (L) =',f10.3,' m.')
-      ELSE
-        WRITE (2,80) clint,dist
-   80   FORMAT (/' Class Interval Width =',f7.1,
-     &  ' m.   Total Transect Length (L) =',f10.3,' km.')
-      END IF
-!
-!
-!     The program now calculates a topographical cover value
-!     (TCOV).  If the topography is effectively level (LTMIN=999)
-!     then TCOV is set at zero and topography has no effect on
-!     computation of the model.  Otherwise, if LTMAX and LTMIN
-!     values are supplied, a TCOV value is calculated.
-!
-  90  IF (ltmin.lt.999) THEN
-         tcov = 1-(exp(log(1/float(nvals))/(ltmax-ltmin)))
-      ELSE
-         tcov = 0.
-      END IF
-!
-!
+!!
 !     The original values of NUMA and NUMO are retained (as NUMOIN
 !     and NUMAIN) so they can be printed in the output.
 !
@@ -649,11 +611,11 @@
 !     entered, the movement correction factor (J) is calculated
 !     using an approximation.
 !
-        estj = (0.00481082*(rate**4))/(obsw**4) - (0.0731512*(rate**3)) 
+   55 estj = (0.00481082*(rate**4))/(obsw**4) - (0.0731512*(rate**3)) 
      &  /(obsw**3) + (0.406164*rate**2)/(obsw**2) - ((0.174034*rate)
      &  /obsw) + 1
 !
-      PRINT *,'Step 90',' estj=',estj,' obsw=',obsw
+      PRINT *,'Step 55',' estj=',estj,' obsw=',obsw
 !
 !     The movement-corrected overall distance travelled (LJ) is
 !     calculated, overriding the DIST value submitted originally.
@@ -704,11 +666,11 @@
         rlsum = 0.0
         rdifsq = 0.0
 !
-      DO 100 ih=1,nvals
+      DO 60 ih=1,nvals
         rltot = log(r(ih)+1) + rltot
-  100 CONTINUE
+   60 CONTINUE
 !
-        PRINT *,'Step 100',' rltot=',rltot
+        PRINT *,'Step 60',' rltot=',rltot
 !
         rlmean = rltot/nvals
 !
@@ -717,12 +679,12 @@
 !     which is then backtransformed to give an F(4) value.
 !
         rlsum = 0.0
-      DO 110 ih=1,nvals
+      DO 70 ih=1,nvals
         rdifsq = (log(r(ih)+1) - rlmean)**2.
         rlsum = rlsum + rdifsq
-  110 CONTINUE
+   70 CONTINUE
 !
-        PRINT *,'Step 110',' rlmean=',rlmean,' rlsum=',rlsum
+        PRINT *,'Step 70',' rlmean=',rlmean,' rlsum=',rlsum
 !
         rlsd = sqrt(rlsum/(nvals-1))
         rlf4 = rlmean + 2.5*rlsd
@@ -739,7 +701,31 @@
 !     entered more than 80 times the class interval, CLINT is
 !     reset at F(4)/80 to avoid computation problems.
 !
-  150 IF (f(4).gt.(80*clint)) clint=(f(4))/80
+      IF (f(4).gt.(80*clint)) clint=(f(4))/80
+!
+!
+!     The program prints out the class interval width (CLINT) and
+!     either the total transect length (DIST) or the total time
+!     spent (DURN) at fixed points, then the class interval set
+!     and the total transect length travelled.
+!
+      IF (ifx.eq.1) THEN
+        WRITE (2,80) clint,durn
+   80   FORMAT (/' Class Interval Width =',f7.1,
+     &  ' m.    Total Time Spent =',f7.1,' min.')
+        GO TO 150
+      END IF
+!
+!
+      IF (km.eq.0) THEN
+        WRITE (2,90) clint,dist
+   90   FORMAT (/' Class Interval Width =',f7.1,
+     &  ' m.   Total Transect Length (L) =',f10.3,' m.')
+      ELSE
+        WRITE (2,100) clint,dist
+  100   FORMAT (/' Class Interval Width =',f7.1,
+     &  ' m.   Total Transect Length (L) =',f10.3,' km.')
+      END IF
 !
 !
 !     If calculations are to be based on perpendicular distances (y)
@@ -757,7 +743,7 @@
 !     'overtakes', y(in) is made zero, and the number of groups 
 !     overtaking (NOVTKS) is counted.
 !
-      IF (iry.eq.2) GO TO 190
+  150 IF (iry.eq.2) GO TO 190
       IF (iry.eq.0) GO TO 205
 !
       DO 180 in=1, nvals
@@ -804,6 +790,21 @@
         ft(ia)=f(ia)
         stept(ia)=step(ia)
   220 CONTINUE
+!
+!
+!     The program now calculates a topographical cover value
+!     (TCOV).  If the topography is effectively level (LTMIN=999)
+!     or the value of f(4) is less than the LTMIN value supplied, 
+!     then TCOV is set at zero and topography has no effect on
+!     computation of the model.  Otherwise, if LTMAX and LTMIN
+!     values are supplied, a TCOV value is calculated.
+!
+      ltmax=f(4)
+      IF ((ltmin.lt.999) .and. (ltmax.gt.ltmin)) THEN
+         tcov = 1-(exp(log(1/float(nvals))/(ltmax-ltmin)))
+      ELSE
+         tcov = 0.
+      END IF
 !
 !     DMAX is given an upper limit (DLIM) which is 80 times the
 !     interval width (CLINT).
@@ -1172,7 +1173,7 @@
         numa=0
 !
           DO 540 irb=1,nvals
-             IF (kdt.gt.1 .and. resamp_dist(ir).ge.kdt)  THEN
+             IF (kdt.gt.1 .and. resamp_dist(irb).ge.kdt)  THEN
                notin=notin+1
              ELSE IF ((resamp_dist(irb).ne.0) .and. (resamp_dist(irb)
      &         .lt.stt)) THEN
@@ -1817,19 +1818,19 @@
  1470 WRITE (2,1475) ngroups
  1475 FORMAT (/' Number in Groups in Distance Range = ',i4)
 !
-      WRITE (2,1476) numain
+      IF (ifx.eq.0) WRITE (2,1476) numain
  1476 FORMAT (' Number of Individuals Detected Ahead = ',i5)
 !
-      WRITE (2,1477) numoin
+      IF (ifx.eq.0) WRITE (2,1477) numoin
  1477 FORMAT (' Number Overtaking (distance unmeasured) = ',i4)
 !
       WRITE (2,1478) thh
  1478 FORMAT (' Height Difference from Eyelevel = ',f5.1,' m')
 !
-      WRITE (2,1479) estj
+      IF (ifx.eq.0) WRITE (2,1479) estj
  1479 FORMAT (' Movement Correction Factor (J) = ',f6.3)
 !
-      WRITE (2,1480) dist
+      If (ifx.eq.0) WRITE (2,1480) dist
  1480 FORMAT (' Adjusted Transect Length (LJ) = ',f10.3,' m')
 !
       WRITE (2,1481) tcov
@@ -2738,7 +2739,7 @@
         IF (ishow.le.0) GO TO 990
         IF (jj.eq.1) THEN
         WRITE (2,975) 
-  975   FORMAT (/91HIn order: P(r), g(r), Q(r), P(r).g(r), SUM[P(r).g(r)
+  975   FORMAT (/91HIn order: P(r), g(r), Q(r), g(r).Q(r), SUM[g(r).Q(r)
      &], n(r), E{N(r)}, E{N(y)}, SUM[d.c.(S)]/)   
         END IF
         WRITE (2,980) rr,expdr,obsd
