@@ -1,4 +1,4 @@
-!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.1a20)
+!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.1b1)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
@@ -573,20 +573,48 @@
 !
       PRINT *,'Step 40',' iprint=',iprint,' jprint=',jprint,
      & ' ishow=',ishow,' durn=',durn,' rate=',rate,' r(8)=',r(8),
-     & nsize(8),' r(9)=',r(9),' nsize(9)=',nsize(9),' numa=',numa,
-     & ' numo=',numo,' nsize(8)='
+     & nsize(8),' r(9)=',r(9),' nsize(9)=',nsize(9),' numa=',numa
+      PRINT *,' numo=',numo,' nsize(8)=',nsize(8),' ifx=',ifx
 !
 !
 !     The header line now begins the program output.
 !
       WRITE (2,50) header
    50 FORMAT (a80)
-!!
+!
+!
+!     The program prints out the class interval width (CLINT) and
+!     either the total transect length (DIST) or the total time
+!     spent (DURN) at fixed points, then the class interval set
+!     and the total transect length travelled.
+!
+      IF (ifx.eq.1) THEN
+        WRITE (2,60) clint,durn
+   60   FORMAT (/' Class Interval Width =',f7.1,
+     &  ' m.    Total Time Spent =',f7.1,' min.')
+        GO TO 90
+      END IF
+!
+!
+      IF (km.eq.0) THEN
+        WRITE (2,70) clint,dist
+   70   FORMAT (/' Class Interval Width =',f7.1,
+     &  ' m.   Total Transect Length (L) =',f10.3,' m.')
+      ELSE
+        WRITE (2,80) clint,dist
+   80   FORMAT (/' Class Interval Width =',f7.1,
+     &  ' m.   Total Transect Length (L) =',f10.3,' km.')
+      END IF
+!
+!
 !     The original values of NUMA and NUMO are retained (as NUMOIN
 !     and NUMAIN) so they can be printed in the output.
 !
-      numoin=numo
+   90 numoin=numo
       numain=numa
+        WRITE (2,95) durn
+   95   FORMAT (' Total Time Spent =',f7.1,' min.')
+
 !
 !
 !     If detection distances were entered in kilometres (KM=1),
@@ -609,13 +637,16 @@
 !
 !     Assuming that the actual distance (and not LJ) has been
 !     entered, the movement correction factor (J) is calculated
-!     using an approximation.
+!     using an approximation.  Different approximations are used
+!     if k=u/w is less than or greater than 2.
 !
-   55 estj = (0.00481082*(rate**4))/(obsw**4) - (0.0731512*(rate**3)) 
-     &  /(obsw**3) + (0.406164*rate**2)/(obsw**2) - ((0.174034*rate)
-     &  /obsw) + 1
+   95   IF ((rate/obsw).lt.2)  estj = 1 - (0.09235*(rate**4))/(obsw**4) 
+     &  + (0.3665*(rate**3))/(obsw**3) - (0.2089*rate**2)/(obsw**2) 
+     &  + ((0.0807*rate)/obsw)
+        IF ((rate/obsw).ge.2) estj = 0.14546 + (0.8006*rate)/obsw
+     &  + (0.00058*(rate**2))/(obsw**2)
 !
-      PRINT *,'Step 55',' estj=',estj,' obsw=',obsw
+      PRINT *,'Step 95',' estj=',estj,' obsw=',obsw
 !
 !     The movement-corrected overall distance travelled (LJ) is
 !     calculated, overriding the DIST value submitted originally.
@@ -666,11 +697,11 @@
         rlsum = 0.0
         rdifsq = 0.0
 !
-      DO 60 ih=1,nvals
+      DO 100 ih=1,nvals
         rltot = log(r(ih)+1) + rltot
-   60 CONTINUE
+  100 CONTINUE
 !
-        PRINT *,'Step 60',' rltot=',rltot
+        PRINT *,'Step 100',' rltot=',rltot
 !
         rlmean = rltot/nvals
 !
@@ -679,12 +710,12 @@
 !     which is then backtransformed to give an F(4) value.
 !
         rlsum = 0.0
-      DO 70 ih=1,nvals
+      DO 120 ih=1,nvals
         rdifsq = (log(r(ih)+1) - rlmean)**2.
         rlsum = rlsum + rdifsq
-   70 CONTINUE
+  120 CONTINUE
 !
-        PRINT *,'Step 70',' rlmean=',rlmean,' rlsum=',rlsum
+        PRINT *,'Step 120',' rlmean=',rlmean,' rlsum=',rlsum
 !
         rlsd = sqrt(rlsum/(nvals-1))
         rlf4 = rlmean + 2.5*rlsd
@@ -702,30 +733,6 @@
 !     reset at F(4)/80 to avoid computation problems.
 !
       IF (f(4).gt.(80*clint)) clint=(f(4))/80
-!
-!
-!     The program prints out the class interval width (CLINT) and
-!     either the total transect length (DIST) or the total time
-!     spent (DURN) at fixed points, then the class interval set
-!     and the total transect length travelled.
-!
-      IF (ifx.eq.1) THEN
-        WRITE (2,80) clint,durn
-   80   FORMAT (/' Class Interval Width =',f7.1,
-     &  ' m.    Total Time Spent =',f7.1,' min.')
-        GO TO 150
-      END IF
-!
-!
-      IF (km.eq.0) THEN
-        WRITE (2,90) clint,dist
-   90   FORMAT (/' Class Interval Width =',f7.1,
-     &  ' m.   Total Transect Length (L) =',f10.3,' m.')
-      ELSE
-        WRITE (2,100) clint,dist
-  100   FORMAT (/' Class Interval Width =',f7.1,
-     &  ' m.   Total Transect Length (L) =',f10.3,' km.')
-      END IF
 !
 !
 !     If calculations are to be based on perpendicular distances (y)
