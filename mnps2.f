@@ -1,4 +1,4 @@
-!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.1b1)
+!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.1b2)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
@@ -467,7 +467,7 @@
       DOUBLE PRECISION a, approx, b, c, cf1dif, cf1sum, cf2dif, cf2sum
       DOUBLE PRECISION cf3dif, cf3sum, clint, coeffnt1, coeffnt2
       DOUBLE PRECISION coeffnt3, dcoeff, dendif, dist, dlim, dsum
-      DOUBLE PRECISION estden, estj, frst, func, hmax, hmean, hmin
+      DOUBLE PRECISION estden, estj, fk, frst, func, hmax, hmean, hmin
       DOUBLE PRECISION hstar, hstd, hstst, durn, ltmin, ltmax, obsw
       DOUBLE PRECISION pd, ps, r3s, rate, rmax, savemn, scf1, scf2, scf3
       DOUBLE PRECISION sden, sns, stopc, stt, test, tcoeff1, tcoeff2
@@ -630,23 +630,24 @@
 !     The program now calculates the mean overall observer movement
 !     rate (w) as OBSW=DIST/DURN (DIST in m and DURN in min), provided
 !     that an DURN value has been entered and the data are from line
-!     transects (IFX=0).  If not, this entire step is bypassed.
+!     transects (IFX=0).  Also, k is defined as k=u/w (FK=RATE/OBSW).
+!     If not, this entire step is bypassed.
 !
       IF ((durn.gt.0) .and. (ifx.eq.0)) THEN
         obsw=dist/durn
+        fk=rate/obsw
 !
 !     Assuming that the actual distance (and not LJ) has been
 !     entered, the movement correction factor (J) is calculated
 !     using an approximation.  Different approximations are used
-!     if k=u/w is less than or greater than 2.
+!     if k=u/w is less than or greater than 5.
 !
-   95   IF ((rate/obsw).lt.2)  estj = 1 - (0.09235*(rate**4))/(obsw**4) 
-     &  + (0.3665*(rate**3))/(obsw**3) - (0.2089*rate**2)/(obsw**2) 
-     &  + ((0.0807*rate)/obsw)
-        IF ((rate/obsw).ge.2) estj = 0.14546 + (0.8006*rate)/obsw
-     &  + (0.00058*(rate**2))/(obsw**2)
+   98  IF (fk.le.5) estj = 1.0051 - (0.0212978*fk) + (0.0002868*fk**2) 
+     &  + (0.279106*fk**3) - (0.12982*fk**4)
+     &  + (0.0234994*fk**5) - (0.00153274*fk**6)        
+        IF (fk.gt.5) estj = 0.8183*fk
 !
-      PRINT *,'Step 95',' estj=',estj,' obsw=',obsw
+      PRINT *,'Step 98',' estj=',estj,' obsw=',obsw
 !
 !     The movement-corrected overall distance travelled (LJ) is
 !     calculated, overriding the DIST value submitted originally.
