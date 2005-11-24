@@ -1,4 +1,4 @@
-!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.1b2)
+!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.1b3)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
@@ -574,7 +574,8 @@
       PRINT *,'Step 40',' iprint=',iprint,' jprint=',jprint,
      & ' ishow=',ishow,' durn=',durn,' rate=',rate,' r(8)=',r(8),
      & nsize(8),' r(9)=',r(9),' nsize(9)=',nsize(9),' numa=',numa
-      PRINT *,' numo=',numo,' nsize(8)=',nsize(8),' ifx=',ifx
+      PRINT *,' numo=',numo,' nsize(8)=',nsize(8),' ifx=',ifx,
+     & ' ns=',ns
 !
 !
 !     The header line now begins the program output.
@@ -607,6 +608,14 @@
       END IF
 !
 !
+!     If transect lengths have been expressed in kilometres,
+!     transect length is are converted to metres.
+!
+      IF (km.gt.0) THEN
+        dist=dist*1000
+      END IF
+!
+!
 !     The original values of NUMA and NUMO are retained (as NUMOIN
 !     and NUMAIN) so they can be printed in the output.
 !
@@ -617,8 +626,8 @@
 
 !
 !
-!     If detection distances were entered in kilometres (KM=1),
-!     then these distances are converted to metres.
+!     If detection distances were entered in kilometres (km=2),
+!     then these distances are also converted to metres.
 !
       IF (km.eq.2) THEN
         DO ih=1,nvals
@@ -642,12 +651,18 @@
 !     using an approximation.  Different approximations are used
 !     if k=u/w is less than or greater than 5.
 !
-   98  IF (fk.le.5) estj = 1.0051 - (0.0212978*fk) + (0.0002868*fk**2) 
+   98 IF (fk.eq.0) THEN
+         estj=1
+        ELSE IF (fk.gt.0 .and. fk.le.5) THEN
+         estj = 1.0051 - (0.0212978*fk) + (0.0002868*fk**2) 
      &  + (0.279106*fk**3) - (0.12982*fk**4)
      &  + (0.0234994*fk**5) - (0.00153274*fk**6)        
-        IF (fk.gt.5) estj = 0.8183*fk
+        ELSE
+         estj = 0.8183*fk
+      END IF
 !
-      PRINT *,'Step 98',' estj=',estj,' obsw=',obsw
+      PRINT *,'Step 98',' dist=',dist,' rate=',rate,
+     &' estj=',estj,' obsw=',obsw
 !
 !     The movement-corrected overall distance travelled (LJ) is
 !     calculated, overriding the DIST value submitted originally.
@@ -660,20 +675,16 @@
       END IF     
 !
 !
-!     F(3) is now raised in value to approximate D2LJ in the case
-!     of line transect data, or D2ut for fixed point data.  D is
-!     also altered from no./ha to no./sq.m. if KM=1.
+!     F(3) is now raised in value to approximate D2LJ*NS in the case
+!     of line transect data, or D2ut*PS for fixed point data.  
 !
+        sns=float(ns)
       IF (ifx.eq.0) THEN
-         f(3) = (2.*dist*f(3))/1.e4
-         step(3) = (2.*dist*step(3))/1.e4
-         IF (km.gt.0) THEN
-            f(3) = 1000*f(3)
-            step(3) = 1000*step(3)
-         END IF
-      ELSE
-         f(3)=(2.*rate*durn*f(3))/1.e4
-         step(3)=(2.*rate*durn*step(3))/1.e4
+         f(3) = (sns*dist*f(3))/1.e4
+         step(3) = (sns*dist*step(3))/1.e4
+        ELSE
+         f(3)=(2.*ps*rate*durn*f(3))/1.e4
+         step(3)=(2.*ps*rate*durn*step(3))/1.e4
 !
       END IF
 !
@@ -781,7 +792,7 @@
       GO TO 210
 !
 !
-!     For IRY=0 and IFX=0, the number of overtakes (NOVTKS) 
+!     For IFX=0, the number of overtakes (NOVTKS) 
 !     is counted.  If IFX=1, they are not counted as overtakes.
 !
   205 DO in=1,nvals
@@ -820,14 +831,6 @@
         dlim=clint*80.
       PRINT *,' r(1)=',r(1),' nsize(1)=',nsize(1),' angle(1)=',angle(1),
      & 'y(1)=',y(1),' iry=',iry,' thh=',thh,' nvals=',nvals,' ifx=',ifx 
-!
-!     If transect lengths have been expressed in kilometres,
-!     distance data are converted to metres.
-!
-      IF (km.gt.0) THEN
-        dist=dist*1000
-      END IF
-!
 !
 !     The stopping criterion (STOPC) is set at a suitable value,
 !     based on the type of data supplied: radial, perpendicular
@@ -896,14 +899,14 @@
         IF (sns.eq.0.) sns=2.
 !
       IF (km.gt.0) THEN
-  330   estden=(1.e6*f(3))/(2.*dist)
+  330   estden=(1.e6*f(3))/(sns*dist)
       END IF
       GO TO 370
 !
-  340 IF (ifx.eq.1) THEN
-        estden=(1.e4*f(3))/(2.*dist)
+  340 IF (ifx.eq.0) THEN
+        estden=(1.e4*f(3))/(sns*dist)
       ELSE 
-        estden=(1.e4*f(3))/(2.*rate*durn)
+        estden=(1.e4*f(3))/(2.*rate*durn*ps)
       END IF
 !      
       GO TO 1470
@@ -1690,14 +1693,14 @@
 !     line transect data, and by 2Vt in the case of fixed-point data.
 !
         IF (km.gt.0) THEN
-          den(bootstrap)=(1.e6*f(3))/(2.*dist)
+          den(bootstrap)=(1.e6*f(3))/(sns*dist)
           GO TO 1370
         END IF
 !
         IF (ifx.eq.0) THEN
-        den(bootstrap)=(1.e4*f(3))/(2.*dist)
+        den(bootstrap)=(1.e4*f(3))/(sns*dist)
         ELSE
-        den(bootstrap)=(1.e4*f(3))/(2.*rate*durn)
+        den(bootstrap)=(1.e4*f(3))/(2.*rate*durn*ps)
         END IF
 !
 !     Values of the other parameter estimates are obtained by redefining
@@ -1962,12 +1965,14 @@
  1870   val(jv)=valt(jv)
 !
       IF (km.eq.0) GO TO 1890
-      f(3)=(estden*2.*dist*pd*(sns/2))/1.e6
+      f(3)=(estden*dist*pd*sns)/1.e6
       GO TO 1920
- 1890 IF (ifx.eq.1) GO TO 1910
-      f(3)=(estden*2.*dist*pd*(sns/2))/1.e4
-      GO TO 1920
- 1910 f(3)=estden*2.*rate*durn*pd/1.e4
+!
+ 1890 IF (ifx.eq.0) THEN
+         f(3)=(estden*dist*pd*sns)/1.e4
+       ELSE
+ 1910    f(3)=estden*2.*ps*rate*durn*pd/1.e4
+      END IF
 !
  1920 CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
      & thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint, kwt,
@@ -2600,35 +2605,28 @@
 !     CINT units wide at a perpendicular distance y=r from the
 !     transect line.  Because there are one or two such strips, each
 !     L times the area of the individual plot at distance r,
-!     the expected no. = D x NS x LJ x Pd x CINT x g(r) x P(r).
+!     the expected no. = [DxNSxLJ=d2l] x Pd x CINT x g(r) x P(r).
 !     NS must be converted to a floating-point number (SNS) first.
 !
-          sns=float(ns)
-          IF (iry.lt.1) GO TO 750
-  730     IF (pd.gt.0.) GO TO 740
-          ed=d2l*cint*e*(sns/2.)
-          GO TO 790
-  740     ed=d2l*cint*e*pd*(sns/2.)
-          GO TO 790
+      IF (ifx.eq.0 .and. iry.ge.1)  THEN
+          ed=d2l*cint*e*pd
 !
 !     With radial distance data, each observing arc sweeps out an
 !     area L units long and 2r units wide, within which there are
 !     2r/CINT x L individual plots at radial distance r.  Thus the
 !     expected total number detected  =  [number expected in one
-!     plot] x [number of plots] = D x NS x LJ x Pd x r x g(r) x P(r).
+!     plot]x[number of plots]=[DxNSxLJ=d2l] x Pd x r x g(r) x P(r).
+!
+        ELSE IF (ifx.eq.0 .and. iry.lt.1) THEN
+          ed=d2l*e*dnrh*pd
 !
 !     With fixed-point data, the expected total number detected
 !     = [2Vt(=D2L)] x Pd x Ps x r x g(r) x P(r).
 !
-  750   IF (ifx.eq.0) THEN
-          IF (pd.gt.0.) GO TO 770
-          ed=d2l*e*dnrh*(sns/2.)
-          GO TO 790
-  770     ed=d2l*e*dnrh*pd*(sns/2.)
-          GO TO 790
-        END IF
+        ELSE
+          ed=d2l*pd*e*dnrh
 !
-          ed=d2l*pd*ps*e*dnrh
+      END IF
 !
 !     With radial distance data, the total number expected in a
 !     class (EXPD) is obtained by progressively adding together
@@ -2717,7 +2715,8 @@
 !     is bypassed and a record of this non-computation retained
 !     as the temporary variable MSFAIL.  This is done only when the
 !     program has converged on a minimum (MTEST=1) and in the final
-!     pass through Loop 1180 (JJ=L10).
+!     pass through Loop 1180 (JJ=L10).  The SNS option is to cater
+!     for fised point data.
 !
         IF (d2l.gt.0) THEN
           IF (sns.eq.0.) sns=2
