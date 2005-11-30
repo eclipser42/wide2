@@ -1,4 +1,4 @@
-!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.1b3)
+!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.1b4)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
@@ -578,6 +578,62 @@
      & ' ns=',ns
 !
 !
+!     If no value of the maximum detection distance F(4) has been
+!     entered (i.e. F(4)=0), this estimated maximum distance is
+!     calculated based on the assumption that the logarithm of
+!     the radial detection distance r is distributed according
+!     to a normal distribution, with a maximum value at the
+!     mean + (2.5 x s.d.), which matches observed values from
+!     large data sets.  This is calculated, then a back-transformation
+!     undertaken to give an F(4) value.
+!
+!     The first step is to calculate a logarithmic detection distance 
+!     total RLTOT, then a logarithmic mean value RLMEAN.
+!
+      IF (f(4).eq.0) THEN
+        rltot = 0.0
+        rlmean = 0.0
+        rlsum = 0.0
+        rdifsq = 0.0
+!
+      DO 45 ih=1,nvals
+        rltot = log(r(ih)+1) + rltot
+   45 CONTINUE
+!
+        PRINT *,'Step 45',' rltot=',rltot
+!
+        rlmean = rltot/nvals
+!
+!     A standard error of the logarithmic r (RLSD) is calculated,
+!     followed by the estimated logarithmic maximum distance RLF4,
+!     which is then backtransformed to give an F(4) value.
+!
+        rlsum = 0.0
+      DO 48 ih=1,nvals
+        rdifsq = (log(r(ih)+1) - rlmean)**2.
+        rlsum = rlsum + rdifsq
+   48 CONTINUE
+!
+        PRINT *,'Step 48',' rlmean=',rlmean,' rlsum=',rlsum
+!
+        rlsd = sqrt(rlsum/(nvals-1))
+        rlf4 = rlmean + 2.5*rlsd
+!
+        PRINT *,' rlsd=',rlsd,' rlf4=',rlf4
+!
+        f(4) = EXP(rlf4) - 1
+        estdmax = f(4)
+      END IF
+!
+      PRINT *,' est.f(4) = ',f(4)
+!
+!     If a value of the maximum detection distance F(4) has been
+!     entered more than 80 times the class interval, CLINT is
+!     reset at F(4)/80 to avoid computation problems.
+!
+      IF (f(4).gt.(80*clint)) clint=(f(4))/80
+!
+!
 !     The header line now begins the program output.
 !
       WRITE (2,50) header
@@ -690,61 +746,6 @@
 !
 !
       estdmax = 0.0
-!
-!     If no value of the maximum detection distance F(4) has been
-!     entered (i.e. F(4)=0), this estimated maximum distance is
-!     calculated based on the assumption that the logarithm of
-!     the radial detection distance r is distributed according
-!     to a normal distribution, with a maximum value at the
-!     mean + (2.5 x s.d.), which matches observed values from
-!     large data sets.  This is calculated, then a back-transformation
-!     undertaken to give an F(4) value.
-!
-!     The first step is to calculate a logarithmic detection distance 
-!     total RLTOT, then a logarithmic mean value RLMEAN.
-!
-      IF (f(4).eq.0) THEN
-        rltot = 0.0
-        rlmean = 0.0
-        rlsum = 0.0
-        rdifsq = 0.0
-!
-      DO 100 ih=1,nvals
-        rltot = log(r(ih)+1) + rltot
-  100 CONTINUE
-!
-        PRINT *,'Step 100',' rltot=',rltot
-!
-        rlmean = rltot/nvals
-!
-!     A standard error of the logarithmic r (RLSD) is calculated,
-!     followed by the estimated logarithmic maximum distance RLF4,
-!     which is then backtransformed to give an F(4) value.
-!
-        rlsum = 0.0
-      DO 120 ih=1,nvals
-        rdifsq = (log(r(ih)+1) - rlmean)**2.
-        rlsum = rlsum + rdifsq
-  120 CONTINUE
-!
-        PRINT *,'Step 120',' rlmean=',rlmean,' rlsum=',rlsum
-!
-        rlsd = sqrt(rlsum/(nvals-1))
-        rlf4 = rlmean + 2.5*rlsd
-!
-        PRINT *,' rlsd=',rlsd,' rlf4=',rlf4
-!
-        f(4) = EXP(rlf4) - 1
-        estdmax = f(4)
-      END IF
-!
-      PRINT *,' est.f(4) = ',f(4)
-!
-!     If a value of the maximum detection distance F(4) has been
-!     entered more than 80 times the class interval, CLINT is
-!     reset at F(4)/80 to avoid computation problems.
-!
-      IF (f(4).gt.(80*clint)) clint=(f(4))/80
 !
 !
 !     If calculations are to be based on perpendicular distances (y)
