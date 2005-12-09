@@ -187,7 +187,7 @@
 /* Begin PBXNativeTarget section */
 		8D15AC270486D014006FF6A4 /* WildlifeDensity */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4206D929093D5F580056509F /* Build configuration list for PBXNativeTarget "WildlifeDensity" */;
+			buildConfigurationList = 42E790D8094A402100AA7421 /* Build configuration list for PBXNativeTarget "WildlifeDensity" */;
 			buildPhases = (
 				8D15AC2B0486D014006FF6A4 /* Resources */,
 				8D15AC300486D014006FF6A4 /* Sources */,
@@ -225,7 +225,7 @@
 /* Begin PBXProject section */
 		2A37F4A9FDCFA73011CA2CEA /* Project object */ = {
 			isa = PBXProject;
-			buildConfigurationList = 4206D92D093D5F580056509F /* Build configuration list for PBXProject "WildlifeDensity" */;
+			buildConfigurationList = 42E790DC094A402100AA7421 /* Build configuration list for PBXProject "WildlifeDensity" */;
 			buildSettings = {
 			};
 			buildStyles = (
@@ -308,7 +308,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		4206D92A093D5F580056509F /* Development */ = {
+		42E790D9094A402100AA7421 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
@@ -332,7 +332,7 @@
 			};
 			name = Development;
 		};
-		4206D92B093D5F580056509F /* Deployment */ = {
+		42E790DA094A402100AA7421 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
@@ -354,7 +354,7 @@
 			};
 			name = Deployment;
 		};
-		4206D92C093D5F580056509F /* Default */ = {
+		42E790DB094A402100AA7421 /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_C_LANGUAGE_STANDARD = c99;
@@ -374,19 +374,19 @@
 			};
 			name = Default;
 		};
-		4206D92E093D5F580056509F /* Development */ = {
+		42E790DD094A402100AA7421 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 			};
 			name = Development;
 		};
-		4206D92F093D5F580056509F /* Deployment */ = {
+		42E790DE094A402100AA7421 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 			};
 			name = Deployment;
 		};
-		4206D930093D5F580056509F /* Default */ = {
+		42E790DF094A402100AA7421 /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 			};
@@ -395,22 +395,22 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		4206D929093D5F580056509F /* Build configuration list for PBXNativeTarget "WildlifeDensity" */ = {
+		42E790D8094A402100AA7421 /* Build configuration list for PBXNativeTarget "WildlifeDensity" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				4206D92A093D5F580056509F /* Development */,
-				4206D92B093D5F580056509F /* Deployment */,
-				4206D92C093D5F580056509F /* Default */,
+				42E790D9094A402100AA7421 /* Development */,
+				42E790DA094A402100AA7421 /* Deployment */,
+				42E790DB094A402100AA7421 /* Default */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Default;
 		};
-		4206D92D093D5F580056509F /* Build configuration list for PBXProject "WildlifeDensity" */ = {
+		42E790DC094A402100AA7421 /* Build configuration list for PBXProject "WildlifeDensity" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				4206D92E093D5F580056509F /* Development */,
-				4206D92F093D5F580056509F /* Deployment */,
-				4206D930093D5F580056509F /* Default */,
+				42E790DD094A402100AA7421 /* Development */,
+				42E790DE094A402100AA7421 /* Deployment */,
+				42E790DF094A402100AA7421 /* Default */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Default;
