@@ -507,35 +507,35 @@
       nop=4
       nloop=1
 !
-      nvals=params%nvals
-      clint=params%clint
-      stt=params%stt
-      numa=params%numa
-      numo=params%numo
-      dist=params%dist
-      thh=params%thh
-      ltmin=params%ltmin
-      ltmax=params%ltmax
-      ifx=params%ifx
-      iry=params%iry
-      ns=params%ns
-      km=params%km
-      imv=params%imv
-      kdt=params%kdt
-      iprint=params%iprint
-      jprint=params%jprint
-      ishow=params%ishow
-      maxjb=params%maxjb
-      r3s=params%r3s
-      vgh=params%vgh
-      durn=params%durn
-      rate=params%rate
-      pd=params%pd
-      ps=params%ps
+      nvals=params.nvals
+      clint=params.clint
+      stt=params.stt
+      numa=params.numa
+      numo=params.numo
+      dist=params.dist
+      thh=params.thh
+      ltmin=params.ltmin
+      ltmax=params.ltmax
+      ifx=params.ifx
+      iry=params.iry
+      ns=params.ns
+      km=params.km
+      imv=params.imv
+      kdt=params.kdt
+      iprint=params.iprint
+      jprint=params.jprint
+      ishow=params.ishow
+      maxjb=params.maxjb
+      r3s=params.r3s
+      vgh=params.vgh
+      durn=params.durn
+      rate=params.rate
+      pd=params.pd
+      ps=params.ps
 !
       DO 10 ig=1,nop
-        f(ig)=params%f(ig)
-        step(ig)=params%step(ig)
+        f(ig)=params.f(ig)
+        step(ig)=params.step(ig)
    10 CONTINUE
 !
 !     Care is required to ensure that the group size data is submitted
@@ -543,15 +543,15 @@
 !     and omit overtaking cases where r=0.
 !
       DO 20 ih=1,nvals
-        r(ih)=params%r(ih)
-        nsize(ih)=params%nsize(ih)
+        r(ih)=params.r(ih)
+        nsize(ih)=params.nsize(ih)
    20 CONTINUE
 !
 !     The same requirement applies to data on observing angles.
 !
       IF (iry.eq.2) GO TO 40
       DO 30 ih=1,nvals
-        angle(ih)=params%angle(ih)
+        angle(ih)=params.angle(ih)
    30 CONTINUE
 !
 !
@@ -590,6 +590,8 @@
 !     The first step is to calculate a logarithmic detection distance 
 !     total RLTOT, then a logarithmic mean value RLMEAN.
 !
+      estdmax = 0.0
+!
       IF (f(4).eq.0) THEN
         rltot = 0.0
         rlmean = 0.0
@@ -625,7 +627,7 @@
         estdmax = f(4)
       END IF
 !
-      PRINT *,' est.f(4) = ',f(4)
+      PRINT *,' est.f(4) = ',f(4),' estdmax =',estdmax
 !
 !     If a value of the maximum detection distance F(4) has been
 !     entered more than 80 times the class interval, CLINT is
@@ -744,8 +746,6 @@
 !
       END IF
 !
-!
-      estdmax = 0.0
 !
 !
 !     If calculations are to be based on perpendicular distances (y)
@@ -939,7 +939,7 @@
 !
 !
       DO 1410 bootstrap=1, maxjb
-         params%bootstrap = bootstrap
+         params.bootstrap = bootstrap
 !
 !     The flag variable MTEST is first set at zero.
 !
@@ -1949,7 +1949,7 @@
  1850 FORMAT (' x',4(18x,'x')/' ',77('x')/)
 !
       WRITE (2,1860) coeffnt3,scf3
- 1860 FORMAT (1x,'Detectability Coefficient (S) =',f8.2,', SE =',f6.2)
+ 1860 FORMAT (x,'Detectability Coefficient (S) =',f8.2,', SE =',f6.2)
 !
 !
 !     Key model estimates are now output if ISHOW was originally set
@@ -1981,9 +1981,9 @@
      & mtest,graph_file)
 !
 !
-      params%complete = 1
-      params%estden = estden
-      params%sden = sden
+      params.complete = 1
+      params.estden = estden
+      params.sden = sden
       CLOSE (unit=2)
       RETURN
 !
@@ -2918,7 +2918,7 @@
 !
  1350 IF (kprint.eq.1) THEN
         WRITE (2,1370) func
- 1370   FORMAT (1x,'OLS Difference at Minimum = ',f15.6/)
+ 1370   FORMAT (x,'OLS Difference at Minimum = ',f15.6/)
       END IF
 !
       RETURN
@@ -2960,7 +2960,6 @@
       PARAMETER  (mplier=16807,modlus=2147483647,mobymp=127773,
      & momdmp=2836)
 !
-      DOUBLE PRECISION jseed,ifrst
       COMMON /seed/ jseed,ifrst
       INTEGER hvlue,lvlue,testv,nextn
       SAVE  nextn
@@ -2984,7 +2983,6 @@
 !
 !
       BLOCK DATA randbd
-      DOUBLE PRECISION jseed,ifrst
       COMMON /seed/ jseed,ifrst
 !
       DATA jseed,ifrst/123456789,0/
