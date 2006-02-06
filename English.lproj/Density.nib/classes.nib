@@ -1,11 +1,20 @@
 {
     IBClasses = (
-        {CLASS = Density; LANGUAGE = ObjC; SUPERCLASS = NSDocument; }, 
+        {
+            CLASS = Density; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {controller = DensityController; }; 
+            SUPERCLASS = NSDocument; 
+        }, 
         {
             ACTIONS = {calculate = id; }; 
             CLASS = DensityController; 
             LANGUAGE = ObjC; 
-            OUTLETS = {document = Density; }; 
+            OUTLETS = {
+                calculateButton = NSButton; 
+                document = Density; 
+                progressBar = NSProgressIndicator; 
+            }; 
             SUPERCLASS = NSObject; 
         }, 
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }
