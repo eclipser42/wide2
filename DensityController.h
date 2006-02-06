@@ -8,9 +8,8 @@
     IBOutlet Density *document;
     IBOutlet NSButton *calculateButton;
     IBOutlet NSProgressIndicator *progressBar;
-    NSTimer *progressTimer;
 }
 - (IBAction)calculate:(id)sender;
-- (void)updateProgress:(id)ignored;
+- (void)updateProgress:(NSTimer*)timer;
 - (void)finishCalculation;
 @end
