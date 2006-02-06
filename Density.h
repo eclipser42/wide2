@@ -14,7 +14,6 @@
     int iprint, jprint, ishow, maxjb;
     double elevations[MAX_OBSERVATIONS];
     calc_params params;
-    NSTimer *calculationTimer;
     BOOL complete;
     NSString *completeMsg;
 }
