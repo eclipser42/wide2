@@ -23,7 +23,6 @@
 		header = [[NSString allocWithZone:[self zone]] init];
 		outFile = [NSString allocWithZone:[self zone]];
 		graphFile = [NSString allocWithZone:[self zone]];
-        calculationTimer = nil;
         completeMsg = [[NSString allocWithZone:[self zone]] init];
 
         // Set defaults
@@ -144,7 +143,7 @@
 
 - (int)maxIteration
 {
-    return params.maxjb;
+    return maxjb;
 }
 
 - (BOOL)parseInputColumns:(NSString *)input
@@ -431,16 +430,15 @@
 - (void)calculate
 {
     [self setValue:@"" forKey:@"completeMsg"];
-    [self calculationWork];
+    //[self calculationWork];
 
     [NSThread detachNewThreadSelector:@selector(calculationThread:) toTarget:self withObject:nil];
-    calculationTimer = nil;
 }
 
 - (void)calculationThread:(id)ignored
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    //[self calculationWork];
+    [self calculationWork];
     [pool release];
 }
 
@@ -502,7 +500,7 @@ double deg2rad(double deg) {
         }
     }
 
-    calculate_density(&params, hdr, out, graph, strlen(hdr), strlen(out), strlen(graph));
+    calculate_density_(&params, hdr, out, graph, strlen(hdr), strlen(out), strlen(graph));
 
     NSString *message;
     if (params.complete) {
