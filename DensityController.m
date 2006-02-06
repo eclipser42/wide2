@@ -4,22 +4,29 @@
 
 - (IBAction)calculate:(id)sender
 {
-    [calculateButton setEnabled:NO];
+    [calculateButton setHidden:YES];
     [progressBar setMaxValue:[document maxIteration]];
-    progressTimer = [NSTimer scheduledTimerWithTimeInterval:0.3 target:self selector:@selector(updateProgress:) userInfo:nil repeats:YES];
+    [progressBar setDoubleValue:0];
+    [progressBar setHidden:NO];
+    [NSTimer scheduledTimerWithTimeInterval:0.3 target:self selector:@selector(updateProgress:) userInfo:nil repeats:YES];
 	[document calculate];
 }
 
-- (void)updateProgress:(id)ignored
+- (void)updateProgress:(NSTimer*)timer
 {
-    [progressBar setDoubleValue:[document currentIteration]];
+    double iteration = [document currentIteration];
+    NSLog(@"updating to %g", iteration);
+    [progressBar setDoubleValue:iteration];
+    if (iteration >= [document maxIteration])
+    {
+        [timer invalidate];
+        NSLog(@"done updating");
+    }
 }
 
 - (void)finishCalculation
 {
-    [progressTimer fire];
-    [progressTimer invalidate];
-    progressTimer = nil;
-    [calculateButton setEnabled:YES];
+    [progressBar setHidden:YES];
+    [calculateButton setHidden:NO];
 }
 @end
