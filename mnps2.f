@@ -1,4 +1,4 @@
-!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.1b4)
+!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.1b5)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
@@ -555,19 +555,7 @@
    30 CONTINUE
 !
 !
-!     Data submitted with the radial distance R() at zero are
-!     overttakes, and should not have their equivalent NSIZE()
-!     value used to generate frequency distributions other than via
-!     the variable NUMO.  This step sets NSIZE at zero in such cases.
-!
-   40 DO ih=1,nvals
-        IF (r(ih).eq.0) THEN
-          nsize(ih) = 0
-        END IF
-      END DO
-!         
-!
-      OPEN (UNIT=2,FILE=outfile,STATUS='NEW',IOSTAT=ios,ERR=1940)
+   40 OPEN (UNIT=2,FILE=outfile,STATUS='NEW',IOSTAT=ios,ERR=1940)
       novtks=0
 !
 !
@@ -675,7 +663,7 @@
 !
 !
 !     The original values of NUMA and NUMO are retained (as NUMOIN
-!     and NUMAIN) so they can be printed in the output.
+!     and NUMAIN) so they can be printed in the output.  
 !
    90 numoin=numo
       numain=numa
@@ -840,10 +828,10 @@
 !
   240 IF ((iry.eq.1) .or. ((iry.eq.2).and.(kdt.le.1))) THEN
         stopc=0.0001
-      ELSE IF ((iry.eq.2).and.(kdt.gt.1)) THEN
+      ELSE IF ((iry.eq.2).and.(kdt.ge.1)) THEN
         stopc=0.001
       ELSE
-        stopc=0.1
+        stopc=0.0   01
       END IF
 !
 !
@@ -998,7 +986,7 @@
                notin=notin+1
              ELSE IF ((r(ir).ne.0) .and. (r(ir).lt.stt)) THEN
                notin=notin+1
-             ELSE IF ((r(ir)).ge.frst .and. (r(ir)).lt.(frst+clint))
+             ELSE IF ((r(ir)).gt.frst .and. (r(ir)).le.(frst+clint))
      &        THEN
                val(ic)=val(ic)+nsize(ir)
              END IF
@@ -1058,7 +1046,7 @@
                notin=notin+1
              ELSE IF ((y(ir).ne.0) .and. (abs(y(ir)).lt.stt)) THEN
                notin=notin+1
-             ELSE IF (ABS(y(ir)).ge.frst .and. ABS(y(ir)).lt.
+             ELSE IF (ABS(y(ir)).gt.frst .and. ABS(y(ir)).le.
      &         (frst+clint)) THEN
                val(ic)=val(ic)+nsize(ir)
              END IF
@@ -1185,14 +1173,14 @@
         numa=0
 !
           DO 540 irb=1,nvals
-             IF (kdt.gt.1 .and. resamp_dist(irb).ge.kdt)  THEN
-               notin=notin+1
+             IF (kdt.gt.1 .and. resamp_dist(irb).gt.kdt)  THEN
+                  notin=notin+1
              ELSE IF ((resamp_dist(irb).ne.0) .and. (resamp_dist(irb)
      &         .lt.stt)) THEN
-               notin=notin+1
-             ELSE IF ((resamp_dist(irb)).ge.frst .and. 
-     &         (resamp_dist(irb)).lt.(frst+clint)) THEN
-               val(ic)=val(ic)+nbsz(irb)
+                   notin=notin+1
+             ELSE IF ((resamp_dist(irb).gt.frst)
+     &         .and. (resamp_dist(irb).le.(frst+clint))) THEN
+                  val(ic)=val(ic)+nbsz(irb)
              END IF
 !
 !     New values of NUMO and NUMA are now required because a different
@@ -1200,11 +1188,13 @@
 !     totalling the R()=0 and R()>0 values in the new sample to get
 !     new NUMO and NUMA values respectively.
 !
-          IF (resamp_dist(irb).eq.0) numo=numo+nsize(irb)
-          IF (((resamp_dist(irb).gt.0) .and. (resamp_dist(irb).gt.stt)) 
-     &  .and.((kdt.gt.1) .and. (resamp_dist(irb).lt.kdt)) .or. 
-     &  ((kdt.eq.0).and.(resamp_dist(irb).gt.kdt)))  
-     &   numa=numa+nsize(irb)
+            IF (resamp_dist(irb).eq.0) THEN
+                 numo=numo+nsize(irb)
+            ELSE IF ((resamp_dist(irb).gt.stt) 
+     &        .and. ((kdt.le.1) .or. (kdt.gt.1 
+     &        .and. resamp_dist(irb).le.kdt)))  THEN
+                 numa=numa+nsize(irb)
+            END IF
 !
   540     CONTINUE
 !
@@ -1240,26 +1230,29 @@
           numo=0
 !
            DO 590 irb=1,nvals
-             IF (kdt.gt.1 .and. abs(resamp_dist(irb)).ge.kdt) THEN
+             IF (kdt.gt.1 .and. abs(resamp_dist(irb)).gt.kdt)  THEN
                notin=notin+1
-             ELSE IF ((resamp_dist(irb).ne.0) .and. 
+             ELSE IF (abs(resamp_dist(irb)).ne.0 .and. 
      &         (abs(resamp_dist(irb)).lt.stt)) THEN
                notin=notin+1
-             ELSE IF (ABS(resamp_dist(irb)).ge.frst .and. 
-     &         ABS(resamp_dist(irb)).lt.(frst+clint)) THEN
+             ELSE IF ((abs(resamp_dist(irb)).gt.frst)
+     &         .and. (abs(resamp_dist(irb)).le.(frst+clint))) THEN               
                val(ic)=val(ic)+nbsz(irb)
-             END IF
+           END IF
 !
 !     New values of NUMO and NUMA are required because a different
 !     selection of data values has been made.  This is done by
 !     totalling the Y()=0 and Y()>0 values in the new sample to get
 !     new NUMO and NUMA values respectively.
 !
-          IF (resamp_dist(irb).eq.0) numo=numo+nsize(irb)
-          IF (((resamp_dist(irb).gt.0) .and. (resamp_dist(irb).gt.
-     &  stt)).and.((kdt.gt.1) .and. (resamp_dist(irb).lt.kdt)) .or. 
-     & ((kdt.eq.0) .and. (resamp_dist(irb).gt.kdt)))  
-     &  numa=numa+nsize(irb)
+            IF (resamp_dist(irb).eq.0) THEN
+                 numo=numo+nsize(irb)
+            ELSE IF ((resamp_dist(irb).gt.stt) 
+     &        .and. ((kdt.le.1) .or. (kdt.gt.1 
+     &        .and. resamp_dist(irb).le.kdt)))  THEN
+                 numa=numa+nsize(irb)
+            END IF
+
 !
   590     CONTINUE
 !
@@ -1957,7 +1950,7 @@
 !     in the subroutine GIVEF to do this.  The totals in the class
 !     intervals are those from the initial data, derived from the
 !     saved array variable VALT().  The output is then produced
-!     within the subroutine.
+!     within the subroutine.  The same is done with NUMO and NUMA.
 !
 !
       f(1)=coeffnt1
@@ -1974,6 +1967,9 @@
        ELSE
  1910    f(3)=estden*2.*ps*rate*durn*pd/1.e4
       END IF
+!
+      numo=numoin
+      numa=numain
 !
  1920 CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
      & thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint, kwt,
@@ -2029,8 +2025,8 @@
       CHARACTER*(*) graph_file
       DOUBLE PRECISION aprexi,auc,cint,clint,d2l,dd,dds,ddsm,dh,dif
       DOUBLE PRECISION difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed
-      DOUBLE PRECISION ermax,err,expd,expdr,expdy,expdv,func
-      DOUBLE PRECISION hcint,htot,ltmin,ltmax,obsd,p,pa,pad,pam,pd
+      DOUBLE PRECISION corrn,ermax,err,expd,expdr,expdy,expdv,func
+      DOUBLE PRECISION hcint,htot,ltmin,ltmax,obsd,cobsd,p,pa,pad,pam,pd
       DOUBLE PRECISION pr,prc,prr,prmax,ps,q,qdd,qdmax,qmin,qr,r3s
       DOUBLE PRECISION rlow,rmax,rr,s,sns,ss,ssh,ssl,ssmax,stt,tcov
       DOUBLE PRECISION texpd,thh,topdd,topmax,tot,tote,tr,vegdd
@@ -2217,10 +2213,10 @@
 !     TR is the highest r value in the current frequency class;
 !     because the first class computed is that furthest
 !     from the observer or from the transect line - TR is initially
-!     set at CLINT*NCLASS, i.e. equal to or just below the
+!     set at CLINT*NCLASS + STT, i.e. equal to or just below the
 !     maximum recognition distance.
 !
-      tr=clint*nclass
+      tr=clint*nclass + stt 
 !
 !     To compute 'expected' values within each class, each class
 !     is subdivided into subclasses, each of width 800/L10, so that
@@ -2266,6 +2262,14 @@
       expdv=0.
       s=0.
 !
+!     The prograM computes a correction, CORRN=(NUMA+NUMO)/NUMA, to
+!     cater for data sets that contain overtakes.
+!
+      corrn=float(numa+numo)/float(numa)
+!
+      PRINT *,' corrn=',corrn,' numo=',numo,' numa=',numa
+!
+!
 !     Loop 1180, which calculates expected values and compares them
 !     with observed values, now begins .....
 !
@@ -2284,9 +2288,9 @@
         obsd=val(md)
 !
 !     The observed frequency value in the hth class is corrected to
-!     allow for animals that overtake the observer from behind.
+!     COBSD to allow for animals that overtake the observer from behind.
 !
-        obsd=((numa+numo)*obsd)/numa
+        cobsd=obsd*corrn
 !
 !     Where the data are radial distance or fixed point data, EXPD
 !     accumulates the expected frequency values within a class; it
@@ -2736,9 +2740,9 @@
 !     the case of radial distance data, and as EXPDY in the case
 !     of perpendicular distance data.  Negative values of EXPDV
 !     are printed as '0.0' in the output because the 'observations'
-!     are unreal.
+!     are unreal.   
 !
-        IF (iry.gt.0) GO TO 1000
+		IF (iry.gt.0) GO TO 1000
   950   rr=tr-(clint/2.)
         expdr=expdv
         IF (expdr.lt.0) THEN
@@ -2784,13 +2788,13 @@
         END IF
 !
 !
-!     The difference between each observed (OBSD) and expected
+!     The difference between each observed (COBSD) and expected
 !     value (EXPDV) for the class is now calculated.
 !
 !
- 1080   dif=obsd-expdv
+ 1080   dif=cobsd-expdv
         IF (kprint.eq.1) THEN
-          PRINT *,' jj=',jj,' md=',md,' tr=',tr,' topdd=',topdd,
+          PRINT *,' jj=',jj,' md=',md,' tr=',tr,' cobsd=',cobsd,
      &' dif=',dif
         END IF 
 !
@@ -2802,7 +2806,7 @@
 !
 !
 !     Each difference between the expected (EXPDV) and observed
-!     (OBSD) value is squared and a running sum of squares total
+!     (COBSD) value is squared and a running sum of squares total
 !     (TOT) computed.  The final overall sum (FUNC) - which
 !     includes HTOT values where parameter values are inappropriate
 !     - is then returned to the main program.
