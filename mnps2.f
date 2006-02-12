@@ -1,4 +1,4 @@
-!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.1b5)
+!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.2a2)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
@@ -507,35 +507,35 @@
       nop=4
       nloop=1
 !
-      nvals=params.nvals
-      clint=params.clint
-      stt=params.stt
-      numa=params.numa
-      numo=params.numo
-      dist=params.dist
-      thh=params.thh
-      ltmin=params.ltmin
-      ltmax=params.ltmax
-      ifx=params.ifx
-      iry=params.iry
-      ns=params.ns
-      km=params.km
-      imv=params.imv
-      kdt=params.kdt
-      iprint=params.iprint
-      jprint=params.jprint
-      ishow=params.ishow
-      maxjb=params.maxjb
-      r3s=params.r3s
-      vgh=params.vgh
-      durn=params.durn
-      rate=params.rate
-      pd=params.pd
-      ps=params.ps
+      nvals=params%nvals
+      clint=params%clint
+      stt=params%stt
+      numa=params%numa
+      numo=params%numo
+      dist=params%dist
+      thh=params%thh
+      ltmin=params%ltmin
+      ltmax=params%ltmax
+      ifx=params%ifx
+      iry=params%iry
+      ns=params%ns
+      km=params%km
+      imv=params%imv
+      kdt=params%kdt
+      iprint=params%iprint
+      jprint=params%jprint
+      ishow=params%ishow
+      maxjb=params%maxjb
+      r3s=params%r3s
+      vgh=params%vgh
+      durn=params%durn
+      rate=params%rate
+      pd=params%pd
+      ps=params%ps
 !
       DO 10 ig=1,nop
-        f(ig)=params.f(ig)
-        step(ig)=params.step(ig)
+        f(ig)=params%f(ig)
+        step(ig)=params%step(ig)
    10 CONTINUE
 !
 !     Care is required to ensure that the group size data is submitted
@@ -543,15 +543,15 @@
 !     and omit overtaking cases where r=0.
 !
       DO 20 ih=1,nvals
-        r(ih)=params.r(ih)
-        nsize(ih)=params.nsize(ih)
+        r(ih)=params%r(ih)
+        nsize(ih)=params%nsize(ih)
    20 CONTINUE
 !
 !     The same requirement applies to data on observing angles.
 !
       IF (iry.eq.2) GO TO 40
       DO 30 ih=1,nvals
-        angle(ih)=params.angle(ih)
+        angle(ih)=params%angle(ih)
    30 CONTINUE
 !
 !
@@ -663,7 +663,7 @@
 !
 !
 !     The original values of NUMA and NUMO are retained (as NUMOIN
-!     and NUMAIN) so they can be printed in the output.  
+!     and NUMAIN) so they can be printed in the output.
 !
    90 numoin=numo
       numain=numa
@@ -927,7 +927,7 @@
 !
 !
       DO 1410 bootstrap=1, maxjb
-         params.bootstrap = bootstrap
+         params%bootstrap = bootstrap
 !
 !     The flag variable MTEST is first set at zero.
 !
@@ -1238,7 +1238,7 @@
              ELSE IF ((abs(resamp_dist(irb)).gt.frst)
      &         .and. (abs(resamp_dist(irb)).le.(frst+clint))) THEN               
                val(ic)=val(ic)+nbsz(irb)
-           END IF
+             END IF
 !
 !     New values of NUMO and NUMA are required because a different
 !     selection of data values has been made.  This is done by
@@ -1942,7 +1942,7 @@
  1850 FORMAT (' x',4(18x,'x')/' ',77('x')/)
 !
       WRITE (2,1860) coeffnt3,scf3
- 1860 FORMAT (x,'Detectability Coefficient (S) =',f8.2,', SE =',f6.2)
+ 1860 FORMAT (1x,'Detectability Coefficient (S) =',f8.2,', SE =',f6.2)
 !
 !
 !     Key model estimates are now output if ISHOW was originally set
@@ -1977,9 +1977,9 @@
      & mtest,graph_file)
 !
 !
-      params.complete = 1
-      params.estden = estden
-      params.sden = sden
+      params%complete = 1
+      params%estden = estden
+      params%sden = sden
       CLOSE (unit=2)
       RETURN
 !
@@ -2262,7 +2262,7 @@
       expdv=0.
       s=0.
 !
-!     The prograM computes a correction, CORRN=(NUMA+NUMO)/NUMA, to
+!     The program computes a correction, CORRN=(NUMA+NUMO)/NUMA, to
 !     cater for data sets that contain overtakes.
 !
       corrn=float(numa+numo)/float(numa)
@@ -2740,9 +2740,9 @@
 !     the case of radial distance data, and as EXPDY in the case
 !     of perpendicular distance data.  Negative values of EXPDV
 !     are printed as '0.0' in the output because the 'observations'
-!     are unreal.   
+!     are unreal.
 !
-		IF (iry.gt.0) GO TO 1000
+        IF (iry.gt.0) GO TO 1000
   950   rr=tr-(clint/2.)
         expdr=expdv
         IF (expdr.lt.0) THEN
@@ -2922,7 +2922,7 @@
 !
  1350 IF (kprint.eq.1) THEN
         WRITE (2,1370) func
- 1370   FORMAT (x,'OLS Difference at Minimum = ',f15.6/)
+ 1370   FORMAT (1x,'OLS Difference at Minimum = ',f15.6/)
       END IF
 !
       RETURN
@@ -2964,6 +2964,7 @@
       PARAMETER  (mplier=16807,modlus=2147483647,mobymp=127773,
      & momdmp=2836)
 !
+      DOUBLE PRECISION jseed,ifrst
       COMMON /seed/ jseed,ifrst
       INTEGER hvlue,lvlue,testv,nextn
       SAVE  nextn
@@ -2987,6 +2988,7 @@
 !
 !
       BLOCK DATA randbd
+      DOUBLE PRECISION jseed,ifrst
       COMMON /seed/ jseed,ifrst
 !
       DATA jseed,ifrst/123456789,0/
