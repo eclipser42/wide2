@@ -829,9 +829,9 @@
   240 IF ((iry.eq.1) .or. ((iry.eq.2).and.(kdt.le.1))) THEN
         stopc=0.0001
       ELSE IF ((iry.eq.2).and.(kdt.ge.1)) THEN
-        stopc=0.001
+        stopc=0.01
       ELSE
-        stopc=0.0   01
+        stopc=0.001
       END IF
 !
 !
@@ -1665,7 +1665,7 @@
 !
  1320   mtest=1
 !
-!     Program execution returns to the subroutine to yield final pass
+!     Program execution returns to the subroutine to yield final
 !     values of F(1), F(2) and F(3).
 !
        lprint=1
@@ -1770,7 +1770,8 @@
       IF (numest.eq.msfail) numest=numest+1
       coeffnt3=tcoeff3/(numest-msfail)
       IF (numest.eq.(msfail+1)) numest=numest-1
-      PRINT *,' maxjb=',maxjb,' mfail=',mfail,' msfail=',msfail
+      PRINT *,' maxjb=',maxjb,' mfail=',mfail,' msfail=',msfail,
+     &' numa=',numa,' numain=',numain,' numo=',numoin
 !
 !
 !     The next step is to calculate the standard errors of each
@@ -1957,6 +1958,8 @@
       f(2)=coeffnt2
       DO 1870 jv=1,nclass
  1870   val(jv)=valt(jv)
+        numo=numoin
+        numa=numain
 !
       IF (km.eq.0) GO TO 1890
       f(3)=(estden*dist*pd*sns)/1.e6
@@ -1968,8 +1971,6 @@
  1910    f(3)=estden*2.*ps*rate*durn*pd/1.e4
       END IF
 !
-      numo=numoin
-      numa=numain
 !
  1920 CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
      & thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint, kwt,
