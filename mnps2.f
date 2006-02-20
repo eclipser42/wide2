@@ -1,4 +1,4 @@
-!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.2a2)
+!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.2a3)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
@@ -540,7 +540,7 @@
 !
 !     Care is required to ensure that the group size data is submitted
 !     in PRECISELY the same sequence as the corresponding R(IN) data,
-!     and omit overtaking cases where r=0.
+!     and that non-overtaking cases where r=0 are altered to r=0.01.
 !
       DO 20 ih=1,nvals
         r(ih)=params%r(ih)
@@ -554,6 +554,7 @@
         angle(ih)=params%angle(ih)
    30 CONTINUE
 !
+!         
 !
    40 OPEN (UNIT=2,FILE=outfile,STATUS='NEW',IOSTAT=ios,ERR=1940)
       novtks=0
@@ -663,7 +664,7 @@
 !
 !
 !     The original values of NUMA and NUMO are retained (as NUMOIN
-!     and NUMAIN) so they can be printed in the output.
+!     and NUMAIN) so they can be printed in the output.  
 !
    90 numoin=numo
       numain=numa
@@ -705,7 +706,7 @@
      &  + (0.0234994*fk**5) - (0.00153274*fk**6)        
         ELSE
          estj = 0.8183*fk
-      END IF
+        END IF
 !
       PRINT *,'Step 98',' dist=',dist,' rate=',rate,
      &' estj=',estj,' obsw=',obsw
@@ -721,16 +722,16 @@
       END IF     
 !
 !
-!     F(3) is now raised in value to approximate D2LJ*NS in the case
-!     of line transect data, or D2ut*PS for fixed point data.  
+!     F(3) is now raised in value to approximate D2LJ*NS*Pd in the case
+!     of line transect data, or D2ut*PS*Pd for fixed point data.  
 !
         sns=float(ns)
       IF (ifx.eq.0) THEN
-         f(3) = (sns*dist*f(3))/1.e4
-         step(3) = (sns*dist*step(3))/1.e4
+         f(3) = (sns*dist*pd*f(3))/1.e4
+         step(3) = (sns*dist*pd*step(3))/1.e4
         ELSE
-         f(3)=(2.*ps*rate*durn*f(3))/1.e4
-         step(3)=(2.*ps*rate*durn*step(3))/1.e4
+         f(3)=(2.*ps*pd*rate*durn*f(3))/1.e4
+         step(3)=(2.*ps*pd*rate*durn*step(3))/1.e4
 !
       END IF
 !
@@ -828,10 +829,10 @@
 !
   240 IF ((iry.eq.1) .or. ((iry.eq.2).and.(kdt.le.1))) THEN
         stopc=0.0001
-      ELSE IF ((iry.eq.2).and.(kdt.ge.1)) THEN
-        stopc=0.01
-      ELSE
+      ELSE IF ((iry.eq.2).and.(kdt.gt.1)) THEN
         stopc=0.001
+      ELSE
+        stopc=0.1
       END IF
 !
 !
@@ -875,27 +876,27 @@
 !     it uses NAP to indicate the number of submitted parameters
 !     to be varied during subsequent iterations.
 !
-      DO 310 i=1,nop
-        IF (abs(step(i)).gt.approx) GO TO 300
-        GO TO 310
-  300   nap=nap+1
-  310 CONTINUE
+        DO i=1,nop
+          IF (abs(step(i)).gt.approx)   nap=nap+1
+        END DO
 !
-        IF (nap.ge.1) GO TO 370
+        IF (nap.ge.1) THEN
+          GO TO 370
+        END IF
 !
-  320   kprint=1
-        sns=float(ns)
-        IF (sns.eq.0.) sns=2.
+! 
+          kprint=1
+          sns=float(ns)
+        IF (sns.eq.0.) THEN
+          sns=2.
+        END IF
 !
       IF (km.gt.0) THEN
-  330   estden=(1.e6*f(3))/(sns*dist)
-      END IF
-      GO TO 370
-!
-  340 IF (ifx.eq.0) THEN
-        estden=(1.e4*f(3))/(sns*dist)
-      ELSE 
-        estden=(1.e4*f(3))/(2.*rate*durn*ps)
+          estden=(1.e6*f(3))/(sns*dist)
+        ELSE IF (ifx.eq.0) THEN
+          estden=(1.e4*f(3))/(sns*dist)
+        ELSE 
+          estden=(1.e4*f(3))/(2.*rate*durn*ps)
       END IF
 !      
       GO TO 1470
@@ -984,7 +985,7 @@
           DO 400 ir=1,nvals
              IF (kdt.gt.1 .and. r(ir).ge.kdt)  THEN
                notin=notin+1
-             ELSE IF ((r(ir).ne.0) .and. (r(ir).lt.stt)) THEN
+             ELSE IF ((r(ir).ne.0) .and. (r(ir).le.stt)) THEN
                notin=notin+1
              ELSE IF ((r(ir)).gt.frst .and. (r(ir)).le.(frst+clint))
      &        THEN
@@ -1044,7 +1045,7 @@
            DO 450 ir=1,nvals
              IF (kdt.gt.1 .and. abs(y(ir)).ge.kdt) THEN
                notin=notin+1
-             ELSE IF ((y(ir).ne.0) .and. (abs(y(ir)).lt.stt)) THEN
+             ELSE IF ((y(ir).ne.0) .and. (abs(y(ir)).le.stt)) THEN
                notin=notin+1
              ELSE IF (ABS(y(ir)).gt.frst .and. ABS(y(ir)).le.
      &         (frst+clint)) THEN
@@ -1101,7 +1102,7 @@
 !     An upper limit is placed on ISEED to prevent integer overflow.
 !
        IF (iseed.gt.150000) iseed=iseed/100
-         iseed = iseed + ((r(jr)+jr)*724)/bootstrap
+         iseed = iseed + (int((r(jr) * nsize(jr) * 72493)) / bootstrap)
 !
 !     A random number between 0 and 1 is now called from the Subroutine
 !     SRANDNAG, multiplied by NVALS to give it a value between 0 and
@@ -1176,7 +1177,7 @@
              IF (kdt.gt.1 .and. resamp_dist(irb).gt.kdt)  THEN
                   notin=notin+1
              ELSE IF ((resamp_dist(irb).ne.0) .and. (resamp_dist(irb)
-     &         .lt.stt)) THEN
+     &         .le.stt)) THEN
                    notin=notin+1
              ELSE IF ((resamp_dist(irb).gt.frst)
      &         .and. (resamp_dist(irb).le.(frst+clint))) THEN
@@ -1232,13 +1233,13 @@
            DO 590 irb=1,nvals
              IF (kdt.gt.1 .and. abs(resamp_dist(irb)).gt.kdt)  THEN
                notin=notin+1
-             ELSE IF (abs(resamp_dist(irb)).ne.0 .and. 
-     &         (abs(resamp_dist(irb)).lt.stt)) THEN
+             ELSE IF ((abs(resamp_dist(irb)).ne.0) .and. 
+     &         (abs(resamp_dist(irb)).le.stt)) THEN
                notin=notin+1
              ELSE IF ((abs(resamp_dist(irb)).gt.frst)
      &         .and. (abs(resamp_dist(irb)).le.(frst+clint))) THEN               
                val(ic)=val(ic)+nbsz(irb)
-             END IF
+           END IF
 !
 !     New values of NUMO and NUMA are required because a different
 !     selection of data values has been made.  This is done by
@@ -1628,7 +1629,7 @@
 !
         IF (hmean.eq.0) GO TO 1240
         test=savemn/hmean
-        IF (test.gt.0.9999995.and.test.lt.1.0000005) GO TO 1240
+      IF ((test.gt.0.99999995).and.(test.lt.1.00000005)) GO TO 1240
         iflag=0
         loop=0
         GO TO 740
@@ -1665,7 +1666,7 @@
 !
  1320   mtest=1
 !
-!     Program execution returns to the subroutine to yield final
+!     Program execution returns to the subroutine to yield final 
 !     values of F(1), F(2) and F(3).
 !
        lprint=1
@@ -1771,7 +1772,7 @@
       coeffnt3=tcoeff3/(numest-msfail)
       IF (numest.eq.(msfail+1)) numest=numest-1
       PRINT *,' maxjb=',maxjb,' mfail=',mfail,' msfail=',msfail,
-     &' numa=',numa,' numain=',numain,' numo=',numoin
+     &  ' numa=',numa,' numain=',numain,' numo=',numoin
 !
 !
 !     The next step is to calculate the standard errors of each
@@ -1958,6 +1959,7 @@
       f(2)=coeffnt2
       DO 1870 jv=1,nclass
  1870   val(jv)=valt(jv)
+!
         numo=numoin
         numa=numain
 !
@@ -1970,6 +1972,7 @@
        ELSE
  1910    f(3)=estden*2.*ps*rate*durn*pd/1.e4
       END IF
+      PRINT *,' Step 1920 called',' numa=',numa,' numo=',numo
 !
 !
  1920 CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
@@ -2027,7 +2030,7 @@
       DOUBLE PRECISION aprexi,auc,cint,clint,d2l,dd,dds,ddsm,dh,dif
       DOUBLE PRECISION difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed
       DOUBLE PRECISION corrn,ermax,err,expd,expdr,expdy,expdv,func
-      DOUBLE PRECISION hcint,htot,ltmin,ltmax,obsd,cobsd,p,pa,pad,pam,pd
+      DOUBLE PRECISION hcint,htot,ltmin,ltmax,obsd,p,pa,pad,pam,pd
       DOUBLE PRECISION pr,prc,prr,prmax,ps,q,qdd,qdmax,qmin,qr,r3s
       DOUBLE PRECISION rlow,rmax,rr,s,sns,ss,ssh,ssl,ssmax,stt,tcov
       DOUBLE PRECISION texpd,thh,topdd,topmax,tot,tote,tr,vegdd
@@ -2217,7 +2220,7 @@
 !     set at CLINT*NCLASS + STT, i.e. equal to or just below the
 !     maximum recognition distance.
 !
-      tr=clint*nclass + stt 
+      tr=clint*nclass + stt
 !
 !     To compute 'expected' values within each class, each class
 !     is subdivided into subclasses, each of width 800/L10, so that
@@ -2268,8 +2271,6 @@
 !
       corrn=float(numa+numo)/float(numa)
 !
-      PRINT *,' corrn=',corrn,' numo=',numo,' numa=',numa
-!
 !
 !     Loop 1180, which calculates expected values and compares them
 !     with observed values, now begins .....
@@ -2285,13 +2286,11 @@
 !
 !     OBSD is the observed value for the hth arc, as supplied
 !     in the input to the program.
-!
-        obsd=val(md)
-!
 !     The observed frequency value in the hth class is corrected to
-!     COBSD to allow for animals that overtake the observer from behind.
+!     to allow for animals that overtake the observer from behind.
 !
-        cobsd=obsd*corrn
+        obsd=corrn*val(md)
+!
 !
 !     Where the data are radial distance or fixed point data, EXPD
 !     accumulates the expected frequency values within a class; it
@@ -2418,7 +2417,7 @@
 !     If, in the last class evaluated, DNRL comes to a negative
 !     value, it is then set at zero.
 !
-        IF (dnrl.ge.1) GO TO 470
+        IF (dnrl.ge.0) GO TO 470
           dnrl=0.
 !
 !     DL is the direct-line distance from the observer to the
@@ -2721,16 +2720,13 @@
 !     is bypassed and a record of this non-computation retained
 !     as the temporary variable MSFAIL.  This is done only when the
 !     program has converged on a minimum (MTEST=1) and in the final
-!     pass through Loop 1180 (JJ=L10).  The SNS option is to cater
-!     for fised point data.
+!     pass through Loop 1180 (JJ=L10). 
 !
         IF (d2l.gt.0) THEN
-          IF (sns.eq.0.) sns=2
-          s=expdv/(d2l*pd*(sns/2))+s
-          GO TO 930
+          s=(expdv/d2l) + s
+        ELSE IF ((mtest.eq.1).and.(jj.eq.l10)) THEN
+          msfail=msfail+1
         END IF
-!
-        IF ((mtest.eq.1).and.(jj.eq.l10)) msfail=msfail+1
 !
 !     Final values of key internal functions are now output if
 !     KPRINT=1; otherwise this step is bypassed.
@@ -2741,9 +2737,9 @@
 !     the case of radial distance data, and as EXPDY in the case
 !     of perpendicular distance data.  Negative values of EXPDV
 !     are printed as '0.0' in the output because the 'observations'
-!     are unreal.
+!     are unreal.   
 !
-        IF (iry.gt.0) GO TO 1000
+		IF (iry.gt.0) GO TO 1000
   950   rr=tr-(clint/2.)
         expdr=expdv
         IF (expdr.lt.0) THEN
@@ -2789,13 +2785,13 @@
         END IF
 !
 !
-!     The difference between each observed (COBSD) and expected
+!     The difference between each observed (OBSD) and expected
 !     value (EXPDV) for the class is now calculated.
 !
 !
- 1080   dif=cobsd-expdv
+ 1080   dif=obsd-expdv
         IF (kprint.eq.1) THEN
-          PRINT *,' jj=',jj,' md=',md,' tr=',tr,' cobsd=',cobsd,
+          PRINT *,' jj=',jj,' md=',md,' tr=',tr,
      &' dif=',dif
         END IF 
 !
@@ -2807,7 +2803,7 @@
 !
 !
 !     Each difference between the expected (EXPDV) and observed
-!     (COBSD) value is squared and a running sum of squares total
+!     (OBSD) value is squared and a running sum of squares total
 !     (TOT) computed.  The final overall sum (FUNC) - which
 !     includes HTOT values where parameter values are inappropriate
 !     - is then returned to the main program.
