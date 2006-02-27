@@ -26,6 +26,7 @@
         completeMsg = [[NSString allocWithZone:[self zone]] init];
 
         // Set defaults
+        params.thh = 0;
         params.stt = 0;
         params.clint = 20;
         maxjb = 500;
@@ -178,8 +179,9 @@
 	if (![scanner scanDouble:&params.rate]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.ps]) return NO;
-	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.thh]) return NO;
+    if ([scanner scanString:@"," intoString:nil]) {
+        if (![scanner scanDouble:&params.thh]) return NO;
+    }
 
     int i = 0;
     unsigned bottomParams;
@@ -500,7 +502,7 @@ double deg2rad(double deg) {
         }
     }
 
-    calculate_density_(&params, hdr, out, graph, strlen(hdr), strlen(out), strlen(graph));
+    calculate_density(&params, hdr, out, graph, strlen(hdr), strlen(out), strlen(graph));
 
     NSString *message;
     if (params.complete) {
