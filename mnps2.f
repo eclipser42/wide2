@@ -1,4 +1,4 @@
-!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.2a3)
+!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.2a4)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
@@ -213,13 +213,13 @@
 !          500 and 2000.  Fewer sets saves computation time but
 !          increases the size of confidence intervals of parameters.
 !
-!     R3S - three times the estimated interquartile range of all
+!     [R3S - three times the estimated interquartile range of all
 !          the deviations between the calculated and observed
 !          values, used in the process of converging on an
 !          internal minimum in the case of perpendicular distance
 !          data (IRY=1 or 2) when the number of iterations (NEVAL)
 !          for a data set exceeds 40.  Its default value is 100 if
-!          no R3S value is supplied in the input.
+!          no R3S value is supplied in the input. - NON-FUNCTIONAL]
 !
 !     VGH - the approximate average height of vegetation cover
 !          in the animal's habitat in situations where the observer
@@ -327,20 +327,6 @@
 !          process changes the simplex.  After initial
 !          convergence, NLOOP further changes are allowed
 !          before testing for final convergence.
-!
-!     KWT - a control parameter which directs calculation of
-!          a biweighted least squares in the case of perpendicular
-!          distance data once the number of iterations exceeds 
-!          a predetermined value (=40).
-!
-!            = 0  for normal least squares computation,
-!            = 1  for biweighted least squares.
-!
-!     LPRINT - a control parameter to remove the biweighting
-!          procedure.
-!
-!            = 0  except for final computation of FUNC;
-!            = 1  when FUNC comes from simplex method.
 !
 !     MFAIL and MSFAIL - two variables used to count the numbers of
 !           times when convergence fails (MFAIL) or when the
@@ -460,7 +446,7 @@
       INTEGER i, ia, ib, ic, ie, iflag, ifx, ig, ih, imax
       INTEGER imin, imv, in, ios, iprint, ir, irb, irow, iry, iseed
       INTEGER ishow, j, jbstp, jk, jprint, jr, js, jv, jx
-      INTEGER k, kdt, km, kprint, kwt, loop, lprint, max
+      INTEGER k, kdt, km, kprint, loop, max
       INTEGER maxjb, mfail, msfail, mtest, nap, neval, notin, ngroups
       INTEGER nloop, nop, np1, ns, numa, numest, numo, nvals, nclass
       INTEGER novtks, numoin, numain
@@ -560,12 +546,6 @@
       novtks=0
 !
 !
-      PRINT *,'Step 40',' iprint=',iprint,' jprint=',jprint,
-     & ' ishow=',ishow,' durn=',durn,' rate=',rate,' r(8)=',r(8),
-     & nsize(8),' r(9)=',r(9),' nsize(9)=',nsize(9),' numa=',numa
-      PRINT *,' numo=',numo,' nsize(8)=',nsize(8),' ifx=',ifx,
-     & ' ns=',ns
-!
 !
 !     If no value of the maximum detection distance F(4) has been
 !     entered (i.e. F(4)=0), this estimated maximum distance is
@@ -591,7 +571,6 @@
         rltot = log(r(ih)+1) + rltot
    45 CONTINUE
 !
-        PRINT *,'Step 45',' rltot=',rltot
 !
         rlmean = rltot/nvals
 !
@@ -605,18 +584,14 @@
         rlsum = rlsum + rdifsq
    48 CONTINUE
 !
-        PRINT *,'Step 48',' rlmean=',rlmean,' rlsum=',rlsum
 !
         rlsd = sqrt(rlsum/(nvals-1))
         rlf4 = rlmean + 2.5*rlsd
-!
-        PRINT *,' rlsd=',rlsd,' rlf4=',rlf4
 !
         f(4) = EXP(rlf4) - 1
         estdmax = f(4)
       END IF
 !
-      PRINT *,' est.f(4) = ',f(4),' estdmax =',estdmax
 !
 !     If a value of the maximum detection distance F(4) has been
 !     entered more than 80 times the class interval, CLINT is
@@ -708,8 +683,6 @@
          estj = 0.8183*fk
         END IF
 !
-      PRINT *,'Step 98',' dist=',dist,' rate=',rate,
-     &' estj=',estj,' obsw=',obsw
 !
 !     The movement-corrected overall distance travelled (LJ) is
 !     calculated, overriding the DIST value submitted originally.
@@ -819,8 +792,6 @@
 !     interval width (CLINT).
 !
         dlim=clint*80.
-      PRINT *,' r(1)=',r(1),' nsize(1)=',nsize(1),' angle(1)=',angle(1),
-     & 'y(1)=',y(1),' iry=',iry,' thh=',thh,' nvals=',nvals,' ifx=',ifx 
 !
 !     The stopping criterion (STOPC) is set at a suitable value,
 !     based on the type of data supplied: radial, perpendicular
@@ -828,11 +799,11 @@
 !     distance data to a distance limit (KDT>1). Tested on data.
 !
   240 IF ((iry.eq.1) .or. ((iry.eq.2).and.(kdt.le.1))) THEN
-        stopc=0.0001
+        stopc=0.001
       ELSE IF ((iry.eq.2).and.(kdt.gt.1)) THEN
         stopc=0.001
       ELSE
-        stopc=0.1
+        stopc=0.01
       END IF
 !
 !
@@ -840,9 +811,9 @@
 !     prints a heading for them.
 !
       IF (iprint.eq.1) THEN
-        WRITE (2,280) iprint
-  280   FORMAT (' PROGRESS REPORT EVERY', i4, ' FUNCTION EVALUATIONS'/
-     &/' EVAL. NO.  FUNC. VALUE ', 10x, 'PARAMETERS')
+        WRITE (2,280)
+  280   FORMAT (/' PROGRESS REPORT EVERY 1 or 3 FUNCTION EVALUATIONS'/
+     &/' Eval. No.    OLS Value ', 15x, 'Parameters')
       END IF
 !
 !     The term 'APPROX' is used to test closeness to zero.
@@ -866,7 +837,6 @@
       loop=0
       iflag=0
       kprint=0
-      lprint=0
       dcoeff=0
 !
 !
@@ -923,8 +893,6 @@
       ELSE 
         nclass=int(((kdt-stt)/clint)+0.49)
       END IF
-        PRINT *,' Step 380',' nclass=',nclass,' novtks=',novtks,
-     &' numa=',numa,' numo=',numo
 !
 !
       DO 1410 bootstrap=1, maxjb
@@ -998,9 +966,6 @@
   410 CONTINUE
 !
 		  ngroups=nvals-notin
-        PRINT *,' Step 410',' STT=',stt,' nvals=',nvals,' val(20)=
-     &',val(20),' KDT=',kdt,' notin=',notin,' ngroups=',ngroups,
-     &' CLINT=',clint
 !
 !     The frequency distribution of the original data is saved,
 !     as VALT(IG).
@@ -1057,9 +1022,6 @@
           frst=frst+clint
   460   CONTINUE
 		  ngroups=nvals-notin
-        PRINT *,' Step 460',' STT=',stt,' nvals=',nvals,' val(20)=
-     &',val(20),' KDT=',kdt,' y(20)=',y(20),' ngroups=',ngroups,
-     &' notin=',notin,' clint=',clint
 !
 !     The frequency distribution of the original data is now saved,
 !     as VALT(IG).
@@ -1307,7 +1269,7 @@
           END DO
         CALL givef (f, h(i), dcoeff, val, clint, pd, ps, r3s, stt,
      &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt,
-     &     kprint, kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, 
+     &     kprint, ltmax, ltmin, nclass, numa, numo, nvals, 
      &     ns,msfail, mtest, graph_file)
 
 !
@@ -1367,7 +1329,7 @@
   820     pstar(i)=a*(pbar(i)-g(imax,i))+pbar(i)
         CALL givef (pstar, hstar, dcoeff, val, clint, pd, ps, r3s, stt,
      &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
-     &   kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, 
+     &   ltmax, ltmin, nclass, numa, numo, nvals, ns, 
      &   msfail,mtest, graph_file)
 !
 !     The next 5 statements test whether a progress report is
@@ -1397,7 +1359,7 @@
   840     pstst(i)=c*(pstar(i)-pbar(i))+pstar(i)
         CALL givef (pstst, hstst, dcoeff, val, clint, pd, ps, r3s, stt,
      &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
-     &   kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, 
+     &   ltmax, ltmin, nclass, numa, numo, nvals, ns, 
      &   msfail, mtest, graph_file)
 !
 !     If IPRINT=1 the program prints out the progress of the
@@ -1455,7 +1417,7 @@
   940     pstst(i)=b*g(imax,i)+(1.0-b)*pbar(i)
         CALL givef (pstst, hstst, dcoeff, val, clint, pd, ps, r3s, stt,
      &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
-     &   kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, 
+     &   ltmax, ltmin, nclass, numa, numo, nvals, ns, 
      &   msfail, mtest, graph_file)
 !
         neval=neval+1
@@ -1492,7 +1454,7 @@
  1010       f(j)=g(i,j)
           CALL givef (f, h(i), dcoeff, val, clint, pd, ps, r3s, stt,
      &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt,
-     &     kprint, kwt, lprint, ltmax, ltmin, nclass, numa, numo, nvals, 
+     &     kprint, ltmax, ltmin, nclass, numa, numo, nvals, 
      &     ns, msfail, mtest, graph_file)
 !
           neval=neval+1
@@ -1543,17 +1505,11 @@
           f(i)=f(i)/FLOAT(np1)
  1080   CONTINUE
         CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
-     &    thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint, kwt,
-     &    lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
+     &    thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
+     &    ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
      &    mtest, graph_file)
 !
         neval=neval+1
-!
-!     If KWT=1, the program calculates a biweighted least squares
-!     value.  This process begins once the number of iterations
-!     exceeds a predetermined value (=40).
-!
-        IF (neval.gt.40) kwt=1
 !
 !     If the number of evaluations has exceeded the value of MAX
 !     set (=750), the convergence process is judged not to have
@@ -1586,7 +1542,13 @@
         GO TO 1380
 !
 !
- 1150 IF (hstd.lt.stopc) GO TO 1160
+ 1150   IF (iprint.eq.1) THEN
+          WRITE (2,1155) neval,func,(f(j),j=1,nop)
+ 1155     FORMAT (/3x,i4,4x,e13.6,8(1x,e13.6)/24x,8(1x,e13.6)/24x,4(1x,
+     &     e13.6))
+        END IF
+!
+       IF (hstd.lt.stopc) GO TO 1160
 !
 !     If the standard deviation calculated above is not less than
 !     the criterion set (STOPC), IFLAG and LOOP are set to zero
@@ -1595,8 +1557,8 @@
         iflag=0
         loop=0
         GO TO 740
- 1160   kwt=1
-        IF ((iprint.eq.1).and.(jprint.eq.1)) GO TO 1170
+!
+ 1160   IF ((iprint.eq.1).and.(jprint.eq.1)) GO TO 1170
         GO TO 1210
  1170   WRITE (2,1180)
  1180   FORMAT (' *'/'  INITIAL EVIDENCE OF CONVERGENCE')
@@ -1629,7 +1591,7 @@
 !
         IF (hmean.eq.0) GO TO 1240
         test=savemn/hmean
-      IF ((test.gt.0.99999995).and.(test.lt.1.00000005)) GO TO 1240
+      IF ((test.gt.0.9999995).and.(test.lt.1.0000005)) GO TO 1240
         iflag=0
         loop=0
         GO TO 740
@@ -1669,11 +1631,10 @@
 !     Program execution returns to the subroutine to yield final 
 !     values of F(1), F(2) and F(3).
 !
-       lprint=1
 !
         CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
-     &    thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint, kwt,
-     &    lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
+     &    thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
+     &    ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
      &    mtest, graph_file)
 !
 !
@@ -1771,8 +1732,6 @@
       IF (numest.eq.msfail) numest=numest+1
       coeffnt3=tcoeff3/(numest-msfail)
       IF (numest.eq.(msfail+1)) numest=numest-1
-      PRINT *,' maxjb=',maxjb,' mfail=',mfail,' msfail=',msfail,
-     &  ' numa=',numa,' numain=',numain,' numo=',numoin
 !
 !
 !     The next step is to calculate the standard errors of each
@@ -1972,12 +1931,11 @@
        ELSE
  1910    f(3)=estden*2.*ps*rate*durn*pd/1.e4
       END IF
-      PRINT *,' Step 1920 called',' numa=',numa,' numo=',numo
 !
 !
  1920 CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
-     & thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint, kwt,
-     & lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
+     & thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
+     & ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
      & mtest,graph_file)
 !
 !
@@ -2012,8 +1970,8 @@
 !
 !
       SUBROUTINE givef (f, func, s, val, clint, pd, ps, r3s, stt, tcov,
-     & thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint, kwt,
-     & lprint, ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
+     & thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
+     & ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
      & mtest, graph_file)
 !
 !     Double precision for all real numbers is set, together with
@@ -2024,7 +1982,7 @@
 !
 !
       INTEGER iermax,ifx,imv,ios,iry,ishow,jj,jl,jrlow,jv
-      INTEGER kdt,kprint,kwt,lprint,l10,l20,limit
+      INTEGER kdt,kprint,l10,l20,limit
       INTEGER max,md,msfail,mtest,ns,numa,numo,nvals,nclass
       CHARACTER*(*) graph_file
       DOUBLE PRECISION aprexi,auc,cint,clint,d2l,dd,dds,ddsm,dh,dif
@@ -2063,48 +2021,52 @@
       htot=0.
       dmax=f(4)
 !
-!     HTOT is set high if DMAX < 1
+!     HTOT is set high (1 000 000) if DMAX < 1
 !
-      IF (dmax.ge.1.) GO TO 10
+      IF (dmax.lt.1.) THEN
+        htot=1.e+6
+      END IF
 !
-!     Initially, HTOT is set at 1 000 000
-!
-      htot=1.e+6
-   10 q=f(2)
+      q=f(2)
 !
 !     If Q is negative, the program sets IMV=1 and so uses the
 !     median value of d in an interval as the basis of
 !     computations, in order to avoid logarithms of negative
 !     values appearing in Approximation 1 below.
 !
-      IF (q.ge.0) GO TO 30
-      imv=1
+      IF (q.lt.0) THEN
+        imv=1
+      END IF
 !
 !
 !     F(3) is renamed D2L for its run through Subroutine GIVEF.
 !
-   30 d2l=f(3)
+      d2l=f(3)
 !
 !     HTOT is set to a higher value if D2L<0.01
 !
-      IF (d2l.ge.0.001) GO TO 50
-      htot=1.e+6+htot
+      IF (d2l.lt.0.001) THEN
+        htot=1.e+6+htot
+      END IF
 !
 !     HTOT is set high if a>400
 !
-   50 IF (p.lt.400) GO TO 70
-      htot=1.e+6+htot
+      IF (p.gt.400) THEN
+        htot=1.e+6+htot
+      END IF
 !
 !     HTOT is set high if a<0.01
 !
-   70 IF (p.ge.0.01) GO TO 90
-      htot=abs((p-2.)*1.e06)+htot
+      IF (p.lt.0.01) THEN
+        htot=abs((p-2.)*1.e06)+htot
+      END IF
 !
 !     RMAX is set at zero if DMAX is equal to or less than THH
 !
-   90 IF (dmax.gt.thh) GO TO 100
-      rmax=0.0
-      GO TO 110
+      IF (dmax.le.thh) THEN
+        rmax=0.0
+        GO TO 110
+      END IF
 !
 !     RMAX - the maximum horizontal recognition distance - is
 !     computed from the direct line distance and height difference.
@@ -2508,7 +2470,7 @@
 !     topography is assumed not to affect detectability, so TOPDD is set
 !     at 1 and TCOV is zero.  If DD is less than LTMIN, topography is
 !     also assumed not to affect detectability, so TOPDD is again set at
-!     1.]  If DD exceeds LTMAX, TOPDD is set at 0 to exclude it.
+!     1.] 
 !
           IF (ltmin.lt.999 .and. dd.ge.ltmin) THEN
              topdd = (1 - tcov)**(dd-ltmin)
@@ -2790,10 +2752,6 @@
 !
 !
  1080   dif=obsd-expdv
-        IF (kprint.eq.1) THEN
-          PRINT *,' jj=',jj,' md=',md,' tr=',tr,
-     &' dif=',dif
-        END IF 
 !
 !      If an upper limit of KDT (>1) has been set for the input
 !      data range, the computed difference between observed and
@@ -2808,46 +2766,8 @@
 !     includes HTOT values where parameter values are inappropriate
 !     - is then returned to the main program.
 !
-!     When curve-fitting is in progress, data are perpendicular
-!     distance data, and KWT=1, the robust weighting procedure of
-!     Wonnacott and Wonnacott is employed.  The difference between
-!     observed and expected values is weighted according to the
-!     magnitude of the difference between observed and calculated
-!     values.  Weighting commences once initial convergence has
-!     occurred (when KWT becomes 1).  A weighting term (DIF/R3S)
-!     has R3S equal to 3 x Interquartile Range (Q2-Q1).  If no
-!     value of R3S is supplied to the program, this term is
-!     approximated by putting R3S=100.
-!
-!     Once the program has converged on a minimum (and LPRINT has
-!     been put =1), weighting is removed to calculate the sum of
-!     squares (for subsequent variance computations).  Hence the
-!     procedure over the next few lines is governed by the values
-!     of KWT and LPRINT.
-!
- 1090   IF (iry.ge.1) THEN
-           IF (kwt.eq.0) THEN
-              w = 1.
-           ELSE
-              z = dif/r3s
-              IF (r3s.le.0) r3s=100.0
-              IF (z.le.1.) THEN
-                 w = (1-z*z)**2.
-              ELSE
-                 w = 0.
-              END IF
-           END IF
-        ELSE
-          w = 1
-        END IF
-!
-        wdifsq=w*dif*dif 
-        wtot=wtot+wdifsq
-!
-        IF (lprint.eq.1) THEN
-          difsq=dif*dif
+ 1090     difsq=dif*dif
           tot=tot+difsq
-        END IF
 !
 !     TR is reduced by CLINT before the subroutine goes to the
 !     next class inward.
@@ -2900,10 +2820,7 @@
  1280 CONTINUE
  1290 CLOSE (unit=3)
 !
-      IF (lprint.eq.1) GO TO 1310
-      func=wtot+htot
-      GO TO 1340
- 1310 func=tot+htot
+      func=tot+htot
       GO TO 1340
 !
 !     The next two lines print out an error message if needed.
