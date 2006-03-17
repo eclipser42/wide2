@@ -15,7 +15,7 @@
 typedef struct {
     int nvals,numa,numo,ifx,iry,ns,km,imv,kdt;
     int iprint,jprint,ishow,maxjb;
-    double durn,rate,clint,stt,dist,thh,ltmin,ltmax,r3s,vgh,pd,ps,f[NUM_SHAPE_PARAMS];
+    double durn,rate,clint,stt,dist,thh,ltmin,ltmax,vgh,pd,ps,f[NUM_SHAPE_PARAMS];
     double step[NUM_SHAPE_PARAMS], r[MAX_OBSERVATIONS];
     int nsize[MAX_OBSERVATIONS];
     double angle[MAX_OBSERVATIONS];
@@ -23,8 +23,6 @@ typedef struct {
     double estden, sden;
 } calc_params;
 
-//extern void calculate_density(calc_params *params, const char *header,
-//                              int headerlen);
-extern void calculate_density(calc_params *params,
+extern void calculate_density (calc_params *params,
                               const char *header, const char *outfile, const char *graphfile,
                               int headerlen, int outfilelen, int graphfilelen);
