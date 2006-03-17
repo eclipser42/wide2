@@ -8,25 +8,24 @@
     [progressBar setMaxValue:[document maxIteration]];
     [progressBar setDoubleValue:0];
     [progressBar setHidden:NO];
+	[document launchCalculation];
     [NSTimer scheduledTimerWithTimeInterval:0.3 target:self selector:@selector(updateProgress:) userInfo:nil repeats:YES];
-	[document calculate];
 }
 
 - (void)updateProgress:(NSTimer*)timer
 {
     double iteration = [document currentIteration];
-    NSLog(@"updating to %g", iteration);
-    [progressBar setDoubleValue:iteration];
-    if (iteration >= [document maxIteration])
+    if (iteration > 0)
     {
+        NSLog(@"updating to %g", iteration);
+        [progressBar setDoubleValue:iteration];
+    } else {
         [timer invalidate];
+        [progressBar setHidden:YES];
+        [document setValue:[document valueForKey:@"completeMsg"] forKey:@"completeMsg"];
+        [calculateButton setHidden:NO];
         NSLog(@"done updating");
     }
 }
 
-- (void)finishCalculation
-{
-    [progressBar setHidden:YES];
-    [calculateButton setHidden:NO];
-}
 @end
