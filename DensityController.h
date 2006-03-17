@@ -11,5 +11,4 @@
 }
 - (IBAction)calculate:(id)sender;
 - (void)updateProgress:(NSTimer*)timer;
-- (void)finishCalculation;
 @end
