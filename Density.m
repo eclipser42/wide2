@@ -42,7 +42,6 @@
         params.jprint = 0;
         params.ishow = 0;
         params.imv = 0;
-        params.r3s = 100;
 
         // If an error occurs here, send a [self release] message and return nil.
 
@@ -89,7 +88,7 @@
     [contents appendFormat:@"%c%g, %d, %g, %g, %g, %g, %g%c", 10, params.stt, maxjb, params.clint, params.f[0], params.f[1], params.f[2], params.f[3], 10];
     [contents appendFormat:@"%g, %g, %g%c", params.step[0], params.step[1], params.step[2], 10];
     [contents appendFormat:@"%d, %d, %d%c", iprint, jprint, ishow, 10];
-    [contents appendFormat:@"%d, %g, %g%c", params.imv, params.r3s, params.step[3], 10];
+    [contents appendFormat:@"%d, %g, %g%c", params.imv, 0 /* r3s */, params.step[3], 10];
     return [contents dataUsingEncoding:NSUTF8StringEncoding];
 }
 
@@ -139,7 +138,11 @@
 
 - (int)currentIteration
 {
-    return params.bootstrap;
+    if (params.complete) {
+        return -1;
+    } else {
+        return params.bootstrap;
+    }
 }
 
 - (int)maxIteration
@@ -240,8 +243,9 @@
 
     if (![scanner scanInt:&params.imv]) return YES;
 	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.r3s]) return YES;
+	if (![scanner scanDouble:&params.step[NUM_SHAPE_PARAMS - 1]]) return YES;
 	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
+    // and if there's a final value then that last was a leftover r3s value
     if (![scanner scanDouble:&params.step[NUM_SHAPE_PARAMS - 1]]) return YES;
 
     return YES;
@@ -292,7 +296,7 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanInt:&params.maxjb]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.r3s]) return NO;
+	if (![scanner scanDouble:nil]) return NO; // was r3s
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.vgh]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -383,7 +387,7 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanInt:&params.maxjb]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.r3s]) return NO;
+	if (![scanner scanDouble:nil]) return NO; // was r3s
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.vgh]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -429,11 +433,10 @@
 	return YES;
 }
 
-- (void)calculate
+- (void)launchCalculation
 {
+    params.complete = 0;
     [self setValue:@"" forKey:@"completeMsg"];
-    //[self calculationWork];
-
     [NSThread detachNewThreadSelector:@selector(calculationThread:) toTarget:self withObject:nil];
 }
 
@@ -456,7 +459,6 @@ double deg2rad(double deg) {
     params.jprint = jprint;
     params.ishow = ishow;
     params.maxjb = maxjb;
-    params.complete = 0;
 
     const char * hdr = [header UTF8String];
     const char * out = [outFile UTF8String];
@@ -504,15 +506,15 @@ double deg2rad(double deg) {
 
     calculate_density(&params, hdr, out, graph, strlen(hdr), strlen(out), strlen(graph));
 
-    NSString *message;
+    [completeMsg release];
     if (params.complete) {
-        message = [NSString stringWithFormat:@"Calculation complete %c%cDensity estimate: %.3g  Standard error: %.2g%c%cDetailed results in %@ and %@",
+        completeMsg = [NSString stringWithFormat:@"Calculation complete %c%cDensity estimate: %.3g  Standard error: %.2g%c%cDetailed results in %@ and %@",
             10, 10, params.estden, params.sden, 10, 10, outFile, [graphFile lastPathComponent]];
     } else {
-        message = [NSString stringWithFormat:@"Calculation failed: Detailed results in %@", outFile];
+        completeMsg = [NSString stringWithFormat:@"Calculation failed: Detailed results in %@", outFile];
+        params.complete = 1;
     }
-    [self setValue:message forKey:@"completeMsg"];
-    [controller finishCalculation];
+    [completeMsg retain];
 }
 
 @end
