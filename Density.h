@@ -7,7 +7,7 @@
 
 @interface Density : NSDocument
 {
-    IBOutlet DensityController *controller;
+    //IBOutlet DensityController *controller;
 	NSString *header;
     NSString *outFile;
     NSString *graphFile;
@@ -33,7 +33,7 @@
 - (BOOL)parseInputColumns:(NSString *)input;
 - (BOOL)parseInputOldColumns:(NSString *)input;
 
-- (void)calculate;
+- (void)launchCalculation;
 
 - (void)calculationThread:(id)ignored;
 
