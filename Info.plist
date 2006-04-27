@@ -9,7 +9,7 @@
 		<dict>
 			<key>CFBundleTypeExtensions</key>
 			<array>
-				<string>census</string>
+				<string>WDdata</string>
 				<string>txt</string>
 				<string>text</string>
 				<string>*</string>
@@ -21,13 +21,15 @@
 				<string>text/plain</string>
 			</array>
 			<key>CFBundleTypeName</key>
-			<string>DensityCensus</string>
+			<string>WildlifeDensity Dataset</string>
 			<key>CFBundleTypeOSTypes</key>
 			<array>
 				<string>****</string>
 			</array>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
+			<key>LSTypeIsPackage</key>
+			<false/>
 			<key>NSDocumentClass</key>
 			<string>Density</string>
 		</dict>
@@ -45,7 +47,7 @@
 	<key>CFBundleSignature</key>
 	<string>WLDN</string>
 	<key>CFBundleVersion</key>
-	<string>0.2a3</string>
+	<string>0.2a5</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
