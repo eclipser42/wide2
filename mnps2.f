@@ -1,4 +1,4 @@
-!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.2a4)
+!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.2a5)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
@@ -152,18 +152,6 @@
 !            = 2  both transect lengths and detection distances
 !                 are measured in kilometres.
 !
-!    IMV - a parameter used to determine the method of
-!          calculating probability used in Subroutine GIVEF.
-!          It either:
-!
-!            = 0  uses the mean value of P(r) in an interval;
-!            = 1  uses the median value of P(r) in the interval.
-!
-!          IMV is also set at 1 within the program if the
-!          coefficient becomes negative or if the data are
-!          visual observations. (The two approaches produce
-!          almost identical results.)
-!
 !     KDT - a control parameter to indicate attributes of the
 !          observational data supplied to the program, viz:
 !
@@ -171,9 +159,6 @@
 !            = 1  for auditory data;
 !            > 1  the maximum class interval boundary distance (in m) 
 !                 when visual data are from a limited distance range.
-!
-!          If KDT=0 or > 1, the program sets IMV=1 within the
-!          subroutine.
 !
 !     IPRINT - a parameter which directs the program to print out
 !          progress sum of squares and parameter values to allow
@@ -212,14 +197,6 @@
 !          calculate standard errors.  This is best set at between
 !          500 and 2000.  Fewer sets saves computation time but
 !          increases the size of confidence intervals of parameters.
-!
-!     [R3S - three times the estimated interquartile range of all
-!          the deviations between the calculated and observed
-!          values, used in the process of converging on an
-!          internal minimum in the case of perpendicular distance
-!          data (IRY=1 or 2) when the number of iterations (NEVAL)
-!          for a data set exceeds 40.  Its default value is 100 if
-!          no R3S value is supplied in the input. - NON-FUNCTIONAL]
 !
 !     VGH - the approximate average height of vegetation cover
 !          in the animal's habitat in situations where the observer
@@ -313,6 +290,18 @@
 !
 !     MAX - the maximum number of function evaluations to be
 !          allowed (arbitrarily set at 750);
+!
+!    IMV - a parameter used to determine the method of
+!          calculating probability used in Subroutine GIVEF.
+!          It either:
+!
+!            = 0  uses the mean value of P(r) in an interval;
+!            = 1  uses the median value of P(r) in the interval.
+!
+!          IMV is also set at 1 within the program if the
+!          coefficient becomes negative or if the data are
+!          visual observations. (The two approaches produce
+!          almost identical results.)
 !
 !     Three coefficients used in the search for a minimum value, viz:
 !
@@ -427,7 +416,7 @@
       INTEGER nvals, numa, numo, ifx, iry, ns, km, imv
       INTEGER kdt, iprint, jprint, ishow, maxjb
       DOUBLE PRECISION durn, rate, clint, stt, dist, thh, ltmin, ltmax
-      DOUBLE PRECISION r3s, vgh, pd, ps
+      DOUBLE PRECISION vgh, pd, ps
       DOUBLE PRECISION f(4), step(4), r(10000)
       INTEGER nsize(10000)
       DOUBLE PRECISION angle(10000)
@@ -455,7 +444,7 @@
       DOUBLE PRECISION coeffnt3, dcoeff, dendif, dist, dlim, dsum
       DOUBLE PRECISION estden, estj, fk, frst, func, hmax, hmean, hmin
       DOUBLE PRECISION hstar, hstd, hstst, durn, ltmin, ltmax, obsw
-      DOUBLE PRECISION pd, ps, r3s, rate, rmax, savemn, scf1, scf2, scf3
+      DOUBLE PRECISION pd, ps, rate, rmax, savemn, scf1, scf2, scf3
       DOUBLE PRECISION sden, sns, stopc, stt, test, tcoeff1, tcoeff2
       DOUBLE PRECISION tcoeff3, tcov, tden, thh, vgh, x
       REAL rltot, rlmean, rlsum, rlsd, rlf4, rdifsq, estdmax
@@ -506,13 +495,11 @@
       iry=params%iry
       ns=params%ns
       km=params%km
-      imv=params%imv
       kdt=params%kdt
       iprint=params%iprint
       jprint=params%jprint
       ishow=params%ishow
       maxjb=params%maxjb
-      r3s=params%r3s
       vgh=params%vgh
       durn=params%durn
       rate=params%rate
@@ -540,7 +527,6 @@
         angle(ih)=params%angle(ih)
    30 CONTINUE
 !
-!         
 !
    40 OPEN (UNIT=2,FILE=outfile,STATUS='NEW',IOSTAT=ios,ERR=1940)
       novtks=0
@@ -894,6 +880,21 @@
         nclass=int(((kdt-stt)/clint)+0.49)
       END IF
 !
+!     The program now sets IMV=1 as a default value, unless the
+!     expected frequency distribution is likely to have a sharp peak,
+!     which may happen if the data are radial, NCLASS has a low
+!     value (say, <20) and the data range is not truncated (KDT is not
+!     greater than 1).  [The possibility that Q is negative is dealt
+!     with in Subroutine GIVEF.]
+!
+      IF ((iry.eq.0).and.(kdt.le.1).and.(nclass.lt.20)) THEN
+		imv=0
+	  ELSE
+	    imv=1
+	  END IF
+!
+!
+!     Loop 1410 now begins.
 !
       DO 1410 bootstrap=1, maxjb
          params%bootstrap = bootstrap
@@ -1267,7 +1268,7 @@
           DO j=1,nop
            f(j)=g(i,j)
           END DO
-        CALL givef (f, h(i), dcoeff, val, clint, pd, ps, r3s, stt,
+        CALL givef (f, h(i), dcoeff, val, clint, pd, ps, stt,
      &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt,
      &     kprint, ltmax, ltmin, nclass, numa, numo, nvals, 
      &     ns,msfail, mtest, graph_file)
@@ -1327,7 +1328,7 @@
 !
         DO 820 i=1,nop
   820     pstar(i)=a*(pbar(i)-g(imax,i))+pbar(i)
-        CALL givef (pstar, hstar, dcoeff, val, clint, pd, ps, r3s, stt,
+        CALL givef (pstar, hstar, dcoeff, val, clint, pd, ps, stt,
      &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
      &   ltmax, ltmin, nclass, numa, numo, nvals, ns, 
      &   msfail,mtest, graph_file)
@@ -1357,7 +1358,7 @@
 !
   830   DO 840 i=1,nop
   840     pstst(i)=c*(pstar(i)-pbar(i))+pstar(i)
-        CALL givef (pstst, hstst, dcoeff, val, clint, pd, ps, r3s, stt,
+        CALL givef (pstst, hstst, dcoeff, val, clint, pd, ps, stt,
      &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
      &   ltmax, ltmin, nclass, numa, numo, nvals, ns, 
      &   msfail, mtest, graph_file)
@@ -1415,7 +1416,7 @@
         h(imax)=hstar
   930   DO 940 i=1,nop
   940     pstst(i)=b*g(imax,i)+(1.0-b)*pbar(i)
-        CALL givef (pstst, hstst, dcoeff, val, clint, pd, ps, r3s, stt,
+        CALL givef (pstst, hstst, dcoeff, val, clint, pd, ps, stt,
      &   tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
      &   ltmax, ltmin, nclass, numa, numo, nvals, ns, 
      &   msfail, mtest, graph_file)
@@ -1452,7 +1453,7 @@
         DO 1020 i=1,np1
           DO 1010 j=1,nop
  1010       f(j)=g(i,j)
-          CALL givef (f, h(i), dcoeff, val, clint, pd, ps, r3s, stt,
+          CALL givef (f, h(i), dcoeff, val, clint, pd, ps, stt,
      &     tcov, thh, vgh, sns, ifx, imv, iry, ishow, kdt,
      &     kprint, ltmax, ltmin, nclass, numa, numo, nvals, 
      &     ns, msfail, mtest, graph_file)
@@ -1504,7 +1505,7 @@
  1070       f(i)=f(i)+g(j,i)
           f(i)=f(i)/FLOAT(np1)
  1080   CONTINUE
-        CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
+        CALL givef (f, func, dcoeff, val, clint, pd, ps, stt, tcov,
      &    thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
      &    ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
      &    mtest, graph_file)
@@ -1632,7 +1633,7 @@
 !     values of F(1), F(2) and F(3).
 !
 !
-        CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
+        CALL givef (f, func, dcoeff, val, clint, pd, ps, stt, tcov,
      &    thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
      &    ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
      &    mtest, graph_file)
@@ -1933,7 +1934,7 @@
       END IF
 !
 !
- 1920 CALL givef (f, func, dcoeff, val, clint, pd, ps, r3s, stt, tcov,
+ 1920 CALL givef (f, func, dcoeff, val, clint, pd, ps, stt, tcov,
      & thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
      & ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
      & mtest,graph_file)
@@ -1969,7 +1970,7 @@
 !     program as FUNC.
 !
 !
-      SUBROUTINE givef (f, func, s, val, clint, pd, ps, r3s, stt, tcov,
+      SUBROUTINE givef (f, func, s, val, clint, pd, ps, stt, tcov,
      & thh, vgh, sns, ifx, imv, iry, ishow, kdt, kprint,
      & ltmax, ltmin, nclass, numa, numo, nvals, ns, msfail, 
      & mtest, graph_file)
@@ -1989,7 +1990,7 @@
       DOUBLE PRECISION difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed
       DOUBLE PRECISION corrn,ermax,err,expd,expdr,expdy,expdv,func
       DOUBLE PRECISION hcint,htot,ltmin,ltmax,obsd,p,pa,pad,pam,pd
-      DOUBLE PRECISION pr,prc,prr,prmax,ps,q,qdd,qdmax,qmin,qr,r3s
+      DOUBLE PRECISION pr,prc,prr,prmax,ps,q,qdd,qdmax,qmin,qr
       DOUBLE PRECISION rlow,rmax,rr,s,sns,ss,ssh,ssl,ssmax,stt,tcov
       DOUBLE PRECISION texpd,thh,topdd,topmax,tot,tote,tr,vegdd
       DOUBLE PRECISION vegmax,vgh,vh,visdd,vismax,vl,vlowm,w,wdifsq
@@ -2138,7 +2139,7 @@
 !     obscured by that ground vegetation.
 !
   180 IF (kdt .eq. 1) GO TO 230
-  190 IF (vgh.eq.1) THEN
+  190 IF (vgh.gt.0) THEN
         dvg=vgh*dmax/thh
         IF (dmax.le.dvg) GO TO 210
         vegmax=(1.-q)**dvg
@@ -2489,7 +2490,7 @@
 !
   600     IF (kdt .eq. 1) GO TO 650
 !
-  610     IF (vgh.eq.1) THEN
+  610     IF (vgh.gt.0) THEN
             dvg=vgh*dd/thh
             IF (dd.le.dvg) GO TO 630
             vegdd=(1.-q)**dvg
@@ -2764,7 +2765,8 @@
 !     (OBSD) value is squared and a running sum of squares total
 !     (TOT) computed.  The final overall sum (FUNC) - which
 !     includes HTOT values where parameter values are inappropriate
-!     - is then returned to the main program.
+!     - is then calculated at Step 1300 and returned to the 
+!     main program.
 !
  1090     difsq=dif*dif
           tot=tot+difsq
@@ -2784,7 +2786,7 @@
 !     the program now prints out a value for RLOW and a file
 !     which tabulates observed and calculated frequencies.
 !
-      IF (kprint.eq.0) GO TO 1290
+      IF (kprint.eq.0) GO TO 1300
 !
       WRITE (2,1200) rlow
  1200 FORMAT (' 99.9% r value (rmin) =',f7.2,' m ')
@@ -2820,7 +2822,10 @@
  1280 CONTINUE
  1290 CLOSE (unit=3)
 !
-      func=tot+htot
+!     The totalled sum of squares of the differences between
+!     observed and calculated values is now defined as FUNC.
+!
+ 1300 func=tot+htot
       GO TO 1340
 !
 !     The next two lines print out an error message if needed.
