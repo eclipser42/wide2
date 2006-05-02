@@ -1,4 +1,4 @@
-!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.2a5)
+!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.2a6)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
@@ -413,7 +413,7 @@
       TYPE CALC_PARAMS
       SEQUENCE        ! SEQUENCE indicates not to insert internal
                       ! padding for data alignment
-      INTEGER nvals, numa, numo, ifx, iry, ns, km, imv
+      INTEGER nvals, numa, numo, ifx, iry, ns, km
       INTEGER kdt, iprint, jprint, ishow, maxjb
       DOUBLE PRECISION durn, rate, clint, stt, dist, thh, ltmin, ltmax
       DOUBLE PRECISION vgh, pd, ps
@@ -888,10 +888,10 @@
 !     with in Subroutine GIVEF.]
 !
       IF ((iry.eq.0).and.(kdt.le.1).and.(nclass.lt.20)) THEN
-		imv=0
-	  ELSE
-	    imv=1
-	  END IF
+         imv=0
+      ELSE
+         imv=1
+      END IF
 !
 !
 !     Loop 1410 now begins.

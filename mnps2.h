@@ -13,7 +13,7 @@
 // This structure definition MUST be kept in sync with the definition in mnps2.f
 
 typedef struct {
-    int nvals,numa,numo,ifx,iry,ns,km,imv,kdt;
+    int nvals,numa,numo,ifx,iry,ns,km,kdt;
     int iprint,jprint,ishow,maxjb;
     double durn,rate,clint,stt,dist,thh,ltmin,ltmax,vgh,pd,ps,f[NUM_SHAPE_PARAMS];
     double step[NUM_SHAPE_PARAMS], r[MAX_OBSERVATIONS];
