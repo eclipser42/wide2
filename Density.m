@@ -29,7 +29,7 @@
         params.thh = 0;
         params.stt = 0;
         params.clint = 20;
-        maxjb = 500;
+        params.maxjb = 500;
         params.f[0] = 10;
         params.f[1] = 0.1;
         params.f[2] = 10;
@@ -41,7 +41,6 @@
         params.iprint = 0;
         params.jprint = 0;
         params.ishow = 0;
-        params.imv = 0;
 
         // If an error occurs here, send a [self release] message and return nil.
 
@@ -68,7 +67,7 @@
 
 - (NSData *)dataRepresentationOfType:(NSString *)aType
 {
-    NSAssert([aType isEqualToString:@"DensityCensus"], @"Unknown type");
+    NSAssert([aType isEqualToString:@"WildlifeDensity Dataset"], @"Unknown type");
     NSMutableString *contents = [NSMutableString stringWithCapacity:2048];
     [contents appendFormat:@"'%@'%c", header, 10];
     [contents appendFormat:@"%d, %d, %d, %g, %d, %g, %d, %g, %g%c", params.ifx, params.iry, params.kdt, params.dist, params.km, params.ltmin, params.ns, params.pd, params.vgh, 10];
@@ -85,10 +84,10 @@
             [contents appendFormat:@", %g%c", elevations[i], 10];
         }
     }
-    [contents appendFormat:@"%c%g, %d, %g, %g, %g, %g, %g%c", 10, params.stt, maxjb, params.clint, params.f[0], params.f[1], params.f[2], params.f[3], 10];
+    [contents appendFormat:@"%c%g, %d, %g, %g, %g, %g, %g%c", 10, params.stt, params.maxjb, params.clint, params.f[0], params.f[1], params.f[2], params.f[3], 10];
     [contents appendFormat:@"%g, %g, %g%c", params.step[0], params.step[1], params.step[2], 10];
-    [contents appendFormat:@"%d, %d, %d%c", iprint, jprint, ishow, 10];
-    [contents appendFormat:@"%d, %g, %g%c", params.imv, 0 /* r3s */, params.step[3], 10];
+    [contents appendFormat:@"%d, %d, %d%c", params.iprint, params.jprint, params.ishow, 10];
+    [contents appendFormat:@"%d, %g, %g%c", 0 /* imv */, 0 /* r3s */, params.step[3], 10];
     return [contents dataUsingEncoding:NSUTF8StringEncoding];
 }
 
@@ -111,10 +110,6 @@
         NSLog(@"Parsing failed");
         return NO;
     }
-    iprint = params.iprint;
-    jprint = params.jprint;
-    ishow = params.ishow;
-    maxjb = params.maxjb;
 
     outFile = [[[self fileName] stringByDeletingPathExtension] stringByAppendingPathExtension:@"results"];
     if ([outFile isEqualToString:[self fileName]]) {
@@ -129,6 +124,320 @@
     [graphFile retain];
 
     return YES;
+}
+
+- (BOOL)prepareSavePanel:(NSSavePanel *)savePanel
+{
+    [savePanel setAllowsOtherFileTypes:YES];
+    [savePanel setCanSelectHiddenExtension:YES];
+    [savePanel setRequiredFileType:@"WDdata"];
+    return YES;
+}
+
+- (void)setHeader:(NSString*)newHeader
+{
+    [[self undoManager] registerUndoWithTarget:self selector:@selector(setHeader) object:header];
+}
+
+- (int)ifx
+{
+    return params.ifx;
+}
+
+- (void)setIfx:(int)ifx
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setIfx:params.ifx];
+    params.ifx = ifx;
+}
+
+- (int)iry
+{
+    NSLog(@"IRY now %d", params.iry);
+    return params.iry;
+}
+
+- (void)setIry:(int)iry;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setIry:params.iry];
+    params.iry = iry;
+    NSLog(@"IRY set to %d", params.iry);
+}
+
+- (int)kdt
+{
+    return params.kdt;
+}
+
+- (void)setKdt:(int)kdt;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setKdt:params.kdt];
+    params.kdt = kdt;
+}
+
+- (double)dist
+{
+    return params.dist;
+}
+
+- (void)setDist:(double)dist;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setDist:params.dist];
+    params.dist = dist;
+}
+
+- (int)km
+{
+    return params.km;
+}
+
+- (void)setKm:(int)km;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setKm:params.km];
+    params.km = km;
+    NSLog(@"KM now %d", params.km);
+}
+
+- (double)ltmin
+{
+    return params.ltmin;
+}
+
+- (void)setLtmin:(double)ltmin;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setLtmin:params.ltmin];
+    params.ltmin = ltmin;
+}
+
+- (int)ns
+{
+    NSLog(@"NS now %d", params.ns);
+    return params.ns;
+}
+
+- (void)setNs:(int)ns;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setNs:params.ns];
+    params.ns = ns;
+}
+
+- (double)pd
+{
+    return params.pd;
+}
+
+- (void)setPd:(double)pd;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setPd:params.pd];
+    params.pd = pd;
+}
+
+- (double)vgh
+{
+    return params.vgh;
+}
+
+- (void)setVgh:(double)vgh;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setVgh:params.vgh];
+    params.vgh = vgh;
+}
+
+- (double)durn
+{
+    return params.durn;
+}
+
+- (void)setDurn:(double)durn;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setDurn:params.durn];
+    params.durn = durn;
+}
+
+- (double)movementRate
+{
+    return params.rate;
+}
+
+- (void)setMovementRate:(double)rate;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setMovementRate:params.rate];
+    params.rate = rate;
+}
+
+- (double)ps
+{
+    return params.ps;
+}
+
+- (void)setPs:(double)ps;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setPs:params.ps];
+    params.ps = ps;
+}
+
+- (double)thh
+{
+    return params.thh;
+}
+
+- (void)setThh:(double)thh;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setThh:params.thh];
+    params.thh = thh;
+}
+
+- (double)stt
+{
+    return params.stt;
+}
+
+- (void)setStt:(double)stt;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setStt:params.stt];
+    params.stt = stt;
+}
+
+- (int)maxjb
+{
+    return params.maxjb;
+}
+
+- (void)setMaxjb:(int)maxjb
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setMaxjb:params.maxjb];
+    params.maxjb = maxjb;
+}
+
+- (double)clint
+{
+    return params.clint;
+}
+
+- (void)setClint:(double)clint;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setClint:params.clint];
+    params.clint = clint;
+}
+
+- (double)f0
+{
+    return params.f[0];
+}
+
+- (void)setF0:(double)f0;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setF0:params.f[0]];
+    params.f[0] = f0;
+}
+
+- (double)f1
+{
+    return params.f[1];
+}
+
+- (void)setF1:(double)f1;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setF1:params.f[1]];
+    params.f[1] = f1;
+}
+
+- (double)f2
+{
+    return params.f[2];
+}
+
+- (void)setF2:(double)f2;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setF2:params.f[2]];
+    params.f[2] = f2;
+}
+
+- (double)f3
+{
+    return params.f[3];
+}
+
+- (void)setF3:(double)f3;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setF3:params.f[3]];
+    params.f[3] = f3;
+}
+
+- (double)step0
+{
+    return params.step[0];
+}
+
+- (void)setStep0:(double)step0;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setStep0:params.step[0]];
+    params.step[0] = step0;
+}
+
+- (double)step1
+{
+    return params.step[1];
+}
+
+- (void)setStep1:(double)step1;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setStep1:params.step[1]];
+    params.step[1] = step1;
+}
+
+- (double)step2
+{
+    return params.step[2];
+}
+
+- (void)setStep2:(double)step2;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setStep2:params.step[2]];
+    params.step[2] = step2;
+}
+
+- (double)step3
+{
+    return params.step[3];
+}
+
+- (void)setStep3:(double)step3;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setStep3:params.step[3]];
+    params.step[3] = step3;
+}
+
+- (int)iprint
+{
+    return params.iprint;
+}
+
+- (void)setIprint:(int)iprint
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setIprint:params.iprint];
+    params.iprint = iprint;
+}
+
+- (int)ishow
+{
+    return params.ishow;
+}
+
+- (void)setIshow:(int)ishow;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setIshow:params.ishow];
+    params.ishow = ishow;
+}
+
+- (int)jprint
+{
+    return params.jprint;
+}
+
+- (void)setJprint:(int)jprint;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setJprint:params.jprint];
+    params.jprint = jprint;
 }
 
 - (int)nvals
@@ -147,7 +456,7 @@
 
 - (int)maxIteration
 {
-    return maxjb;
+    return params.maxjb;
 }
 
 - (BOOL)parseInputColumns:(NSString *)input
@@ -241,8 +550,9 @@
 	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
 	if (![scanner scanInt:&params.ishow]) return YES;
 
-    if (![scanner scanInt:&params.imv]) return YES;
+	if (![scanner scanDouble:&params.step[NUM_SHAPE_PARAMS - 1]]) return YES;
 	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
+    // if there's another value then that last was a leftover imv value
 	if (![scanner scanDouble:&params.step[NUM_SHAPE_PARAMS - 1]]) return YES;
 	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
     // and if there's a final value then that last was a leftover r3s value
@@ -284,7 +594,7 @@
 
     if (![scanner scanInt:&params.km]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.imv]) return NO;
+	if (![scanner scanInt:nil]) return NO; // was imv
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanInt:&params.kdt]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -375,7 +685,7 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanInt:&params.km]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.imv]) return NO;
+	if (![scanner scanInt:nil]) return NO; // was imv
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanInt:&params.kdt]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -455,11 +765,6 @@ double deg2rad(double deg) {
 - (void)calculationWork
 {
     NSLog(@"Calculating to %@ and %@", outFile, graphFile);
-    params.iprint = iprint;
-    params.jprint = jprint;
-    params.ishow = ishow;
-    params.maxjb = maxjb;
-
     const char * hdr = [header UTF8String];
     const char * out = [outFile UTF8String];
     const char * graph = [graphFile UTF8String];
