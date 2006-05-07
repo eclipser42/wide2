@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1A0EEFB70997831D0040534B /* libgfortran.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0EEFB60997831D0040534B /* libgfortran.a */; };
 		1A221BD1071BCDDB00596C57 /* mnps2.f in Sources */ = {isa = PBXBuildFile; fileRef = 420B008E06C6F75800695CAB /* mnps2.f */; settings = {COMPILER_FLAGS = "-Wx,-qthreaded"; }; };
+		1A9534E209F10EC6002E1E3A /* Dataset Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1A9534E109F10EC6002E1E3A /* Dataset Icon.icns */; };
 		420B005106C6E96000695CAB /* Density.nib in Resources */ = {isa = PBXBuildFile; fileRef = 420B004F06C6E96000695CAB /* Density.nib */; };
 		420B005606C6E99600695CAB /* DensityController.h in Resources */ = {isa = PBXBuildFile; fileRef = 420B005406C6E99600695CAB /* DensityController.h */; };
 		420B005706C6E99600695CAB /* DensityController.m in Sources */ = {isa = PBXBuildFile; fileRef = 420B005506C6E99600695CAB /* DensityController.m */; };
@@ -61,6 +62,7 @@
 		089C1660FE840EACC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A0EEFB60997831D0040534B /* libgfortran.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libgfortran.a; path = "gfortran-static/libgfortran.a"; sourceTree = "<group>"; };
+		1A9534E109F10EC6002E1E3A /* Dataset Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "Dataset Icon.icns"; sourceTree = "<group>"; };
 		2A37F4B0FDCFA73011CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		2A37F4B7FDCFA73011CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		2A37F4BAFDCFA73011CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = English; path = English.lproj/Credits.rtf; sourceTree = "<group>"; };
@@ -121,6 +123,7 @@
 		2A37F4AAFDCFA73011CA2CEA /* WildlifeDensity */ = {
 			isa = PBXGroup;
 			children = (
+				1A9534E109F10EC6002E1E3A /* Dataset Icon.icns */,
 				2A37F4ABFDCFA73011CA2CEA /* Classes */,
 				2A37F4AFFDCFA73011CA2CEA /* Other Sources */,
 				2A37F4B8FDCFA73011CA2CEA /* Resources */,
@@ -245,6 +248,7 @@
 				420B005606C6E99600695CAB /* DensityController.h in Resources */,
 				420B007306C6EED000695CAB /* Density.h in Resources */,
 				422BF475074B760D00FE654A /* WildlifeDensity Icon.icns in Resources */,
+				1A9534E209F10EC6002E1E3A /* Dataset Icon.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
