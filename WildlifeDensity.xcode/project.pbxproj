@@ -209,6 +209,7 @@
 		};
 		2A37F4B8FDCFA73011CA2CEA = {
 			children = (
+				42D894710A0EFEE200BB2209,
 				422BF474074B760D00FE654A,
 				2A37F4B9FDCFA73011CA2CEA,
 				2A37F4B6FDCFA73011CA2CEA,
@@ -421,6 +422,19 @@
 			tabWidth = 4;
 			usesTabs = 0;
 		};
+		42D894710A0EFEE200BB2209 = {
+			isa = PBXFileReference;
+			lastKnownFileType = image.icns;
+			path = "Dataset Icon.icns";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		42D894720A0EFEE200BB2209 = {
+			fileRef = 42D894710A0EFEE200BB2209;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		42F1A90306CDEF58002282CE = {
 			isa = PBXFileReference;
 			lastKnownFileType = archive.ar;
@@ -528,6 +542,7 @@
 				420B005606C6E99600695CAB,
 				420B007306C6EED000695CAB,
 				422BF475074B760D00FE654A,
+				42D894720A0EFEE200BB2209,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
