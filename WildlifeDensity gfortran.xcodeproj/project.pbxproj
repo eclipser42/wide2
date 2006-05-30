@@ -34,30 +34,6 @@
 		};
 /* End PBXBuildRule section */
 
-/* Begin PBXBuildStyle section */
-		4A9504D0FFE6A4CB11CA0CBA /* Development */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				ZERO_LINK = YES;
-			};
-			name = Development;
-		};
-		4A9504D1FFE6A4CB11CA0CBA /* Deployment */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				ZERO_LINK = NO;
-			};
-			name = Deployment;
-		};
-/* End PBXBuildStyle section */
-
 /* Begin PBXFileReference section */
 		089C1660FE840EACC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
@@ -191,22 +167,6 @@
 			buildRules = (
 				420B006B06C6EBE600695CAB /* PBXBuildRule */,
 			);
-			buildSettings = {
-				GCC_C_LANGUAGE_STANDARD = c99;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_PRECOMPILE_PREFIX_HEADER = NO;
-				GCC_PREFIX_HEADER = WildlifeDensity_Prefix.pch;
-				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "XLF-static";
-				LIBRARY_STYLE = DYNAMIC;
-				OTHER_LDFLAGS = "";
-				PREBINDING = NO;
-				PRODUCT_NAME = WildlifeDensity;
-				WRAPPER_EXTENSION = app;
-				XLF_QFIXED = YES;
-			};
 			dependencies = (
 			);
 			name = WildlifeDensity;
@@ -220,13 +180,7 @@
 /* Begin PBXProject section */
 		2A37F4A9FDCFA73011CA2CEA /* Project object */ = {
 			isa = PBXProject;
-			buildConfigurationList = 4206D92D093D5F580056509F /* Build configuration list for PBXProject "WildlifeDensity" */;
-			buildSettings = {
-			};
-			buildStyles = (
-				4A9504D0FFE6A4CB11CA0CBA /* Development */,
-				4A9504D1FFE6A4CB11CA0CBA /* Deployment */,
-			);
+			buildConfigurationList = 4206D92D093D5F580056509F /* Build configuration list for PBXProject "WildlifeDensity gfortran" */;
 			hasScannedForEncodings = 1;
 			mainGroup = 2A37F4AAFDCFA73011CA2CEA /* WildlifeDensity */;
 			projectDirPath = "";
@@ -401,7 +355,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Default;
 		};
-		4206D92D093D5F580056509F /* Build configuration list for PBXProject "WildlifeDensity" */ = {
+		4206D92D093D5F580056509F /* Build configuration list for PBXProject "WildlifeDensity gfortran" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4206D92E093D5F580056509F /* Development */,
