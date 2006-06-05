@@ -16,6 +16,7 @@
 		420B007306C6EED000695CAB /* Density.h in Resources */ = {isa = PBXBuildFile; fileRef = 420B007106C6EED000695CAB /* Density.h */; };
 		420B007406C6EED000695CAB /* Density.m in Sources */ = {isa = PBXBuildFile; fileRef = 420B007206C6EED000695CAB /* Density.m */; };
 		422BF475074B760D00FE654A /* WildlifeDensity Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 422BF474074B760D00FE654A /* WildlifeDensity Icon.icns */; };
+		42D894720A0EFEE200BB2209 /* Dataset Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 42D894710A0EFEE200BB2209 /* Dataset Icon.icns */; };
 		42F1A90606CDEF58002282CE /* libxlfmath.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 42F1A90406CDEF58002282CE /* libxlfmath.a */; };
 		8D15AC2C0486D014006FF6A4 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */; };
 		8D15AC2D0486D014006FF6A4 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B6FDCFA73011CA2CEA /* MainMenu.nib */; };
@@ -35,30 +36,6 @@
 		};
 /* End PBXBuildRule section */
 
-/* Begin PBXBuildStyle section */
-		4A9504D0FFE6A4CB11CA0CBA /* Development */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				ZERO_LINK = YES;
-			};
-			name = Development;
-		};
-		4A9504D1FFE6A4CB11CA0CBA /* Deployment */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				ZERO_LINK = NO;
-			};
-			name = Deployment;
-		};
-/* End PBXBuildStyle section */
-
 /* Begin PBXFileReference section */
 		089C1660FE840EACC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
@@ -77,10 +54,11 @@
 		420B008E06C6F75800695CAB /* mnps2.f */ = {isa = PBXFileReference; explicitFileType = sourcecode.fortran; fileEncoding = 7; indentWidth = 4; path = mnps2.f; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
 		422BF474074B760D00FE654A /* WildlifeDensity Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "WildlifeDensity Icon.icns"; sourceTree = "<group>"; };
 		4295D9CA06C73467005558C3 /* mnps2.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = mnps2.h; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
+		42D894710A0EFEE200BB2209 /* Dataset Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "Dataset Icon.icns"; sourceTree = "<group>"; };
 		42F1A90306CDEF58002282CE /* libxlf90_r.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxlf90_r.a; path = "XLF-static/libxlf90_r.a"; sourceTree = "<group>"; };
 		42F1A90406CDEF58002282CE /* libxlfmath.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxlfmath.a; path = "XLF-static/libxlfmath.a"; sourceTree = "<group>"; };
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		8D15AC370486D014006FF6A4 /*  */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = ""; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D15AC370486D014006FF6A4 /* WildlifeDensity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WildlifeDensity.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,7 +96,7 @@
 		19C28FB0FE9D524F11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D15AC370486D014006FF6A4 /*  */,
+				8D15AC370486D014006FF6A4 /* WildlifeDensity.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -160,6 +138,7 @@
 		2A37F4B8FDCFA73011CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				42D894710A0EFEE200BB2209 /* Dataset Icon.icns */,
 				422BF474074B760D00FE654A /* WildlifeDensity Icon.icns */,
 				2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */,
 				2A37F4B6FDCFA73011CA2CEA /* MainMenu.nib */,
@@ -187,7 +166,7 @@
 /* Begin PBXNativeTarget section */
 		8D15AC270486D014006FF6A4 /* WildlifeDensity */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 42E790D8094A402100AA7421 /* Build configuration list for PBXNativeTarget "WildlifeDensity" */;
+			buildConfigurationList = 427AB5440A33F94F001CECD7 /* Build configuration list for PBXNativeTarget "WildlifeDensity" */;
 			buildPhases = (
 				8D15AC2B0486D014006FF6A4 /* Resources */,
 				8D15AC300486D014006FF6A4 /* Sources */,
@@ -196,28 +175,12 @@
 			buildRules = (
 				420B006B06C6EBE600695CAB /* PBXBuildRule */,
 			);
-			buildSettings = {
-				GCC_C_LANGUAGE_STANDARD = c99;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_PRECOMPILE_PREFIX_HEADER = NO;
-				GCC_PREFIX_HEADER = WildlifeDensity_Prefix.pch;
-				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "XLF-static";
-				LIBRARY_STYLE = DYNAMIC;
-				OTHER_LDFLAGS = "";
-				PREBINDING = NO;
-				PRODUCT_NAME = WildlifeDensity;
-				WRAPPER_EXTENSION = app;
-				XLF_QFIXED = YES;
-			};
 			dependencies = (
 			);
 			name = WildlifeDensity;
 			productInstallPath = "$(HOME)/Applications";
 			productName = WildlifeDensity;
-			productReference = 8D15AC370486D014006FF6A4 /*  */;
+			productReference = 8D15AC370486D014006FF6A4 /* WildlifeDensity.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -225,13 +188,7 @@
 /* Begin PBXProject section */
 		2A37F4A9FDCFA73011CA2CEA /* Project object */ = {
 			isa = PBXProject;
-			buildConfigurationList = 42E790DC094A402100AA7421 /* Build configuration list for PBXProject "WildlifeDensity" */;
-			buildSettings = {
-			};
-			buildStyles = (
-				4A9504D0FFE6A4CB11CA0CBA /* Development */,
-				4A9504D1FFE6A4CB11CA0CBA /* Deployment */,
-			);
+			buildConfigurationList = 427AB5480A33F94F001CECD7 /* Build configuration list for PBXProject "WildlifeDensityXLF" */;
 			hasScannedForEncodings = 1;
 			mainGroup = 2A37F4AAFDCFA73011CA2CEA /* WildlifeDensity */;
 			projectDirPath = "";
@@ -253,6 +210,7 @@
 				420B005606C6E99600695CAB /* DensityController.h in Resources */,
 				420B007306C6EED000695CAB /* Density.h in Resources */,
 				422BF475074B760D00FE654A /* WildlifeDensity Icon.icns in Resources */,
+				42D894720A0EFEE200BB2209 /* Dataset Icon.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -308,7 +266,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		42E790D9094A402100AA7421 /* Development */ = {
+		427AB5450A33F94F001CECD7 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
@@ -332,7 +290,7 @@
 			};
 			name = Development;
 		};
-		42E790DA094A402100AA7421 /* Deployment */ = {
+		427AB5460A33F94F001CECD7 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
@@ -354,7 +312,7 @@
 			};
 			name = Deployment;
 		};
-		42E790DB094A402100AA7421 /* Default */ = {
+		427AB5470A33F94F001CECD7 /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_C_LANGUAGE_STANDARD = c99;
@@ -374,19 +332,19 @@
 			};
 			name = Default;
 		};
-		42E790DD094A402100AA7421 /* Development */ = {
+		427AB5490A33F94F001CECD7 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 			};
 			name = Development;
 		};
-		42E790DE094A402100AA7421 /* Deployment */ = {
+		427AB54A0A33F94F001CECD7 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 			};
 			name = Deployment;
 		};
-		42E790DF094A402100AA7421 /* Default */ = {
+		427AB54B0A33F94F001CECD7 /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 			};
@@ -395,22 +353,22 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		42E790D8094A402100AA7421 /* Build configuration list for PBXNativeTarget "WildlifeDensity" */ = {
+		427AB5440A33F94F001CECD7 /* Build configuration list for PBXNativeTarget "WildlifeDensity" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				42E790D9094A402100AA7421 /* Development */,
-				42E790DA094A402100AA7421 /* Deployment */,
-				42E790DB094A402100AA7421 /* Default */,
+				427AB5450A33F94F001CECD7 /* Development */,
+				427AB5460A33F94F001CECD7 /* Deployment */,
+				427AB5470A33F94F001CECD7 /* Default */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Default;
 		};
-		42E790DC094A402100AA7421 /* Build configuration list for PBXProject "WildlifeDensity" */ = {
+		427AB5480A33F94F001CECD7 /* Build configuration list for PBXProject "WildlifeDensityXLF" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				42E790DD094A402100AA7421 /* Development */,
-				42E790DE094A402100AA7421 /* Deployment */,
-				42E790DF094A402100AA7421 /* Default */,
+				427AB5490A33F94F001CECD7 /* Development */,
+				427AB54A0A33F94F001CECD7 /* Deployment */,
+				427AB54B0A33F94F001CECD7 /* Default */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Default;
