@@ -1,4 +1,4 @@
-!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.2a6)
+!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.2a7)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
@@ -156,7 +156,7 @@
 !          observational data supplied to the program, viz:
 !
 !            = 0  for visual and flushing data;
-!            = 1  for auditory data;
+!            = 1  for auditory data or long distance (no vegn.) data;
 !            > 1  the maximum class interval boundary distance (in m) 
 !                 when visual data are from a limited distance range.
 !
@@ -434,7 +434,7 @@
       INTEGER bootstrap
       INTEGER i, ia, ib, ic, ie, iflag, ifx, ig, ih, imax
       INTEGER imin, imv, in, ios, iprint, ir, irb, irow, iry, iseed
-      INTEGER ishow, j, jbstp, jk, jprint, jr, js, jv, jx
+      INTEGER ishow, j, jbstp, jk, jprint, js, jv
       INTEGER k, kdt, km, kprint, loop, max
       INTEGER maxjb, mfail, msfail, mtest, nap, neval, notin, ngroups
       INTEGER nloop, nop, np1, ns, numa, numest, numo, nvals, nclass
@@ -621,6 +621,10 @@
 !
       IF (km.gt.0) THEN
         dist=dist*1000
+        IF ((km.eq.2).and.(f(4).gt.0)) THEN
+            f(4)=1000*f(4)
+            estdmax=f(4)
+        END IF
       END IF
 !
 !
@@ -792,6 +796,10 @@
         stopc=0.01
       END IF
 !
+!     The program now increases the value of STOPC to allow for
+!     highly variable data, by multiplying by NUMAIN/NVALS.
+!
+        stopc=stopc*numain/nvals
 !
 !     If progress reports are required (IPRINT=1), the program
 !     prints a heading for them.
@@ -893,6 +901,14 @@
          imv=1
       END IF
 !
+!     Seed the random number generator
+!
+      iseed=0
+      DO in = 1, nvals
+         IF (iseed.gt.150000) iseed = iseed / 100
+         iseed = iseed + int((r(in) * nsize(in) * 72493))
+      END DO
+      CALL srandnag (iseed)
 !
 !     Loop 1410 now begins.
 !
@@ -1047,66 +1063,11 @@
 !     animals detected.  Loop 510 selects these values.
 !
 !
-  480     iseed=0
-!
-      DO 510 jr=1,nvals
-!
-!     A seed value is first chosen, based on the (sequential) values of
-!     R in the data input, the size of the data set provided (NVALS),
-!     the stage reached in the main backstrapping loop (bootstrap),
-!     and the relevant step (JR) in Loop 510.  This should minimize
-!     the likelihood of common seed values being submitted in
-!     different random number searches.
-!     In this way, no two seed values are likely either to be
-!     identical or to vary in a consistent way.  They are multiplied
-!     by a relatively large number (72493) to ensure the product
-!     is a correspondingly large number.
-!
-!     An upper limit is placed on ISEED to prevent integer overflow.
-!
-       IF (iseed.gt.150000) iseed=iseed/100
-         iseed = iseed + (int((r(jr) * nsize(jr) * 72493)) / bootstrap)
-!
-!     A random number between 0 and 1 is now called from the Subroutine
-!     SRANDNAG, multiplied by NVALS to give it a value between 0 and
-!     NVALS, and converted to integer form, adding 1 to allow for
-!     chopping.
-!
-          CALL srandnag (iseed)
-          CALL randgen (x)
-          jx = INT(x*nvals + 1)
-!
-!     What happens now depends on whether radial or perpendicular
-!     distance measurements are being used.  !
-!
-          IF (iry.gt.0) GO TO 500
-!
-!     Either: radial distance computations are made.
-!
-!     The randomly-chosen RESAMP_DIST(JR), the JRth bootstrapped value
-!     of R.  The corresponding value of NSIZE, NSIZE(JX), is now 
-!     redefined as NBSZ(JR), the JRth bootstrapped value of NSIZE. Loop
-!     510 then goes back to its beginning to select another R value,
-!     and so on until all NVALS selections have been made.
-!
-  490      resamp_dist(jr)=r(jx)
-           nbsz(jr)=nsize(jx) 
-!
-        GO TO 510
-!
-!     Or: perpendicular distance computations are made.
-!
-!     The randomly-chosen bootstrapped value of Y, Y(JX), is now
-!     redefined as RESAMP_DIST(JR), the JRth bootstrapped value of Y. 
-!     The corresponding value of NSIZE, NSIZE(JX), is now redefined
-!     as NBSZ(JR), the JRth bootstrapped value of NSIZE. Loop
-!     510 then goes back to its beginning to select another Y value,
-!     and so on until all NVALS selections have been made.
-!
-  500      resamp_dist(jr)=y(jx)
-           nbsz(jr)=nsize(jx) 
-!
-  510 CONTINUE
+  480    IF (iry.gt.0) THEN
+            CALL resample (y, nsize, nvals, resamp_dist, nbsz)
+         ELSE
+            CALL resample (r, nsize, nvals, resamp_dist, nbsz)
+         END IF
 !
 !
 !     There should now be a new set of (N=NVALS) R (or Y) and NSIZE
@@ -1798,13 +1759,13 @@
  1479 FORMAT (' Movement Correction Factor (J) = ',f6.3)
 !
       If (ifx.eq.0) WRITE (2,1480) dist
- 1480 FORMAT (' Adjusted Transect Length (LJ) = ',f10.3,' m')
+ 1480 FORMAT (' Adjusted Transect Length (LJ) = ',f11.3,' m')
 !
       WRITE (2,1481) tcov
  1481 FORMAT (' Topographical Cover Value = ',f6.4)
 !
       WRITE (2,1482) estdmax
- 1482 FORMAT (' Calculated Maximum Detection Distance =',f8.1,' m')
+ 1482 FORMAT (' Calculated Maximum Detection Distance =',f10.1,' m')
 !
       WRITE (2,1490) numest
  1490 FORMAT (' Number of Parameter Estimations =',i4)
@@ -1904,7 +1865,7 @@
  1850 FORMAT (' x',4(18x,'x')/' ',77('x')/)
 !
       WRITE (2,1860) coeffnt3,scf3
- 1860 FORMAT (1x,'Detectability Coefficient (S) =',f8.2,', SE =',f6.2)
+ 1860 FORMAT (1x,'Detectability Coefficient (S) =',f9.2,', SE =',f9.2)
 !
 !
 !     Key model estimates are now output if ISHOW was originally set
@@ -2804,7 +2765,7 @@
       END IF
       IF (jj.gt.limit) GO TO 1290
       WRITE (3,1230) rout(jv),calcnr(jv),obsdnr(jv)
- 1230 FORMAT (5x,f6.1,6x,f7.2,7x,f6.1,4x)
+ 1230 FORMAT (5x,f7.1,6x,f7.2,7x,f6.1,4x)
  1240 CONTINUE
       GO TO 1290
  1250 WRITE (3,1260)
@@ -2818,7 +2779,7 @@
       END IF
       IF (jj.gt.limit) GO TO 1290
       WRITE (3,1270) yout(jv),calcny(jv),obsdny(jv)
- 1270   FORMAT (5x,f6.1,6x,f7.2,7x,f6.1,4x)
+ 1270   FORMAT (5x,f7.1,6x,f7.2,7x,f6.1,4x)
  1280 CONTINUE
  1290 CLOSE (unit=3)
 !
@@ -2846,6 +2807,21 @@
 !
       RETURN
       END SUBROUTINE givef
+!
+!
+      SUBROUTINE resample (orig_dist, orig_size, nvals,
+     &     resamp_dist, resamp_size)
+      IMPLICIT NONE
+      INTEGER orig_size(10000), nvals, resamp_size(10000), i, n
+      DOUBLE PRECISION orig_dist(10000), resamp_dist(10000), x
+      DO i = 1, nvals
+         CALL randgen (x)
+         n = INT(x*nvals + 1)
+         resamp_dist(i) = orig_dist(n)
+         resamp_size(i) = orig_size(n)
+      END DO
+      RETURN
+      END SUBROUTINE resample
 !
 !
       SUBROUTINE srandnag (iseed)
