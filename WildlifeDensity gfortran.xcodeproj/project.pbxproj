@@ -26,11 +26,13 @@
 /* Begin PBXBuildRule section */
 		420B006B06C6EBE600695CAB /* PBXBuildRule */ = {
 			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.3_3.xlf;
+			compilerSpec = com.apple.compilers.proxy.script;
 			fileType = sourcecode.fortran;
 			isEditable = 1;
 			outputFiles = (
+				"$(OBJECT_FILE_DIR)-$(CURRENT_VARIANT)/$(CURRENT_ARCH)/$(INPUT_FILE_BASE).o",
 			);
+			script = "/usr/local/bin/gfortran -g -fno-underscoring -c -o \"${OBJECT_FILE_DIR}-${CURRENT_VARIANT}/${CURRENT_ARCH}/${INPUT_FILE_BASE}.o\" \"${INPUT_FILE_NAME}\"";
 		};
 /* End PBXBuildRule section */
 
@@ -99,7 +101,6 @@
 		2A37F4AAFDCFA73011CA2CEA /* WildlifeDensity */ = {
 			isa = PBXGroup;
 			children = (
-				1A9534E109F10EC6002E1E3A /* Dataset Icon.icns */,
 				2A37F4ABFDCFA73011CA2CEA /* Classes */,
 				2A37F4AFFDCFA73011CA2CEA /* Other Sources */,
 				2A37F4B8FDCFA73011CA2CEA /* Resources */,
@@ -135,6 +136,7 @@
 			isa = PBXGroup;
 			children = (
 				422BF474074B760D00FE654A /* WildlifeDensity Icon.icns */,
+				1A9534E109F10EC6002E1E3A /* Dataset Icon.icns */,
 				2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */,
 				2A37F4B6FDCFA73011CA2CEA /* MainMenu.nib */,
 				420B004F06C6E96000695CAB /* Density.nib */,
@@ -261,6 +263,7 @@
 		4206D92A093D5F580056509F /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = ppc;
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -271,7 +274,7 @@
 				GCC_PREFIX_HEADER = WildlifeDensity_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = /sw/lib/gcc4/lib;
+				LIBRARY_SEARCH_PATHS = "";
 				LIBRARY_STYLE = DYNAMIC;
 				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
@@ -285,6 +288,7 @@
 		4206D92B093D5F580056509F /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = ppc;
 				COPY_PHASE_STRIP = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -293,7 +297,7 @@
 				GCC_PREFIX_HEADER = WildlifeDensity_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = /sw/lib/gcc4/lib;
+				LIBRARY_SEARCH_PATHS = "";
 				LIBRARY_STYLE = DYNAMIC;
 				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
@@ -307,6 +311,7 @@
 		4206D92C093D5F580056509F /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = ppc;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -314,7 +319,7 @@
 				GCC_PREFIX_HEADER = WildlifeDensity_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = /sw/lib/gcc4/lib;
+				LIBRARY_SEARCH_PATHS = "";
 				LIBRARY_STYLE = DYNAMIC;
 				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
