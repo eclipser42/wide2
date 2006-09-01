@@ -21,6 +21,7 @@
 {
     self = [super init];
     if (self) {
+        maximumClassDistance = 2;
         detectionUnitString = @"m";
     }
     return self;
@@ -28,16 +29,11 @@
 
 - (int)censusType
 {
-    if ([document ifx])
-    {
+    if ([document ifx]) {
         return 2;
-    }
-    else if ([document iry])
-    {
+    } else if ([document iry]) {
         return 1;
-    }
-    else
-    {
+    } else {
         return 0;
     }
 }
@@ -66,6 +62,46 @@
     return ([document iry] > 0);
 }
 
+- (int)observationType
+{
+    if ([document kdt] == 0) {
+        return 0;
+    } else if ([document kdt] > 1) {
+        maximumClassDistance = [document kdt];
+        return 1;
+    } else {
+        return 2;
+    }
+}
+
+- (void)setObservationType:(int)observationType
+{
+    [self willChangeValueForKey:@"classDistancesEnabled"];
+    if (observationType == 0) {
+        [document setValue:[NSNumber numberWithInt:0] forKey:@"kdt"];
+    } else if (observationType == 1) {
+        [document setValue:[NSNumber numberWithInt:2] forKey:@"kdt"];
+    } else {
+        [document setValue:[NSNumber numberWithInt:1] forKey:@"kdt"];
+    }
+    [self didChangeValueForKey:@"classDistancesEnabled"];
+}
+
+- (BOOL)classDistancesEnabled
+{
+    NSLog(@"classDistancesEnabled: %d", [document kdt]);
+    return ([document kdt] > 1);
+}
+
+//- (int)minimumClassDistance
+//- (void)setClassMinimum:(int)minimumClassDistance;
+
+- (void)setMaximumClassDistance:(int)maximumDistance
+{
+    [document setValue:[NSNumber numberWithInt:maximumDistance] forKey:@"kdt"];
+    maximumClassDistance = maximumDistance;
+}
+
 - (int)transectUnit
 {
     return ([document km] > 0);
@@ -79,12 +115,9 @@
 
 - (BOOL)detectionUnitEnabled
 {
-    if ([document ifx])
-    {
+    if ([document ifx]) {
         return YES;
-    }
-    else
-    {
+    } else {
         return ([document km] > 0);
     }
 }
@@ -108,8 +141,7 @@
             detectionUnitString = @"km";
             break;
     }
-    if (detectionUnit > 0)
-    {
+    if (detectionUnit > 0) {
         estdenUnitString = @"ind/km2";
     }
 }
