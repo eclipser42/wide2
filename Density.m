@@ -87,7 +87,7 @@
     [contents appendFormat:@"%c%g, %d, %g, %g, %g, %g, %g%c", 10, params.stt, params.maxjb, params.clint, params.f[0], params.f[1], params.f[2], params.f[3], 10];
     [contents appendFormat:@"%g, %g, %g%c", params.step[0], params.step[1], params.step[2], 10];
     [contents appendFormat:@"%d, %d, %d%c", params.iprint, params.jprint, params.ishow, 10];
-    [contents appendFormat:@"%d, %g, %g%c", 0 /* imv */, 0 /* r3s */, params.step[3], 10];
+    [contents appendFormat:@"%d, %g, %g%c", 0 /* imv */, 0.0 /* r3s */, params.step[3], 10];
     return [contents dataUsingEncoding:NSUTF8StringEncoding];
 }
 
@@ -152,7 +152,6 @@
 
 - (int)iry
 {
-    NSLog(@"IRY now %d", params.iry);
     return params.iry;
 }
 
@@ -160,7 +159,6 @@
 {
     [[[self undoManager] prepareWithInvocationTarget:self] setIry:params.iry];
     params.iry = iry;
-    NSLog(@"IRY set to %d", params.iry);
 }
 
 - (int)kdt
@@ -747,7 +745,14 @@
 {
     params.complete = 0;
     [self setValue:@"" forKey:@"completeMsg"];
-    [NSThread detachNewThreadSelector:@selector(calculationThread:) toTarget:self withObject:nil];
+
+    long systemVersion = 0;
+    OSStatus err = Gestalt(gestaltSystemVersion, &systemVersion);
+    if (systemVersion >= 0x1040) {
+        [NSThread detachNewThreadSelector:@selector(calculationThread:) toTarget:self withObject:nil];
+    } else {
+        [self calculationWork];
+    }
 }
 
 - (void)calculationThread:(id)ignored
