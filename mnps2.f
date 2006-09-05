@@ -1,4 +1,4 @@
-!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.2a7)
+!     PROGRAM WildlifeDensity  (File mnps2.f, Version WD_0.2a8)
 !
 !     This program is designed to return population density estimates
 !     from 'distance' data collected using either line transect or fixed
@@ -2749,8 +2749,19 @@
 !
       IF (kprint.eq.0) GO TO 1300
 !
-      WRITE (2,1200) rlow
- 1200 FORMAT (' 99.9% r value (rmin) =',f7.2,' m ')
+      IF (jrlow.gt.0) THEN
+        WRITE (2,1200) rlow
+ 1200   FORMAT (' 99.9% r value (rmin) =',f7.2,' m ')
+      END IF
+!
+!     If the range of distance values includes a g(0) value, the
+!     program estimates detectability at g(y)=0.
+!
+      IF (tr.le.0) THEN
+        WRITE (2,1205) tote
+ 1205   FORMAT (' Est.Detectability at g(y=0): ',f5.3)
+      END IF
+!
       OPEN (UNIT=3,FILE=graph_file,STATUS='NEW',IOSTAT=ios,
      & ERR=1320)
       IF (iry.gt.0) GO TO 1250
