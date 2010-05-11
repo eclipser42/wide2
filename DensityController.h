@@ -6,10 +6,12 @@
 @interface DensityController : NSObject
 {
     IBOutlet Density *document;
+    IBOutlet NSTableView *observationsTable;
+    IBOutlet NSTableColumn *anglesColumn;
+    IBOutlet NSTableColumn *elevationsColumn;
     IBOutlet NSButton *calculateButton;
     IBOutlet NSProgressIndicator *progressBar;
     NSString *detectionUnitString;
-    NSString *estdenUnitString;
     int maximumClassDistance;
 }
 - (int)censusType;
@@ -26,6 +28,11 @@
 - (BOOL)detectionUnitEnabled;
 - (int)detectionUnit;
 - (void)setDetectionUnit:(int)detectionUnit;
+- (BOOL)topographyDoesObscure;
+- (void)setTopographyDoesObscure:(BOOL)topographyDoesObscure;
+- (double)minimumObscuringDistance;
+- (void)setMinimumObscuringDistance:(double)minimumObscuringDistance;
+- (void)updateTableColumns;
 - (IBAction)calculate:(id)sender;
 - (void)updateProgress:(NSTimer*)timer;
 @end

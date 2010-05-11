@@ -7,8 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1A0EEFB70997831D0040534B /* libgfortran.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0EEFB60997831D0040534B /* libgfortran.a */; };
-		1A221BD1071BCDDB00596C57 /* mnps2.f in Sources */ = {isa = PBXBuildFile; fileRef = 420B008E06C6F75800695CAB /* mnps2.f */; settings = {COMPILER_FLAGS = "-Wx,-qthreaded"; }; };
+		1A221BD1071BCDDB00596C57 /* mnps2.f in Sources */ = {isa = PBXBuildFile; fileRef = 420B008E06C6F75800695CAB /* mnps2.f */; settings = {COMPILER_FLAGS = "-fno-underscoring"; }; };
 		1A9534E209F10EC6002E1E3A /* Dataset Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1A9534E109F10EC6002E1E3A /* Dataset Icon.icns */; };
 		420B005106C6E96000695CAB /* Density.nib in Resources */ = {isa = PBXBuildFile; fileRef = 420B004F06C6E96000695CAB /* Density.nib */; };
 		420B005606C6E99600695CAB /* DensityController.h in Resources */ = {isa = PBXBuildFile; fileRef = 420B005406C6E99600695CAB /* DensityController.h */; };
@@ -16,6 +15,9 @@
 		420B007306C6EED000695CAB /* Density.h in Resources */ = {isa = PBXBuildFile; fileRef = 420B007106C6EED000695CAB /* Density.h */; };
 		420B007406C6EED000695CAB /* Density.m in Sources */ = {isa = PBXBuildFile; fileRef = 420B007206C6EED000695CAB /* Density.m */; };
 		422BF475074B760D00FE654A /* WildlifeDensity Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 422BF474074B760D00FE654A /* WildlifeDensity Icon.icns */; };
+		425475AD0C1E6C9E006BD5B5 /* Graph Results Plot macro in Resources */ = {isa = PBXBuildFile; fileRef = 425475AC0C1E6C9E006BD5B5 /* Graph Results Plot macro */; };
+		42FC64F5108BB7A500919FB1 /* DensityHelp.m in Sources */ = {isa = PBXBuildFile; fileRef = 42FC64F4108BB7A500919FB1 /* DensityHelp.m */; };
+		42FC64F8108BB7E600919FB1 /* WildlifeDensity Manual.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 42FC64F6108BB7E600919FB1 /* WildlifeDensity Manual.pdf */; };
 		8D15AC2C0486D014006FF6A4 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */; };
 		8D15AC2D0486D014006FF6A4 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B6FDCFA73011CA2CEA /* MainMenu.nib */; };
 		8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165FFE840EACC02AAC07 /* InfoPlist.strings */; };
@@ -26,7 +28,7 @@
 /* Begin PBXBuildRule section */
 		420B006B06C6EBE600695CAB /* PBXBuildRule */ = {
 			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.proxy.script;
+			compilerSpec = fr.bobillot.compilers.gfortran;
 			fileType = sourcecode.fortran;
 			isEditable = 1;
 			outputFiles = (
@@ -39,7 +41,6 @@
 /* Begin PBXFileReference section */
 		089C1660FE840EACC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
-		1A0EEFB60997831D0040534B /* libgfortran.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libgfortran.a; path = "gfortran-static/libgfortran.a"; sourceTree = "<group>"; };
 		1A9534E109F10EC6002E1E3A /* Dataset Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "Dataset Icon.icns"; sourceTree = "<group>"; };
 		2A37F4B0FDCFA73011CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		2A37F4B7FDCFA73011CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
@@ -54,7 +55,11 @@
 		420B007206C6EED000695CAB /* Density.m */ = {isa = PBXFileReference; fileEncoding = 7; lastKnownFileType = sourcecode.c.objc; path = Density.m; sourceTree = "<group>"; };
 		420B008E06C6F75800695CAB /* mnps2.f */ = {isa = PBXFileReference; explicitFileType = sourcecode.fortran; fileEncoding = 7; indentWidth = 4; path = mnps2.f; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
 		422BF474074B760D00FE654A /* WildlifeDensity Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "WildlifeDensity Icon.icns"; sourceTree = "<group>"; };
+		425475AC0C1E6C9E006BD5B5 /* Graph Results Plot macro */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = "Graph Results Plot macro"; sourceTree = "<group>"; };
 		4295D9CA06C73467005558C3 /* mnps2.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = mnps2.h; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
+		42FC64F3108BB7A500919FB1 /* DensityHelp.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = DensityHelp.h; sourceTree = "<group>"; };
+		42FC64F4108BB7A500919FB1 /* DensityHelp.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = DensityHelp.m; sourceTree = "<group>"; };
+		42FC64F7108BB7E600919FB1 /* English */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; name = English; path = "English.lproj/WildlifeDensity Manual.pdf"; sourceTree = "<group>"; };
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* WildlifeDensity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WildlifeDensity.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -65,7 +70,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D15AC340486D014006FF6A4 /* Cocoa.framework in Frameworks */,
-				1A0EEFB70997831D0040534B /* libgfortran.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,7 +79,6 @@
 		1058C7A6FEA54F5311CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				1A0EEFB60997831D0040534B /* libgfortran.a */,
 				1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */,
 			);
 			name = "Linked Frameworks";
@@ -101,6 +104,7 @@
 		2A37F4AAFDCFA73011CA2CEA /* WildlifeDensity */ = {
 			isa = PBXGroup;
 			children = (
+				425475AC0C1E6C9E006BD5B5 /* Graph Results Plot macro */,
 				2A37F4ABFDCFA73011CA2CEA /* Classes */,
 				2A37F4AFFDCFA73011CA2CEA /* Other Sources */,
 				2A37F4B8FDCFA73011CA2CEA /* Resources */,
@@ -113,6 +117,8 @@
 		2A37F4ABFDCFA73011CA2CEA /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				42FC64F3108BB7A500919FB1 /* DensityHelp.h */,
+				42FC64F4108BB7A500919FB1 /* DensityHelp.m */,
 				420B005406C6E99600695CAB /* DensityController.h */,
 				420B005506C6E99600695CAB /* DensityController.m */,
 				420B007106C6EED000695CAB /* Density.h */,
@@ -135,6 +141,7 @@
 		2A37F4B8FDCFA73011CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				42FC64F6108BB7E600919FB1 /* WildlifeDensity Manual.pdf */,
 				422BF474074B760D00FE654A /* WildlifeDensity Icon.icns */,
 				1A9534E109F10EC6002E1E3A /* Dataset Icon.icns */,
 				2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */,
@@ -186,6 +193,7 @@
 			hasScannedForEncodings = 1;
 			mainGroup = 2A37F4AAFDCFA73011CA2CEA /* WildlifeDensity */;
 			projectDirPath = "";
+			projectRoot = "";
 			targets = (
 				8D15AC270486D014006FF6A4 /* WildlifeDensity */,
 			);
@@ -205,6 +213,8 @@
 				420B007306C6EED000695CAB /* Density.h in Resources */,
 				422BF475074B760D00FE654A /* WildlifeDensity Icon.icns in Resources */,
 				1A9534E209F10EC6002E1E3A /* Dataset Icon.icns in Resources */,
+				425475AD0C1E6C9E006BD5B5 /* Graph Results Plot macro in Resources */,
+				42FC64F8108BB7E600919FB1 /* WildlifeDensity Manual.pdf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -219,6 +229,7 @@
 				420B005706C6E99600695CAB /* DensityController.m in Sources */,
 				420B007406C6EED000695CAB /* Density.m in Sources */,
 				1A221BD1071BCDDB00596C57 /* mnps2.f in Sources */,
+				42FC64F5108BB7A500919FB1 /* DensityHelp.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -257,6 +268,14 @@
 			name = Density.nib;
 			sourceTree = "<group>";
 		};
+		42FC64F6108BB7E600919FB1 /* WildlifeDensity Manual.pdf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				42FC64F7108BB7E600919FB1 /* English */,
+			);
+			name = "WildlifeDensity Manual.pdf";
+			sourceTree = "<group>";
+		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
@@ -270,17 +289,13 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = WildlifeDensity_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "";
 				LIBRARY_STYLE = DYNAMIC;
-				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
 				PRODUCT_NAME = WildlifeDensity;
 				WRAPPER_EXTENSION = app;
-				XLF_QFIXED = YES;
 				ZERO_LINK = YES;
 			};
 			name = Development;
@@ -293,17 +308,13 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = WildlifeDensity_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "";
 				LIBRARY_STYLE = DYNAMIC;
-				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
 				PRODUCT_NAME = WildlifeDensity;
 				WRAPPER_EXTENSION = app;
-				XLF_QFIXED = YES;
 				ZERO_LINK = NO;
 			};
 			name = Deployment;
@@ -315,35 +326,39 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = WildlifeDensity_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "";
 				LIBRARY_STYLE = DYNAMIC;
-				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
 				PRODUCT_NAME = WildlifeDensity;
 				WRAPPER_EXTENSION = app;
-				XLF_QFIXED = YES;
 			};
 			name = Default;
 		};
 		4206D92E093D5F580056509F /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 			};
 			name = Development;
 		};
 		4206D92F093D5F580056509F /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_AUTO_VECTORIZATION = YES;
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 			};
 			name = Deployment;
 		};
 		4206D930093D5F580056509F /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_AUTO_VECTORIZATION = YES;
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 			};
 			name = Default;
 		};
