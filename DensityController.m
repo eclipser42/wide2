@@ -30,6 +30,10 @@
     [anglesColumn retain];
     [elevationsColumn retain];
     [observationsTable setDelegate:document];
+    [document addObserver:self
+               forKeyPath:@"kdt"
+                  options:0
+                  context:NULL];
     if ([document kdt] > 1) {
         [self willChangeValueForKey:@"maximumClassDistance"];
         maximumClassDistance = [document kdt];
@@ -39,6 +43,7 @@
 
 - (void)dealloc
 {
+    [document removeObserver:self forKeyPath:@"kdt"];
     [anglesColumn release];
     [elevationsColumn release];
 
@@ -49,6 +54,20 @@
 - (void)restoreValue:(id)value forKey:(NSString *)key
 {
     [self setValue:value forKey:key];
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary *)change
+                       context:(void *)context
+{
+    // if kdt has changed in the document, then some of our keys' values may have too
+    [self willChangeValueForKey:@"observationType"];
+    [self willChangeValueForKey:@"classDistancesEnabled"];
+    [self willChangeValueForKey:@"maximumClassDistance"];
+    [self didChangeValueForKey:@"observationType"];
+    [self didChangeValueForKey:@"classDistancesEnabled"];
+    [self didChangeValueForKey:@"maximumClassDistance"];
 }
 
 - (int)censusType
@@ -64,8 +83,6 @@
 
 - (void)setCensusType:(int)censusType
 {
-    [[[document undoManager] prepareWithInvocationTarget:document] restoreValue:[NSNumber numberWithInt:[document iry]] forKey:@"iry"];
-    [[[document undoManager] prepareWithInvocationTarget:document] restoreValue:[NSNumber numberWithInt:[document ifx]] forKey:@"ifx"];
     [[[document undoManager] prepareWithInvocationTarget:self] restoreValue:[NSNumber numberWithInt:[self censusType]] forKey:@"censusType"];
     switch (censusType)
     {
@@ -103,13 +120,12 @@
 
 - (void)setObservationType:(int)observationType
 {
-    [[[document undoManager] prepareWithInvocationTarget:self] restoreValue:[NSNumber numberWithInt:[self observationType]] forKey:@"observationType"];
-    [self willChangeValueForKey:@"classDistancesEnabled"];
+    // rely on [document kdt] to manage undo and redo
+    // also rely on KVObservation to update classDistancesEnabled
     if (observationType < 2)
         [document setValue:[NSNumber numberWithInt:observationType] forKey:@"kdt"];
     else
         [document setValue:[NSNumber numberWithInt:maximumClassDistance] forKey:@"kdt"];
-    [self didChangeValueForKey:@"classDistancesEnabled"];
 }
 
 - (BOOL)classDistancesEnabled
@@ -122,7 +138,7 @@
 
 - (void)setMaximumClassDistance:(int)maximumDistance
 {
-    [[[document undoManager] prepareWithInvocationTarget:self] restoreValue:[NSNumber numberWithInt:maximumDistance] forKey:@"maximumDistance"];
+    // rely on [document kdt] to manage undo and redo
     [document setValue:[NSNumber numberWithInt:maximumDistance] forKey:@"kdt"];
     maximumClassDistance = maximumDistance;
 }
@@ -203,19 +219,6 @@
         [document setLtmin:minimumObscuringDistance];
     }
 }
-
-// perpenType is 1 for radial+angle perpendicular data; otherwise zero
-// setting perpenType is only valid when ifx==0 and iry>0
-/*- (int)perpenType
-{
-    return ([document iry] == 2);
-}
-
-- (void)setPerpenType:(int)perpenType
-{
-    NSAssert([document iry] > 0, @"wrong mode to set perpenType");
-    [document setValue:[NSNumber numberWithInt:(perpenType + 1)] forKey:@"iry"];
-}*/
 
 -(void)updateTableColumns
 {

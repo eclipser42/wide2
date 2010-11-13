@@ -12,6 +12,17 @@
 #import "Foundation/NSFileManager.h"
 #import <unistd.h>
 
+@implementation Observation
+- (double)distance                        { return distance; }
+- (void)setDistance:(double)newDistance   { distance = newDistance; }
+- (int)groupSize                          { return groupSize; }
+- (void)setGroupSize:(int)newGroupSize;   { groupSize = newGroupSize; }
+- (double)angle                           { return angle; }
+- (void)setAngle:(double)newAngle         { angle = newAngle; }
+- (double)elevation                       { return elevation; }
+- (void)setElevation:(double)newElevation { elevation = newElevation; }
+@end
+
 @implementation Density
 
 - (id)init
@@ -77,18 +88,18 @@
     [contents appendFormat:@"%d, %d, %d, %g, %d, %g, %d, %g, %g%c", params.ifx, params.iry, params.kdt, params.dist, params.km, params.ltmin, params.ns, params.pd, params.vgh, 10];
     [contents appendFormat:@"%g, %g, %g, %g%c%c", params.durn, params.rate, params.ps, params.thh, 10, 10];
     for (int i = 0; i < [observations count]; ++i) {
-        NSDictionary *observation = [observations objectAtIndex:i];
+        Observation *observation = [observations objectAtIndex:i];
         if (params.iry == 1) {
             [contents appendFormat:@"%g, %d, %g",
-                [[observation objectForKey:@"distance"] doubleValue],
-                [[observation objectForKey:@"nsize"] intValue],
-                [[observation objectForKey:@"angle"] doubleValue]];
+                [observation distance],
+                [observation groupSize],
+                [observation angle]];
         } else {
             [contents appendFormat:@"%g, %d",
-                [[observation objectForKey:@"distance"] doubleValue],
-                [[observation objectForKey:@"nsize"] intValue]];
+                [observation distance],
+                [observation groupSize]];
         }
-        double elevationAngle = [[observation objectForKey:@"elevation"] doubleValue];
+        double elevationAngle = [observation elevation];
         if (elevationAngle == -1) {
             [contents appendFormat:@"%c", 10];
         } else {
@@ -137,14 +148,15 @@
         return NO;
     }
 
-    NSArray* observationKeys = [NSArray arrayWithObjects:@"distance", @"angle", @"elevation", @"nsize", nil];
     [observations removeAllObjects];
     for (int i = 0; i < params.nvals; ++i) {
-        NSArray *observationValues = [NSArray arrayWithObjects:[NSNumber numberWithDouble:params.r[i]],
-                                                               [NSNumber numberWithDouble:params.angle[i]],
-                                                               [NSNumber numberWithDouble:elevations[i]],
-                                                               [NSNumber numberWithInt:params.nsize[i]], nil];
-        [observations addObject:[NSMutableDictionary dictionaryWithObjects:observationValues forKeys:observationKeys]];
+        Observation *observation = [[Observation alloc] init];
+        [observation setDistance:params.r[i]];
+        [observation setGroupSize:params.nsize[i]];
+        [observation setAngle:params.angle[i]];
+        [observation setElevation:elevations[i]];
+        [self startObservingObservation:observation];
+        [observations addObject:observation];
     }
 
     NSFileManager *fileMgr = [NSFileManager defaultManager];
@@ -159,9 +171,7 @@
 
 - (void)windowControllerDidLoadNib:(NSWindowController *)windowController
 {
-    [observationsController setContent:observations];
     [controller updateTableColumns];
-    //commented-out until undo drives the UI properly
     [[windowController window] setDelegate:self];
 }
 
@@ -220,25 +230,25 @@
         while (true) {
             double distance, groupSize, angle = 0, elevation = 0;
             bool rowIsValid = YES;
-            NSMutableDictionary *newRow = [NSMutableDictionary dictionary];
+            Observation *newRow = [[Observation alloc] init];
             
             if ([scanner scanDouble:&distance])
-                [newRow setValue:[NSNumber numberWithDouble:distance] forKey:@"distance"];
+                [newRow setDistance:distance];
             else
                 rowIsValid = NO;
             if (rowIsValid && [scanner scanDouble:&groupSize])
-                [newRow setValue:[NSNumber numberWithDouble:groupSize] forKey:@"nsize"];
+                [newRow setGroupSize:groupSize];
             else
                 rowIsValid = NO;
             if (rowIsValid && params.iry == 1) {
                 if ([scanner scanDouble:&angle])
-                    [newRow setValue:[NSNumber numberWithDouble:angle] forKey:@"angle"];
+                    [newRow setAngle:angle];
                 else
                     rowIsValid = NO;
             }
             if (rowIsValid && elevationsAreSupplied) {
                 if ([scanner scanDouble:&elevation])
-                    [newRow setValue:[NSNumber numberWithDouble:elevation] forKey:@"elevation"];
+                    [newRow setElevation:elevation];
                 else
                     rowIsValid = NO;
             }
@@ -254,7 +264,8 @@
                     insertionPoint = [selection lastIndex] + 1;
                     NSLog(@"inserting at %d", insertionPoint);
                 }
-                [observationsController insertObject:newRow atArrangedObjectIndex:insertionPoint];
+                [self insertObject:newRow inObservationsAtIndex:insertionPoint];
+                [[self undoManager] setActionName:@"Paste"];
                 if ([scanner isAtEnd])
                     break;
             } else {
@@ -282,6 +293,8 @@
 	[header retain];
 }
 
+#pragma mark - Method Tab
+
 - (int)ifx
 {
     return params.ifx;
@@ -289,7 +302,8 @@
 
 - (void)setIfx:(int)ifx
 {
-    [[[self undoManager] prepareWithInvocationTarget:self] restoreValue:[NSNumber numberWithInt:params.ifx] forKey:@"ifx"];
+    // Note this is a model change that doesn't register to undo itself: all callers must regsiter
+    // undo & redo of calls to setIfx:
     params.ifx = ifx;
 }
 
@@ -300,7 +314,8 @@
 
 - (void)setIry:(int)iry;
 {
-    [[[self undoManager] prepareWithInvocationTarget:self] setIry:params.iry];
+    // Note this is a model change that doesn't register to undo itself: all callers must regsiter
+    // undo & redo of calls to setIry:
     params.iry = iry;
     [controller updateTableColumns];
 }
@@ -359,6 +374,8 @@
     params.ns = ns;
 }
 
+#pragma mark - Sample Details Tab
+
 - (double)pd
 {
     return params.pd;
@@ -416,6 +433,9 @@
 
 - (void)setElevationsAreSupplied:(BOOL)newElevationsAreSupplied
 {
+    [[[self undoManager] prepareWithInvocationTarget:self] restoreValue:[NSNumber numberWithBool:elevationsAreSupplied]
+                                                                 forKey:@"elevationsAreSupplied"];
+    [[self undoManager] setActionName:@"Set Elevation Method"];
     elevationsAreSupplied = newElevationsAreSupplied;
     [controller updateTableColumns];
 }
@@ -441,6 +461,100 @@
     [[[self undoManager] prepareWithInvocationTarget:self] setStt:params.stt];
     params.stt = stt;
 }
+
+#pragma mark - Observations Tab
+
+- (void)insertObject:(Observation *)o inObservationsAtIndex:(int)index
+{
+    //NSLog(@"adding %@ to %@", o, observations);
+    // Add the inverse of this operation to the undo stack
+    NSUndoManager *undo = [self undoManager];
+    [[undo prepareWithInvocationTarget:self] removeObjectFromObservationsAtIndex:index];
+    if (![undo isUndoing]) {
+        [undo setActionName:@"Insert Observation"];
+    }
+    
+    // Add the Person to the array
+    [self startObservingObservation:o];
+    [observations insertObject:o atIndex:index];
+}
+
+- (void)removeObjectFromObservationsAtIndex:(int)index
+{
+    Observation *o = [observations objectAtIndex:index];
+    //NSLog(@"removing %@ from %@", o, observations);
+    // Add the inverse of this operation to the undo stack
+    NSUndoManager *undo = [self undoManager];
+    [[undo prepareWithInvocationTarget:self] insertObject:o
+                                    inObservationsAtIndex:index];
+    if (![undo isUndoing]) {
+        [undo setActionName:@"Delete Observation"];
+    }
+    
+    [observations removeObjectAtIndex:index];
+    [self stopObservingObservation:o];
+}
+
+- (void)startObservingObservation:(Observation *)o
+{
+    [o addObserver:self
+        forKeyPath:@"distance"
+           options:NSKeyValueObservingOptionOld
+           context:NULL];
+
+    [o addObserver:self
+        forKeyPath:@"groupSize"
+           options:NSKeyValueObservingOptionOld
+           context:NULL];
+
+    [o addObserver:self
+        forKeyPath:@"angle"
+           options:NSKeyValueObservingOptionOld
+           context:NULL];
+
+    [o addObserver:self
+        forKeyPath:@"elevation"
+           options:NSKeyValueObservingOptionOld
+           context:NULL];
+}
+
+- (void)stopObservingObservation:(Observation *)o
+{
+    [o removeObserver:self forKeyPath:@"distance"];
+    [o removeObserver:self forKeyPath:@"groupSize"];
+    [o removeObserver:self forKeyPath:@"angle"];
+    [o removeObserver:self forKeyPath:@"elevation"];
+}
+
+- (void)changeKeyPath:(NSString *)keyPath
+             ofObject:(id)obj
+              toValue:(id)newValue
+{
+    // setValue:forKeyPath: will cause the key-value observing method
+    // to be called, which takes care of the undo stuff
+    [obj setValue:newValue forKeyPath:keyPath];
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary *)change
+                       context:(void *)context
+{
+    NSUndoManager *undo = [self undoManager];
+    id oldValue = [change objectForKey:NSKeyValueChangeOldKey];
+    
+    // NSNull objects are used to represent nil in a dictionary
+    if (oldValue == [NSNull null]) {
+        oldValue = nil;
+    }
+    //NSLog(@"oldValue = %@", oldValue);
+    [[undo prepareWithInvocationTarget:self] changeKeyPath:keyPath
+                                                  ofObject:object
+                                                   toValue:oldValue];
+    [undo setActionName:@"Edit Observation"];
+}
+
+#pragma mark - Options Tab
 
 - (int)maxjb
 {
@@ -573,6 +687,8 @@
     [[[self undoManager] prepareWithInvocationTarget:self] setJprint:params.jprint];
     params.jprint = jprint;
 }
+
+#pragma mark - Estimate Tab
 
 - (int)nvals
 {
@@ -1015,15 +1131,15 @@ double deg2rad(double deg) {
 
     // Trim any empty observations
     [self willChangeValueForKey:@"nvals"];
-    [[self undoManager] setActionName:@"Trim empty observations"];
     for (int i = 0; i < [observations count]; ) {
-        int nsize = [[[observations objectAtIndex:i] objectForKey:@"nsize"] intValue];
+        int nsize = [[observations objectAtIndex:i] groupSize];
         if (nsize == 0) {
-            [observationsController removeObjectAtArrangedObjectIndex:i];
+            [self removeObjectFromObservationsAtIndex:i];
         } else {
             ++i;
         }
     }
+    [[self undoManager] setActionName:@"Trim empty observations"];
     [self didChangeValueForKey:@"nvals"];
 
     // Compute THH and LTMAX
@@ -1032,12 +1148,12 @@ double deg2rad(double deg) {
     params.ltmax = 0;
     params.nvals = [observations count];
     for (int i = 0; i < params.nvals; i++) {
-        NSDictionary *observation = [observations objectAtIndex:i];
-        params.r[i] = [[observation objectForKey:@"distance"] doubleValue];
-        params.angle[i] = [[observation objectForKey:@"angle"] doubleValue];
-        params.nsize[i] = [[observation objectForKey:@"nsize"] intValue];
+        Observation *observation = [observations objectAtIndex:i];
+        params.r[i] = [observation distance];
+        params.angle[i] = [observation angle];
+        params.nsize[i] = [observation groupSize];
         
-        double elevationAngle = [[observation objectForKey:@"elevation"] doubleValue];
+        double elevationAngle = [observation elevation];
         if (elevationAngle != -1) {
             double horizontalDistance = params.r[i];
             if (params.km == 2) horizontalDistance *= 1000;

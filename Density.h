@@ -5,6 +5,23 @@
 
 @class DensityController;
 
+@interface Observation : NSObject
+{
+    double distance;
+    int groupSize;
+    double angle;
+    double elevation;
+}
+- (double)distance;
+- (void)setDistance:(double)newDistance;
+- (int)groupSize;
+- (void)setGroupSize:(int)newGroupSize;
+- (double)angle;
+- (void)setAngle:(double)newAngle;
+- (double)elevation;
+- (void)setElevation:(double)newElevation;
+@end
+
 @interface Density : NSDocument
 #if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1060
                                 < NSWindowDelegate,NSTableViewDelegate >
@@ -53,6 +70,11 @@
 
 - (double)stt;
 - (void)setStt:(double)stt;
+
+- (void)insertObject:(Observation *)o inObservationsAtIndex:(int)index;
+- (void)removeObjectFromObservationsAtIndex:(int)index;
+- (void)startObservingObservation:(Observation *)o;
+- (void)stopObservingObservation:(Observation *)o;
 - (int)maxjb;
 - (void)setMaxjb:(int)maxjb;
 - (double)clint;
