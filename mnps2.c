@@ -499,7 +499,14 @@
 *
 * Modifications
 * -------------
-* 27-May-2011	J.Begg		Translation from Fortran
+* 28-Mar-2011	J.Begg		Begin translation.
+* 12-Apr-2011	J.Begg		Convert DO loop syntax and adjust array bounds
+* 18-Apr-2011	J.Begg		Convert IF syntax and structure references
+*				Completed srandnag() and randnag().
+* 20-Apr-2011	J.Begg		Convert file I/O and FORMAT statements
+* 27-Apr-2011	J.Begg		Convert remaining statements
+* 12-May-2011	J.Begg		Completed syntax conversion.
+*  4-Aug-2011	J.Begg		Corrections to Case_150 and Loop_150.
 *
 *******************************************************************************/
 
@@ -568,6 +575,7 @@ static int ifrst=0;
 
 void srandnag (int iseed)
 {
+      /* printf("Srandnag(%d)\n", iseed); */
       jseed = iseed;
       ifrst = 0;
 
@@ -636,11 +644,14 @@ void resample (float orig_dist[], int orig_size[], int nvals,
       int ix, n;
       double x;
 
+      /* printf("\n");
+         printf("Resampling ...\n"); */
       for (ix=0; ix < nvals; ix++) {	//    DO ix = 1, nvals
 	randgen(&x);
 	n = x*nvals;
 	resamp_dist[ix] = orig_dist[n];
 	resamp_size[ix] = orig_size[n];
+	/* printf("resamp(%4d) = orig(%4d)\n", ix+1, n+1); */
       }					//  END DO
       return;
 }
@@ -1696,6 +1707,25 @@ Line_1300:
 }
 //      END SUBROUTINE givef
 
+/*******************************************************************************
+*
+*	QSF		Quadratic Surface Fit
+*
+* Modifications
+* -------------
+* 28-Mar-2011	J.Begg		First translation.
+* 12-Apr-2011	J.Begg		Convert array syntax and adjust loop bounds
+* 18-Apr-2011	J.Begg		Convert IF syntax
+* 21-Apr-2011	J.Begg		Convert WRITE/FORMAT statements
+* 18-May-2011	J.Begg		Complete syntax conversion.  Note that the
+*				arithmetic for calculating array indices for the
+*				matrix 'B' is subtly different compared to the
+*				original FORTRAN, because the array indices
+*				start at 0 not 1.
+*
+*******************************************************************************/
+
+
 /*******************************************************************
 *
 *      QSF
@@ -3006,66 +3036,56 @@ Inner_96:
 
 /*
 *
-*     If calculations are to be based on perpendicular distances (y)
-*     from the transect line, and the data supplied are radial
-*     distances and angles, perpendicular distances are now calculated
-*     for the data entered initially, this action being
-*     prompted by IRY having a value less than 2.  0.001 is added
-*     to raise 0 values to distinguish them from overtakes. If perp.
-*     distance data as such were supplied (IRY=2), this step is
-*     bypassed and the distance data are recognized as N[y].
-*     At this step, any angle data supplied as negative numbers
-*     (E.g. from the left of a transect line) are also converted to
-*     positive and pooled with the remainder.  If r=0 and the data 
-*     are line transect (IFX=0), the values are treated as
-*     'overtakes', y[in] is made zero, and the number of groups 
-*     overtaking (NOVTKS) is counted.
+*     Case_150 treats the situation where calculations are to be based 
+*     on perpendicular distances (y) from the transect line, and the
+*     data supplied are either radial distances and angles, indicated
+*     by IRY=1, or pre-calculated perpendicular distances, indicated 
+*     by IRY=2.  If IRY=2, distances entered as r(in) are reassigned
+*     as y(in) values.  If IRY=1, perpendicular distances are 
+*     calculated from distances and lateral angles using trigonometry.  
+*     With both situations, any angle data supplied as negative numbers
+*     (e.g. those to the left of a transect line) are converted to
+*     positive and pooled with the remainder.  
+*     If calculations are to be based on radial detection distances,
+*     and radial distances only are supplied (IFX=0), no changes are
+*     made (either by calculation or reassignment).
+*     If a radial distance value of precisely zero (r==0) was supplied
+*     to the program in the Observations, then each such value will be
+*     recognized as an ÔovertakeÕ at a later point in the program.
 */
 Case_150:
       switch(iry) {
 
 	case 2:
 /*
-*     If perp. distance data were entered as r values, they
+*     If perp. distance data were entered as r values (IRY=2), they
 *     are renamed as y values at this stage, unless r=0 
 *     when they are 'overtakes' and omitted.  Negative y values
 *     submitted to the program (as negative r value) are
 *     converted to positive and pooled with the rest.
-*     The number of groups overtaking (NOVTKS) is not counted,
-*     because they are actually y values, along the transect.
 */
 Loop_190:	for (in=0; in < nvals; in++) {		//  DO in=1,nvals
 		  y[in] = fabs(r[in]);
 		}					//  END DO Loop_190
 		break;
 
-	case 0: if (ifx == 0) {
+
+	case 1:
 /*
-*     For IFX=0, the number of overtakes (NOVTKS) 
-*     is counted. 
+*     For IRY=1, perpendicular distances are calculated from radial
+*     distances and lateral observing angles. 
 */
-Loop_200:	  for (in=0; in < nvals; in++) {	//  DO in=1,nvals
-		    if (r[in] == 0) novtks++;
-        	  }
-		}					//  END DO Loop_200
+Loop_150:	for (in=0; in < nvals; in++) {		// DO in=1, nvals      
+		  y[in] = fabs(r[in]*sin((angle[in]*3.14159265)/180.))+0.001;
+		}					// END DO Loop_150
 		break;
+
 
 	default:
 /*
-*     If IFX=1, they are not counted as overtakes.
+*     If IFX=0, no reassignment is needed.
 */
-Loop_150:	if (ifx == 0) {				//  DO in=1, nvals
-		  for (in=0; in < nvals; in++) {
-		    if (r[in] == 0) {
-		      y[in] = 0.0;
-		      novtks++;
-		    }
-		  }
-         	}
-		else {
-		  for (in=0; in < nvals; in++)
-		    y[in] = fabs(r[in]*sin((angle[in]*3.14159265)/180.))+0.001;
-                }					//  END DO Loop_150
+		break;
 
       } /* switch */
 
@@ -3549,7 +3569,7 @@ Line_620:
 //          WRITE (2,650) (val(i),i=1,nclass)
 //  650     FORMAT (10f6.0,/)
 //
-	  fprintf(output_results, "/n/nBootstrap Replicate No. =%4i      Individuals per class:/n/n", bootstrap+1);
+	  fprintf(output_results, "\n\nBootstrap Replicate No. =%4i      Individuals per class:\n\n", bootstrap+1);
 	  for (i=0, j=0; i < nclass; i++) {
 	    fprintf(output_results, "%6.0f", val[i]);
 	    j++;
@@ -4113,7 +4133,7 @@ Line_1250:
 #error "Output format does not match NUM_SHAPE_PARAMS"
 #endif
 	  fprintf(output_results, "\n Minimum function value   %13.6e\n", func);
-	  fprintf(output_results, "\n End of Search\n *************/n");
+	  fprintf(output_results, "\n End of Search\n *************\n");
         }
 
 /*
