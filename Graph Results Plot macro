@@ -1,0 +1,197 @@
+# Macro for micw's Plot applicaton to graph the output of a WildlifeDensity
+# density estimation
+
+PERL
+	open(IN, $file);
+	$n = 0;
+	while(<IN>) {
+		($midpoint, $model, $observed) = split;
+		$data[0][$n][0] = $midpoint;
+		$data[0][$n][1] = $model;
+		$data[1][$n][0] = $midpoint;
+		$data[1][$n][1] = $observed;
+		$n++;
+	}
+	close(IN);
+PERL
+
+perlimport $file
+
+select all
+setcomment 0 'Model'
+setcomment 1 'Observed'
+blinewidth 2 0
+blinewidth  1 1
+blinepattern 0 0
+blinepattern 2 1
+blegend yes all 
+
+##### main style attributes #####
+colormode 0
+windowsize 680 480
+margins 80 10 80 10
+drawbg yes
+bgcolor 1 1 1 1
+drawmargin yes
+margincolor 1 1 1 1
+drawframe yes
+framecolor 0 0 0 1
+framestyle 0
+framewidth 2
+
+##### axis attributes #####
+setaxis yes yes no no 
+rescale
+cutoutsidex 0 xmax1 0
+cutoutsidex 0 xmax1 1
+
+##### buffer 0 attributes #####
+bstyleclear 0
+bstylelines yes 0
+bcolor 0.6 0.4 0.2 0 1
+bfillcolor 0 1 1 0 1
+bframecolor 0 0 0 0 1
+bstickcolor 0 0 0 0 1
+blinewidth 2 0
+blinepattern 0 0
+bpatternwidth 0 0
+bsymbol 0 0
+bsymbolsize 0 0
+bsymbolfill no 0
+bsticksize 0 0
+bsticksabs no 0
+bxerror 0 0
+byerror 0 0
+berrorlinewidth 1 0
+berrorcolor 0 0 0 0 1
+
+##### buffer 1 attributes #####
+bstyleclear 1
+bstylelines yes 1
+bcolor 0.6 0.4 0.2 1 1
+bfillcolor 0 1 1 1 1
+bframecolor 0 0 0 1 1
+bstickcolor 0 0 0 1 1
+blinewidth 1 1
+blinepattern 2 1
+bpatternwidth 0 1
+bsymbol 0 1
+bsymbolsize 0 1
+bsymbolfill no 1
+bsticksize 0 1
+bsticksabs no 1
+bxerror 0 1
+byerror 0 1
+berrorlinewidth 1 1
+berrorcolor 0 0 0 1 1
+
+##### bottom axis attributes #####
+range 0 1 xmax1
+ascalstart 1 '0'
+ascalend 1
+atickdist 1
+aminsteps 1 '5'
+atimeformat 1
+atrigger 1
+ascalexpr 1
+adecplacesauto 1 yes
+adecplaces 1 0
+aexpoffset 1 5
+aformat 1 0
+asetreverse -1 no
+atext 1 'Detection Distance (m)'
+asetfliptext 1 no
+asetticks 1 yes
+asetticksbothsides 1 no
+atickcolor 1 0 0 0 1
+aticklength 1 10
+atickwidth 1 2
+asetminticks 1 yes
+asetminticksbothsides 1 no
+amintickcolor 1 0 0 0 1
+aminticklength 1 5
+amintickwidth 1 1
+atickstyle 1 0
+asetgrid 1 no
+agridfront 1 no
+agridcolor 1 0.333333 0.333333 0.333333 1
+agridwidth 1 0.5
+agridpattern 1 0
+asetmingrid 1 no
+amingridfront 1 no
+amingridcolor 1 0.333333 0.333333 0.333333 1
+amingridwidth 1 0.5
+amingridpattern 1 0
+asetzeroline 1 no
+azerolinecolor 1 0.333333 0.333333 0.333333 1
+atextfont 1 'HelveticaNeue' 14
+atextoffset 1 5
+anumfont 1 'HelveticaNeue' 12
+anumoffset 1 4
+anumalign 1 2
+anumangle 1 0
+atextcolor 1 0 0 0 1
+asettext 1 yes
+asetnum 1 yes
+aclearlabels 1
+
+##### left axis attributes #####
+ascalstart 2
+ascalend 2
+atickdist 2
+aminsteps 2
+atimeformat 2
+atrigger 2
+ascalexpr 2
+adecplacesauto 2 yes
+adecplaces 2 0
+adecplaces 2 0
+aexpoffset 2 5
+aformat 2 0
+asetsmalllogzero 2 no
+asetreverse 0 no
+atext 2 'Individuals Detected'
+asetfliptext 2 no
+asetticks 1 yes
+asetticksbothsides 2 no
+atickcolor 2 0 0 0 1
+aticklength 2 10
+atickwidth 2 2
+asetminticks 2 yes
+asetminticksbothsides 2 no
+amintickcolor 2 0 0 0 1
+aminticklength 2 5
+amintickwidth 2 1
+atickstyle 2 0
+asetgrid 2 no
+agridfront 2 no
+agridcolor 2 0.333333 0.333333 0.333333 1
+agridwidth 2 0.5
+agridpattern 2 0
+asetmingrid 2 no
+amingridfront 2 no
+amingridcolor 2 0.333333 0.333333 0.333333 1
+amingridwidth 2 0.5
+amingridpattern 2 0
+asetzeroline 2 no
+azerolinecolor 2 0.333333 0.333333 0.333333 1
+atextfont 2 'HelveticaNeue' 14
+atextoffset 2 8
+anumfont 2 'HelveticaNeue' 12
+anumoffset 2 5
+anumalign 2 4
+anumangle 2 0
+atextcolor 2 0 0 0 1
+asettext 2 yes
+asetnum 2 yes
+aclearlabels 2
+
+##### legend attributes #####
+setlegend yes
+legendpos 500 450
+legendlength 80
+legendspace 20
+legendcolor 0 0 0 1
+setlegendbg no
+legendbgcolor 1 1 1 1
+legendfont 'HelveticaNeue-Italic' 12

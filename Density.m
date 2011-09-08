@@ -2,7 +2,7 @@
 //  Density.m
 //  CocoaTest
 //
-//  Created by David Morgan on Mon Jul 26 2004.
+//  Created by James Clough on 9 Jan 2007.
 //  Copyright (c) 2004 __MyCompanyName__. All rights reserved.
 //
 
@@ -12,6 +12,17 @@
 #import "Foundation/NSFileManager.h"
 #import <unistd.h>
 
+@implementation Observation
+- (double)distance                        { return distance; }
+- (void)setDistance:(double)newDistance   { distance = newDistance; }
+- (int)groupSize                          { return groupSize; }
+- (void)setGroupSize:(int)newGroupSize;   { groupSize = newGroupSize; }
+- (double)angle                           { return angle; }
+- (void)setAngle:(double)newAngle         { angle = newAngle; }
+- (double)elevation                       { return elevation; }
+- (void)setElevation:(double)newElevation { elevation = newElevation; }
+@end
+
 @implementation Density
 
 - (id)init
@@ -20,23 +31,25 @@
     if (self) {
 
         // Add your subclass-specific initialization here.
-		header = [[NSString allocWithZone:[self zone]] init];
-		outFile = [NSString allocWithZone:[self zone]];
-		graphFile = [NSString allocWithZone:[self zone]];
-        completeMsg = [[NSString allocWithZone:[self zone]] init];
+		header = @"[Data Set Description]";
+        currentResultsIndex = 0;
+		observations = [[NSMutableArray alloc] init];
+        completeMsg = @"";
 
         // Set defaults
+        params.ns = 2;
         params.thh = 0;
         params.stt = 0;
         params.clint = 20;
         params.maxjb = 500;
-        params.f[0] = 10;
+        params.pd = 1;
+        params.f[0] = 15;
         params.f[1] = 0.1;
-        params.f[2] = 10;
-        params.f[3] = 10;
-        params.step[0] = 0;
-        params.step[1] = 0;
-        params.step[2] = 0;
+        params.f[2] = 5;
+        params.f[3] = 250;
+        params.step[0] = 6;
+        params.step[1] = 0.1;
+        params.step[2] = 5;
         params.step[3] = 0;
         params.iprint = 0;
         params.jprint = 0;
@@ -51,11 +64,13 @@
 - (void)dealloc
 {
     [header release];
-    [outFile release];
-    [graphFile release];
+	[observations release];
     [completeMsg release];
+
     [super dealloc];
 }
+
+#pragma mark NSDocument overrides
 
 - (NSString *)windowNibName
 {
@@ -67,21 +82,36 @@
 
 - (NSData *)dataRepresentationOfType:(NSString *)aType
 {
-    NSAssert([aType isEqualToString:@"WildlifeDensity Dataset"], @"Unknown type");
+    NSAssert([aType isEqualToString:@"WildlifeDensity Dataset"], @"Save requested to file of unknown type");
     NSMutableString *contents = [NSMutableString stringWithCapacity:2048];
     [contents appendFormat:@"'%@'%c", header, 10];
     [contents appendFormat:@"%d, %d, %d, %g, %d, %g, %d, %g, %g%c", params.ifx, params.iry, params.kdt, params.dist, params.km, params.ltmin, params.ns, params.pd, params.vgh, 10];
     [contents appendFormat:@"%g, %g, %g, %g%c%c", params.durn, params.rate, params.ps, params.thh, 10, 10];
-    for (int i = 0; i < params.nvals; i++) {
+    for (int i = 0; i < [observations count]; ++i) {
+        Observation *observation = [observations objectAtIndex:i];
         if (params.iry == 1) {
-            [contents appendFormat:@"%g, %d, %g", params.r[i], params.nsize[i], params.angle[i]];
+            [contents appendFormat:@"%g, %d, %g",
+                [observation distance],
+                [observation groupSize],
+                [observation angle]];
         } else {
-            [contents appendFormat:@"%g, %d", params.r[i], params.nsize[i]];
+            [contents appendFormat:@"%g, %d",
+                [observation distance],
+                [observation groupSize]];
         }
-        if (elevations[i] == -1) {
+        double elevationAngle = [observation elevation];
+        if (elevationAngle == -1) {
             [contents appendFormat:@"%c", 10];
         } else {
-            [contents appendFormat:@", %g%c", elevations[i], 10];
+            [contents appendFormat:@", %g%c", elevationAngle, 10];
+        }
+    }
+    if ([observations count] == 0) {
+        // write at least one observation line so the file format is valid
+        if (params.iry == 1) {
+            [contents appendFormat:@"0, 0, 0%c", 10];
+        } else {
+            [contents appendFormat:@"0, 0%c", 10];
         }
     }
     [contents appendFormat:@"%c%g, %d, %g, %g, %g, %g, %g%c", 10, params.stt, params.maxjb, params.clint, params.f[0], params.f[1], params.f[2], params.f[3], 10];
@@ -91,6 +121,12 @@
     return [contents dataUsingEncoding:NSUTF8StringEncoding];
 }
 
+- (BOOL)canConcurrentlyReadDocumentsOfType:(NSString *)aType
+{
+    // Our document-reading code can be safely executed concurrently, in non-main threads.
+    return YES;
+}
+
 - (BOOL)loadDataRepresentation:(NSData *)data ofType:(NSString *)aType
 {
     // Insert code here to read your document from the given data.
@@ -98,6 +134,7 @@
 	NSString *contents = [NSString allocWithZone:[self zone]];
     contents = [contents initWithData:data encoding:NSUTF8StringEncoding];
 
+    elevationsAreSupplied = NO;
     if ([self parseInputColumns:contents]) {
         NSLog(@"Parsed column-arranged data");
     } else if ([self parseInputOldColumns:contents]) {
@@ -111,19 +148,49 @@
         return NO;
     }
 
-    outFile = [[[self fileName] stringByDeletingPathExtension] stringByAppendingPathExtension:@"results"];
-    if ([outFile isEqualToString:[self fileName]]) {
-        outFile = [outFile stringByAppendingPathExtension:@"results"];
+    [observations removeAllObjects];
+    for (int i = 0; i < params.nvals; ++i) {
+        Observation *observation = [[Observation alloc] init];
+        [observation setDistance:params.r[i]];
+        [observation setGroupSize:params.nsize[i]];
+        [observation setAngle:params.angle[i]];
+        [observation setElevation:elevations[i]];
+        [self startObservingObservation:observation];
+        [observations addObject:observation];
     }
-    [outFile retain];
 
-    graphFile = [[[self fileName] stringByDeletingPathExtension] stringByAppendingPathExtension:@"graphData"];
-    if ([graphFile isEqualToString:[self fileName]]) {
-        graphFile = [graphFile stringByAppendingPathExtension:@"graphData"];
-    }
-    [graphFile retain];
+    NSFileManager *fileMgr = [NSFileManager defaultManager];
+    do {
+        ++currentResultsIndex;
+    } while ([fileMgr fileExistsAtPath:[self resultsFileName]]
+             || [fileMgr fileExistsAtPath:[self graphDataFileName]]);
+    --currentResultsIndex;
 
     return YES;
+}
+
+- (void)windowControllerDidLoadNib:(NSWindowController *)windowController
+{
+    [controller updateTableColumns];
+    [[windowController window] setDelegate:self];
+}
+
+#define NL_STRING ([NSString stringWithFormat:@"%c", 10])
+#define CR_STRING ([NSString stringWithFormat:@"%c", 13])
+- (void)saveDocumentWithDelegate:(id)delegate didSaveSelector:(SEL)didSaveSelector contextInfo:(void *)contextInfo
+{
+    [self endEditingSavingCurrentResponder];
+
+    // Trim the header if necessary
+    //NSArray* headerLines = [header componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+    NSArray* tigerLines = [header componentsSeparatedByString:NL_STRING];
+    NSArray* headerLines = [[tigerLines objectAtIndex:0] componentsSeparatedByString:CR_STRING];
+    if ([headerLines count] > 1 || [tigerLines count] > 1) {
+        NSLog(@"Trimming header to just first line (discarding %d later lines)", [headerLines count] - 1);
+        [self setValue:[headerLines objectAtIndex:0] forKey:@"header"];
+    }
+    
+    [super saveDocumentWithDelegate:delegate didSaveSelector:didSaveSelector contextInfo:contextInfo];
 }
 
 - (BOOL)prepareSavePanel:(NSSavePanel *)savePanel
@@ -134,10 +201,99 @@
     return YES;
 }
 
+- (void) document:(NSDocument *)doc didSave:(BOOL)didSave contextInfo:(void *)contextInfo
+{
+    NSLog(@"Saved %d", didSave);
+}
+
+#pragma mark NSWindow delegate
+
+- (NSUndoManager *)windowWillReturnUndoManager:(NSWindow *)window
+{
+    return [self undoManager];
+}
+
+#pragma mark NSTableView delegate
+
+- (void)paste:(id)sender
+{
+    NSPasteboard *pb = [NSPasteboard generalPasteboard];
+    NSArray *pasteTypes = [NSArray arrayWithObjects:
+        NSTabularTextPboardType, NSStringPboardType, nil];
+    NSString *bestType = [pb availableTypeFromArray:pasteTypes];
+    if (bestType != nil) {
+        NSString *contents = [pb stringForType:bestType];
+        [self willChangeValueForKey:@"nvals"];
+        
+        // Parse pasteboard into cells
+        NSScanner *scanner = [NSScanner scannerWithString:contents];
+        while (true) {
+            double distance, groupSize, angle = 0, elevation = 0;
+            bool rowIsValid = YES;
+            Observation *newRow = [[Observation alloc] init];
+            
+            if ([scanner scanDouble:&distance])
+                [newRow setDistance:distance];
+            else
+                rowIsValid = NO;
+            if (rowIsValid && [scanner scanDouble:&groupSize])
+                [newRow setGroupSize:groupSize];
+            else
+                rowIsValid = NO;
+            if (rowIsValid && params.iry == 1) {
+                if ([scanner scanDouble:&angle])
+                    [newRow setAngle:angle];
+                else
+                    rowIsValid = NO;
+            }
+            if (rowIsValid && elevationsAreSupplied) {
+                if ([scanner scanDouble:&elevation])
+                    [newRow setElevation:elevation];
+                else
+                    rowIsValid = NO;
+            }
+            if (rowIsValid)
+            {
+                // TODO: insert all rows or put up an alert
+                NSIndexSet *selection = [observationsController selectionIndexes];
+                unsigned insertionPoint;
+                if ([selection count] == 0) {
+                    insertionPoint = [observations count];
+                    NSLog(@"inserting at end (%d)", insertionPoint);
+                } else {
+                    insertionPoint = [selection lastIndex] + 1;
+                    NSLog(@"inserting at %d", insertionPoint);
+                }
+                [self insertObject:newRow inObservationsAtIndex:insertionPoint];
+                [[self undoManager] setActionName:@"Paste"];
+                if ([scanner isAtEnd])
+                    break;
+            } else {
+                NSLog(@"Failed parsing %@ after %d", contents, [scanner scanLocation]);
+                break;
+            }
+        }
+        [self didChangeValueForKey:@"nvals"];
+    }
+}
+
+#pragma mark Key-Value Observing
+
+// Wrap [NSObject setValue:forKey:] in a name that can be captured by [NSUndoManager forwardInvocation:]
+- (void)restoreValue:(id)value forKey:(NSString *)key
+{
+    [self setValue:value forKey:key];
+}
+
 - (void)setHeader:(NSString*)newHeader
 {
-    [[self undoManager] registerUndoWithTarget:self selector:@selector(setHeader) object:header];
+    [[self undoManager] registerUndoWithTarget:self selector:@selector(setHeader:) object:header];
+	[header release];
+	header = newHeader;
+	[header retain];
 }
+
+#pragma mark - Method Tab
 
 - (int)ifx
 {
@@ -146,7 +302,8 @@
 
 - (void)setIfx:(int)ifx
 {
-    [[[self undoManager] prepareWithInvocationTarget:self] setIfx:params.ifx];
+    // Note this is a model change that doesn't register to undo itself: all callers must regsiter
+    // undo & redo of calls to setIfx:
     params.ifx = ifx;
 }
 
@@ -157,8 +314,10 @@
 
 - (void)setIry:(int)iry;
 {
-    [[[self undoManager] prepareWithInvocationTarget:self] setIry:params.iry];
+    // Note this is a model change that doesn't register to undo itself: all callers must regsiter
+    // undo & redo of calls to setIry:
     params.iry = iry;
+    [controller updateTableColumns];
 }
 
 - (int)kdt
@@ -192,7 +351,6 @@
 {
     [[[self undoManager] prepareWithInvocationTarget:self] setKm:params.km];
     params.km = km;
-    NSLog(@"KM now %d", params.km);
 }
 
 - (double)ltmin
@@ -202,13 +360,11 @@
 
 - (void)setLtmin:(double)ltmin;
 {
-    [[[self undoManager] prepareWithInvocationTarget:self] setLtmin:params.ltmin];
     params.ltmin = ltmin;
 }
 
 - (int)ns
 {
-    NSLog(@"NS now %d", params.ns);
     return params.ns;
 }
 
@@ -217,6 +373,8 @@
     [[[self undoManager] prepareWithInvocationTarget:self] setNs:params.ns];
     params.ns = ns;
 }
+
+#pragma mark - Sample Details Tab
 
 - (double)pd
 {
@@ -273,6 +431,15 @@
     params.ps = ps;
 }
 
+- (void)setElevationsAreSupplied:(BOOL)newElevationsAreSupplied
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] restoreValue:[NSNumber numberWithBool:elevationsAreSupplied]
+                                                                 forKey:@"elevationsAreSupplied"];
+    [[self undoManager] setActionName:@"Set Elevation Method"];
+    elevationsAreSupplied = newElevationsAreSupplied;
+    [controller updateTableColumns];
+}
+
 - (double)thh
 {
     return params.thh;
@@ -294,6 +461,100 @@
     [[[self undoManager] prepareWithInvocationTarget:self] setStt:params.stt];
     params.stt = stt;
 }
+
+#pragma mark - Observations Tab
+
+- (void)insertObject:(Observation *)o inObservationsAtIndex:(int)index
+{
+    //NSLog(@"adding %@ to %@", o, observations);
+    // Add the inverse of this operation to the undo stack
+    NSUndoManager *undo = [self undoManager];
+    [[undo prepareWithInvocationTarget:self] removeObjectFromObservationsAtIndex:index];
+    if (![undo isUndoing]) {
+        [undo setActionName:@"Insert Observation"];
+    }
+    
+    // Add the Person to the array
+    [self startObservingObservation:o];
+    [observations insertObject:o atIndex:index];
+}
+
+- (void)removeObjectFromObservationsAtIndex:(int)index
+{
+    Observation *o = [observations objectAtIndex:index];
+    //NSLog(@"removing %@ from %@", o, observations);
+    // Add the inverse of this operation to the undo stack
+    NSUndoManager *undo = [self undoManager];
+    [[undo prepareWithInvocationTarget:self] insertObject:o
+                                    inObservationsAtIndex:index];
+    if (![undo isUndoing]) {
+        [undo setActionName:@"Delete Observation"];
+    }
+    
+    [observations removeObjectAtIndex:index];
+    [self stopObservingObservation:o];
+}
+
+- (void)startObservingObservation:(Observation *)o
+{
+    [o addObserver:self
+        forKeyPath:@"distance"
+           options:NSKeyValueObservingOptionOld
+           context:NULL];
+
+    [o addObserver:self
+        forKeyPath:@"groupSize"
+           options:NSKeyValueObservingOptionOld
+           context:NULL];
+
+    [o addObserver:self
+        forKeyPath:@"angle"
+           options:NSKeyValueObservingOptionOld
+           context:NULL];
+
+    [o addObserver:self
+        forKeyPath:@"elevation"
+           options:NSKeyValueObservingOptionOld
+           context:NULL];
+}
+
+- (void)stopObservingObservation:(Observation *)o
+{
+    [o removeObserver:self forKeyPath:@"distance"];
+    [o removeObserver:self forKeyPath:@"groupSize"];
+    [o removeObserver:self forKeyPath:@"angle"];
+    [o removeObserver:self forKeyPath:@"elevation"];
+}
+
+- (void)changeKeyPath:(NSString *)keyPath
+             ofObject:(id)obj
+              toValue:(id)newValue
+{
+    // setValue:forKeyPath: will cause the key-value observing method
+    // to be called, which takes care of the undo stuff
+    [obj setValue:newValue forKeyPath:keyPath];
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary *)change
+                       context:(void *)context
+{
+    NSUndoManager *undo = [self undoManager];
+    id oldValue = [change objectForKey:NSKeyValueChangeOldKey];
+    
+    // NSNull objects are used to represent nil in a dictionary
+    if (oldValue == [NSNull null]) {
+        oldValue = nil;
+    }
+    //NSLog(@"oldValue = %@", oldValue);
+    [[undo prepareWithInvocationTarget:self] changeKeyPath:keyPath
+                                                  ofObject:object
+                                                   toValue:oldValue];
+    [undo setActionName:@"Edit Observation"];
+}
+
+#pragma mark - Options Tab
 
 - (int)maxjb
 {
@@ -394,17 +655,6 @@
     params.step[2] = step2;
 }
 
-- (double)step3
-{
-    return params.step[3];
-}
-
-- (void)setStep3:(double)step3;
-{
-    [[[self undoManager] prepareWithInvocationTarget:self] setStep3:params.step[3]];
-    params.step[3] = step3;
-}
-
 - (int)iprint
 {
     return params.iprint;
@@ -438,9 +688,11 @@
     params.jprint = jprint;
 }
 
+#pragma mark - Estimate Tab
+
 - (int)nvals
 {
-    return params.nvals;
+    return [observations count];
 }
 
 - (int)currentIteration
@@ -457,14 +709,28 @@
     return params.maxjb;
 }
 
+#pragma mark Implementation
+
 - (BOOL)parseInputColumns:(NSString *)input
 {
+    // Approximate newlineCharacterSet on Tiger
+    NSCharacterSet *newlineCharacterSet;
+    long systemVersion = 0;
+    OSStatus err = Gestalt(gestaltSystemVersion, &systemVersion);
+    if (systemVersion >= 0x1050) {
+        newlineCharacterSet = [NSCharacterSet newlineCharacterSet];
+    } else {
+        newlineCharacterSet = [NSCharacterSet characterSetWithCharactersInString:[NSString stringWithFormat:@"%c%c", 10, 13]];
+    }
+
 	NSScanner* scanner = [NSScanner scannerWithString:input];
 
-	if (![scanner scanString:@"'" intoString:nil]) return NO; /* Skip the opening quote */
-	if (![scanner scanUpToString:@"'" intoString:&header]) return NO;
+    // Read the first line as the header
+    NSString* firstLine;
+    if (![scanner scanUpToCharactersFromSet:newlineCharacterSet intoString:&firstLine]) return NO;
+    // Trim any opening or closing quote
+    header = [firstLine stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"'"]];
     [header retain];
-	if (![scanner scanString:@"'" intoString:nil]) return NO; /* Skip the closing quote */
 
 	if (![scanner scanInt:&params.ifx]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -497,8 +763,12 @@
     unsigned bottomParams;
     while (i < MAX_OBSERVATIONS) {
         unsigned potentialLine = [scanner scanLocation];
+        BOOL potentialElevations = NO;
         if ([scanner scanDouble:(params.r + i)]) {
             bottomParams = potentialLine; /* potentialLine really was a new line */
+            if (potentialElevations) {
+                elevationsAreSupplied = YES;
+            }
         } else {
             i--; /* potentialLine was not a new line of observations, but the middle of the bottom parameters */
             break; /* finish and back up */
@@ -512,6 +782,7 @@
         // and maybe there's an elevation parameter here too
         if ([scanner scanString:@"," intoString:nil]) {
             if (![scanner scanDouble:(elevations + i)]) return NO;
+            potentialElevations = YES;
         } else {
             elevations[i] = -1;
         }
@@ -741,10 +1012,186 @@
 	return YES;
 }
 
+// From http://www.red-sweater.com/blog/229/
+- (void)endEditingSavingCurrentResponder
+{
+    // Save the current first responder, respecting the fact
+    // that it might conceptually be the delegate of the
+    // field editor that is \u201cfirst responder.\u201d
+    NSWindow *oMainDocumentWindow = [self windowForSheet];
+    //oMainDocumentWindow = [(NSWindowController*)[[self windowControllers] objectAtIndex:0] window];
+    id oldFirstResponder = [oMainDocumentWindow firstResponder];
+    if ((oldFirstResponder != nil) &&
+        [oldFirstResponder isKindOfClass:[NSTextView class]] &&
+        [(NSTextView*)oldFirstResponder isFieldEditor])
+    {
+        // A field editor\u2019s delegate is the view we\u2019re editing
+        oldFirstResponder = [oldFirstResponder delegate];
+        if ([oldFirstResponder isKindOfClass:[NSResponder class]] == NO)
+        {
+            // Eh \u2026 we\u2019d better back off if
+            // this thing isn\u2019t a responder at all
+            oldFirstResponder = nil;
+        }
+    }
+
+    // Gracefully end all editing in our window (from Erik Buck).
+    // This will cause the user\u2019s changes to be committed.
+    if([oMainDocumentWindow makeFirstResponder:oMainDocumentWindow])
+    {
+        // All editing is now ended and delegate messages sent etc.
+    }
+    else
+    {
+        // For some reason the text object being edited will
+        // not resign first responder status so force an
+        /// end to editing anyway
+        [oMainDocumentWindow endEditingFor:nil];
+    }
+
+    // If we had a first responder before, restore it
+    if (oldFirstResponder != nil)
+    {
+        [oMainDocumentWindow makeFirstResponder:oldFirstResponder];
+    }
+}
+
+- (NSString *)resultsFileName
+{
+    NSString *datasetBaseName = [[self fileName] stringByDeletingPathExtension];
+    return [NSString stringWithFormat:@"%@ %d.results", datasetBaseName, currentResultsIndex];
+}
+- (NSString *)graphDataFileName
+{
+    NSString *datasetBaseName = [[self fileName] stringByDeletingPathExtension];
+    return [NSString stringWithFormat:@"%@ %d.graphData", datasetBaseName, currentResultsIndex];
+}
+
+- (IBAction)viewCurrentResults:(id)sender
+{
+    NSString *resultsFile = [self resultsFileName];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:resultsFile]) {
+        LSLaunchURLSpec viewerSpec;
+        OSStatus err = LSFindApplicationForInfo(kLSUnknownCreator, CFSTR("com.macromates.textmate"), NULL, NULL, &viewerSpec.appURL);
+        if (err != noErr)
+            err = LSFindApplicationForInfo(kLSUnknownCreator, CFSTR("com.barebones.textwrangler"), NULL, NULL, &viewerSpec.appURL);
+        if (err != noErr)
+            viewerSpec.appURL = (CFURLRef)[NSURL fileURLWithPath:@"/Applications/TextEdit.app"];
+        viewerSpec.itemURLs = (CFArrayRef)[NSArray arrayWithObject:[NSURL fileURLWithPath:resultsFile]];
+        viewerSpec.passThruParams = NULL;
+        viewerSpec.launchFlags = kLSLaunchDefaults | kLSLaunchDontAddToRecents;
+        viewerSpec.asyncRefCon = NULL;
+        
+        err = LSOpenFromURLSpec(&viewerSpec, NULL);
+    }
+}
+
+- (IBAction)graphCurrentResults:(id)sender
+{
+    NSString *graphFile = [self graphDataFileName];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:graphFile]) {
+        CFURLRef plotURL;
+        OSStatus err = LSFindApplicationForInfo(kLSUnknownCreator, CFSTR("de.micw.plot"), NULL, NULL, &plotURL);
+        if (err == noErr) {
+            CFStringRef plotPath = CFURLCopyFileSystemPath(plotURL, kCFURLPOSIXPathStyle);
+            char plotPathC[PATH_MAX + 1];
+            if (CFStringGetCString(plotPath, plotPathC, PATH_MAX, kCFStringEncodingUTF8)) {
+                strncat(plotPathC, "/Contents/MacOS/Plot", PATH_MAX);
+                plotPathC[PATH_MAX] = 0;
+
+                NSString *graphMacro = [[NSBundle mainBundle] pathForResource:@"Graph Results Plot macro" ofType:nil];
+                if (fork() == 0) {
+                    /* Child process */
+                    execl(plotPathC,
+                          plotPathC,
+                          "-m",
+                          [graphMacro UTF8String],
+                          "-i",
+                          [graphFile UTF8String],
+                          NULL);
+                    perror("exec Plot.app failed");
+                }
+            }
+            CFRelease(plotURL);
+            CFRelease(plotPath);
+        }
+    }
+}
+
+const double PI = 3.14159254;
+double deg2rad(double deg) {
+    return deg / 180 * PI;
+}
+
 - (void)launchCalculation
 {
+    [self endEditingSavingCurrentResponder];
     params.complete = 0;
     [self setValue:@"" forKey:@"completeMsg"];
+
+    // Trim any empty observations
+    [self willChangeValueForKey:@"nvals"];
+    for (int i = 0; i < [observations count]; ) {
+        int nsize = [[observations objectAtIndex:i] groupSize];
+        if (nsize == 0) {
+            [self removeObjectFromObservationsAtIndex:i];
+        } else {
+            ++i;
+        }
+    }
+    [[self undoManager] setActionName:@"Trim empty observations"];
+    [self didChangeValueForKey:@"nvals"];
+
+    // Compute THH and LTMAX
+    int elevationCount = 0;
+    double sumOfSquaredElevations = 0;
+    params.ltmax = 0;
+    params.nvals = [observations count];
+    for (int i = 0; i < params.nvals; i++) {
+        Observation *observation = [observations objectAtIndex:i];
+        params.r[i] = [observation distance];
+        params.angle[i] = [observation angle];
+        params.nsize[i] = [observation groupSize];
+        
+        double elevationAngle = [observation elevation];
+        if (elevationAngle != -1) {
+            double horizontalDistance = params.r[i];
+            if (params.km == 2) horizontalDistance *= 1000;
+            elevationCount++;
+            double elevation = horizontalDistance * tan(deg2rad(elevationAngle));
+            sumOfSquaredElevations += elevation * elevation;
+        }
+        if (params.r[i] > params.ltmax) {
+            params.ltmax = params.r[i];
+        }
+    }
+    if (elevationsAreSupplied && elevationCount) {
+        double thh = sqrt(sumOfSquaredElevations / elevationCount);
+        NSLog(@"Overriding THH %g with %g", params.thh, thh);
+        params.thh = thh;
+    }
+    
+    // Compute NUMA and NUMO
+    params.numa = params.numo = 0;
+    if (params.ifx) {
+        for (int i = 0; i < params.nvals; i++) {
+            params.numa += params.nsize[i];
+        }
+    } else {
+        for (int i = 0; i < params.nvals; i++) {
+            if (params.r[i] > 0) {
+                params.numa += params.nsize[i];
+            } else {
+                params.numo += params.nsize[i];
+            }
+        }
+    }
+    
+    NSFileManager *fileMgr = [NSFileManager defaultManager];
+    do {
+        ++currentResultsIndex;
+    } while ([fileMgr fileExistsAtPath:[self resultsFileName]]
+             || [fileMgr fileExistsAtPath:[self graphDataFileName]]);
 
     long systemVersion = 0;
     OSStatus err = Gestalt(gestaltSystemVersion, &systemVersion);
@@ -762,57 +1209,14 @@
     [pool release];
 }
 
-const double PI = 3.14159254;
-double deg2rad(double deg) {
-    return deg / 180 * PI;
-}
-
 - (void)calculationWork
 {
+    NSString *outFile = [self resultsFileName];
+    NSString *graphFile = [self graphDataFileName];
     NSLog(@"Calculating to %@ and %@", outFile, graphFile);
     const char * hdr = [header UTF8String];
     const char * out = [outFile UTF8String];
     const char * graph = [graphFile UTF8String];
-    unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:outFile]);
-    unlink([[NSFileManager defaultManager] fileSystemRepresentationWithPath:graphFile]);
-
-    // Compute THH and LTMAX
-    int elevationCount = 0;
-    double sumOfSquaredElevations = 0;
-    params.ltmax = 0;
-    for (int i = 0; i < params.nvals; i++) {
-        if (elevations[i] != -1) {
-            double horizontalDistance = params.r[i];
-            if (params.km == 2) horizontalDistance *= 1000;
-            elevationCount++;
-            double elevation = horizontalDistance * tan(deg2rad(elevations[i]));
-            sumOfSquaredElevations += elevation * elevation;
-        }
-        if (params.r[i] > params.ltmax) {
-            params.ltmax = params.r[i];
-        }
-    }
-    if (elevationCount) {
-        double thh = sqrt(sumOfSquaredElevations / elevationCount);
-        NSLog(@"Overriding THH %g with %g", params.thh, thh);
-        params.thh = thh;
-    }
-
-    // Compute NUMA and NUMO
-    params.numa = params.numo = 0;
-    if (params.ifx) {
-        for (int i = 0; i < params.nvals; i++) {
-            params.numa += params.nsize[i];
-        }
-    } else {
-        for (int i = 0; i < params.nvals; i++) {
-            if (params.r[i] > 0) {
-                params.numa += params.nsize[i];
-            } else {
-                params.numo += params.nsize[i];
-            }
-        }
-    }
 
     calculate_density(&params, hdr, out, graph, strlen(hdr), strlen(out), strlen(graph));
 

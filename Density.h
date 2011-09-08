@@ -5,13 +5,35 @@
 
 @class DensityController;
 
-@interface Density : NSDocument
+@interface Observation : NSObject
 {
-    //IBOutlet DensityController *controller;
+    double distance;
+    int groupSize;
+    double angle;
+    double elevation;
+}
+- (double)distance;
+- (void)setDistance:(double)newDistance;
+- (int)groupSize;
+- (void)setGroupSize:(int)newGroupSize;
+- (double)angle;
+- (void)setAngle:(double)newAngle;
+- (double)elevation;
+- (void)setElevation:(double)newElevation;
+@end
+
+@interface Density : NSDocument
+#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1060
+                                < NSWindowDelegate,NSTableViewDelegate >
+#endif
+{
+    IBOutlet DensityController *controller;
 	NSString *header;
-    NSString *outFile;
-    NSString *graphFile;
+	int currentResultsIndex;
+    BOOL elevationsAreSupplied;
     double elevations[MAX_OBSERVATIONS];
+	NSMutableArray *observations;
+    IBOutlet NSArrayController *observationsController;
     calc_params params;
     BOOL complete;
     NSString *completeMsg;
@@ -42,11 +64,17 @@
 - (void)setMovementRate:(double)rate;
 - (double)ps;
 - (void)setPs:(double)ps;
+- (void)setElevationsAreSupplied:(BOOL)newElevationsAreSupplied;
 - (double)thh;
 - (void)setThh:(double)thh;
 
 - (double)stt;
 - (void)setStt:(double)stt;
+
+- (void)insertObject:(Observation *)o inObservationsAtIndex:(int)index;
+- (void)removeObjectFromObservationsAtIndex:(int)index;
+- (void)startObservingObservation:(Observation *)o;
+- (void)stopObservingObservation:(Observation *)o;
 - (int)maxjb;
 - (void)setMaxjb:(int)maxjb;
 - (double)clint;
@@ -65,8 +93,6 @@
 - (void)setStep1:(double)step1;
 - (double)step2;
 - (void)setStep2:(double)step2;
-- (double)step3;
-- (void)setStep3:(double)step3;
 - (int)iprint;
 - (void)setIprint:(int)iprint;
 - (int)ishow;
@@ -87,6 +113,12 @@
  **/
 - (BOOL)parseInputColumns:(NSString *)input;
 - (BOOL)parseInputOldColumns:(NSString *)input;
+
+- (void)endEditingSavingCurrentResponder;
+- (NSString *)resultsFileName;
+- (NSString *)graphDataFileName;
+- (IBAction)viewCurrentResults:(id)sender;
+- (IBAction)graphCurrentResults:(id)sender;
 
 - (void)launchCalculation;
 

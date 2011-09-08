@@ -1,7 +1,7 @@
-﻿/*******************************************************************************
-*     PROGRAM WildlifeDensity  
+/*******************************************************************************
+*     PROGRAM WildlifeDensity
 *
-*     (File mnps2.c, Version 1.0.0)
+*     (File mnps2.c, Version 1.1)
 *
 *     This program is designed to return population density estimates
 *     from 'distance' data collected using either line transect or fixed
@@ -13,9 +13,9 @@
 *     data collected from fixed-wing aircraft.
 *
 *     WildlifeDensity works by mathematical modelling of the frequency
-*     distributions of animal numbers detected under uniform observing 
+*     distributions of animal numbers detected under uniform observing
 *     conditions over a range of distances from either an observer
-*     or a transect line.  Curve-fitting is achieved by using the 
+*     or a transect line.  Curve-fitting is achieved by using the
 *     simplex method to seek parameter values that minimize an ordinary
 *     least squares fit between the observed and calculated numbers across
 *     the range of detection distances.
@@ -24,7 +24,7 @@
 *     population density estimates, estimates of other parameters of the
 *     model and related information on the system in which the original
 *     observations were made. Standard errors of the parameters are
-*     obtained by 'bootstrap' resampling of data from the original data 
+*     obtained by 'bootstrap' resampling of data from the original data
 *     set, unless the number of sets of iterations is set at 1, when the
 *     program computes standard errors by a quadratic surface fitting
 *     method (qsf).
@@ -46,17 +46,17 @@
 *
 *     The main subroutine determines parameter values for a least
 *     squares fit between calculated and observed frequencies,
-*     using the simplex method, a numerical method for minimizing an 
-*     objective function in a many-dimensional space.  Its design is 
-*     derived from Nelder & Mead (1965) Computer Journal 7:308-313, as 
-*     used in the 'MINIM' program by D.E.Shaw, Divn. of Mathematical 
-*     Statistics, CSIRO, Australia, though extensively modified since. 
-*     The quadratic surface fitting method within it is based on a Hessian 
+*     using the simplex method, a numerical method for minimizing an
+*     objective function in a many-dimensional space.  Its design is
+*     derived from Nelder & Mead (1965) Computer Journal 7:308-313, as
+*     used in the 'MINIM' program by D.E.Shaw, Divn. of Mathematical
+*     Statistics, CSIRO, Australia, though extensively modified since.
+*     The quadratic surface fitting method within it is based on a Hessian
 *     matrix, as set out in the appendix to the Nelder and Mead paper.
 *
 *     Subroutine GIVEF calculates the sum of squares by using the
 *     mathematical model, and returns this to the main program.
-*     Subroutines SRANDNAG and SRANDGEN supply a pseudo-random number used 
+*     Subroutines SRANDNAG and SRANDGEN supply a pseudo-random number used
 *     in the data resampling procedure in response to a seed value supplied
 *     by the main program.
 *
@@ -97,17 +97,17 @@
 *          and the bearing to a cluster of animals at the moment of
 *          detection, and measured in degrees.  These data are
 *          required if computations are to be based on perpendicular
-*          distance modelling; otherwise they are not needed.  
-*          The program accepts negative angles in the input (e.g. 
+*          distance modelling; otherwise they are not needed.
+*          The program accepts negative angles in the input (e.g.
 *          for observation left of a transect line): these are
 *          pooled with positive angles during computations.
 *
 *     CLINT - the class interval to be used within the program,
-*          chosen so that 80 x CLINT is at least equal to the 
+*          chosen so that 80 x CLINT is at least equal to the
 *          maximum radial detection distance.
 *
 *     DIST - the overall transect length (L), expressed either in
-*          metres or kilometres, or the distance corrected for the 
+*          metres or kilometres, or the distance corrected for the
 *          effect of animal movement (LJ).  (If F[NUM_SHAPE_PARAMS-1] is set at
 *          zero, only the overall transect length is needed and
 *          the program calculates its own LJ value.)
@@ -124,7 +124,7 @@
 *
 *          F[1]:  an estimate of either the overall lateral vegetation
 *                 cover (c) between observer and animals, or of the
-*                 attenuation coefficient (b) of animal sounds in the 
+*                 attenuation coefficient (b) of animal sounds in the
 *                 observing situation under the census conditions;
 *
 *          F[2]:  an estimate of the population density (D),
@@ -158,7 +158,7 @@
 *                 function and parameter values of the initial
 *                 simplex from each bootstrap iteration series;
 *                 If JPRINT=1, directs printing of these values at
-*                 individual steps through the function minimization 
+*                 individual steps through the function minimization
 *                 process, and informs the  user if the process
 *                 failed to converge on a minimum within 750
 *                 steps (the limit set).
@@ -173,7 +173,7 @@
 *            = 0  no output;
 *            = 1  produces output.
 *
-*     IRY - a parameter to control computations to model different 
+*     IRY - a parameter to control computations to model different
 *           types of line transect data, viz:
 *
 *            = 0  models radial distance transect data N(r);
@@ -195,7 +195,7 @@
 *
 *            = 0  for visual and flushing data;
 *            = 1  for auditory data or long distance (no vegn.) data;
-*            > 1  the maximum class interval boundary distance (in m) 
+*            > 1  the maximum class interval boundary distance (in m)
 *                 when visual data are from a limited distance range.
 *
 *     KM - a parameter to modify the program if transect lengths and
@@ -275,10 +275,10 @@
 *          Setting the STEP value at 0.0 for a parameter fixes an F[]
 *          value at that supplied to the program.  Where a data set
 *          (NVALS) is small (say, < 50 detections), STEP[1] should be
-*          set at 0.0 .  Where the set is very small (say, < 30 
+*          set at 0.0 .  Where the set is very small (say, < 30
 *          detections), STEP[0] should also be set at 0.0 .
 *
-*     STT (& FRST) - the detection distance value (r or y) from which 
+*     STT (& FRST) - the detection distance value (r or y) from which
 *          class intervals begin (usually zero).
 *
 *     THH - the vertical distance between observer eye level
@@ -293,11 +293,11 @@
 *
 *
 *
-*    The names of the temporary variables used within the main subroutine 
+*    The names of the temporary variables used within the main subroutine
 *    are as follows, essentially in alphabetical order:
 *
 *
-*     A, B, C - Three coefficients used in the search for a minimum 
+*     A, B, C - Three coefficients used in the search for a minimum
 *          value, viz:
 *
 *          A - a reflection coefficient;
@@ -327,10 +327,10 @@
 *     DENDIF, DSUM - temporary variables used in the calculation of
 *          standard errors of the best-fit parameters.
 *
-*     DMAX - the maximum direct-line detection distance ('dmax'), 
+*     DMAX - the maximum direct-line detection distance ('dmax'),
 *          either submitted to the program as F[NUM_SHAPE_PARAMS-1] or calculated.
 *
-*     ERMAX - a computational upper-limit maximum detection distance 
+*     ERMAX - a computational upper-limit maximum detection distance
 *          used as a range limit in certain cases.
 *
 *     ESTDEN  - the estimated population density ('D').
@@ -387,7 +387,7 @@
 *     NAP - the number of parameters to be varied with STEP not equal
 *          to zero.
 *
-*     NBSZ[] - numbers of animals in a cluster produced by the 
+*     NBSZ[] - numbers of animals in a cluster produced by the
 *          bootstrapping process.
 *
 *     NCLASS - the number of distances classes in the range used for the
@@ -417,7 +417,7 @@
 *
 *     NP1 - NAP incremented by 1.
 *
-*     NUMGRA - the number of individuals or groups detected ahead of 
+*     NUMGRA - the number of individuals or groups detected ahead of
 *          observer during a transect.
 *
 *     OBSW - the overall observer rate of travel along the line
@@ -432,11 +432,11 @@
 *     Q  - for visual data (where KDT=0 or >1), the mean vegetation
 *          cover proportion (c) in the habitat between animal and
 *          observer.
-*        - for auditory data (where KDT=1), the conspicuousness 
+*        - for auditory data (where KDT=1), the conspicuousness
 *          coefficient ('b').
 *
 *     RESAMP_DIST[] - a value of either R[] or Y[] reselected at
-*          random from the original data as the key part of the 
+*          random from the original data as the key part of the
 *          bootstrapping process.
 *
 *     RLMEAN - the mean of the natural logarithms of radial distances.
@@ -470,8 +470,8 @@
 *          used in estimating a maximum detection distance from data
 *          submitted to the program.
 *
-*     TCOV - a topographical cover value, i.e. the estimated proportion 
-*          of topographical cover in the line of sight between observer 
+*     TCOV - a topographical cover value, i.e. the estimated proportion
+*          of topographical cover in the line of sight between observer
 *          and animal.
 *
 *     TDEN, TCOEFF1, TCOEFF2, TCOEFF3, TRDEN - temporary variables used
@@ -480,7 +480,7 @@
 *     TEST - an intermediate variable that tests the closeness of the
 *          ratio SAVEMN/HMEAN to 1.
 *
-*     TOPDD - the proportion of the population at a given radial 
+*     TOPDD - the proportion of the population at a given radial
 *          distance that is unobscured by topographical cover (such as
 *          hills and ridges).
 *
@@ -488,7 +488,7 @@
 *
 *
 *     Temporary variables used exclusively in the other subroutines are
-*     listed in the subroutine statements, and the relevant explanatory  
+*     listed in the subroutine statements, and the relevant explanatory
 *     notes are included within the program itself.
 *
 *     This program uses double precision for most real numbers.
@@ -496,25 +496,13 @@
 *	Translated from Fortran by Jeremy Begg, VSM Software Services Pty Ltd
 *	The '//' comment syntax is used to highlight the original Fortran code
 *	where it was deemed appropriate.
-*
-* Modifications
-* -------------
-* 28-Mar-2011	J.Begg		Begin translation.
-* 12-Apr-2011	J.Begg		Convert DO loop syntax and adjust array bounds
-* 18-Apr-2011	J.Begg		Convert IF syntax and structure references
-*				Completed srandnag() and randnag().
-* 20-Apr-2011	J.Begg		Convert file I/O and FORMAT statements
-* 27-Apr-2011	J.Begg		Convert remaining statements
-* 12-May-2011	J.Begg		Completed syntax conversion.
-*  4-Aug-2011	J.Begg		Corrections to Case_150 and Loop_150.
-*
-*******************************************************************************/
-
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <stdbool.h>
 
 #include "mnps2.h"
 
@@ -526,6 +514,7 @@ FILE *output_graph = NULL;
 *  The following output construct is used at several places in the program
 *  Assumes NUM_SHAPE_PARAMS is 4 (same as the 'nop' variable).
 */
+
 #define DUMP_SS(ss,p) fprintf(output_results,"\n   %4i    %13.6e %13.6e %13.6e %13.6e %13.6e\n",neval,ss,p[0],p[1],p[2],p[3]);
 #if (NUM_SHAPE_PARAMS != 4)
 #error "Check DUMP_SS definition!"
@@ -638,7 +627,7 @@ void resample (float orig_dist[], int orig_size[], int nvals,
 
 //      INTEGER, INTENT(IN) :: orig_size[MAX_OBSERVATIONS], nvals
 //      INTEGER, INTENT(OUT) :: resamp_size[MAX_OBSERVATIONS]
-//      REAL, INTENT(IN) :: orig_dist[MAX_OBSERVATIONS] 
+//      REAL, INTENT(IN) :: orig_dist[MAX_OBSERVATIONS]
 //      REAL, INTENT(OUT) :: resamp_dist[MAX_OBSERVATIONS]
 
       int ix, n;
@@ -658,12 +647,6 @@ void resample (float orig_dist[], int orig_size[], int nvals,
 //      END SUBROUTINE resample
 
 /*
-*	givef (f, func, s, val, clint, pd, stt, tcov,
-*	       thh, vgh, ifx, imv, iry, ishow, kdt, kprint, dmax,
-*	       ltmax, ltmin, nclass, numa, numo, msfail, maxjb, 
-*	       mtest, iqsf, graph_file)
-*
-*
 *     This version of Subroutine GIVEF will handle ground survey
 *     data and also aerial survey data for which there is complete
 *     visibility ahead of the observer.  The subroutine
@@ -705,7 +688,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 	    int *msfail,
 	    int maxjb,
 	    int mtest,
-	    boolean iqsf,
+	    bool iqsf,
 	    char *graph_file)
 {
 
@@ -720,7 +703,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 
       double aprexi,auc,cint,d2l,dd,dds,ddsm,dh,dif;
       double difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed;
-      double corrn,ermax,expd,expdr,expdy,expdv;
+      double corrn,/*dnuma,dnumo,*/ermax,expd,expdr,expdy,expdv;
       double hcint,htot,obsd,p,pa,pad,pam;
       double pr,prc,prr,prmax,q,qdd,qdmax,qr;
       double rlow,rmax,rr,ssh,ssl,ssmax;
@@ -736,7 +719,6 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     initially set at zero.
 */
       tot = 0.0;
-      /* wtot = 0.0; */	// JMB: This variable never used again
 
 /*
 *     The program now sets upper and lower limits to the
@@ -762,18 +744,20 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     computations, in order to avoid logarithms of negative
 *     values appearing in Approximation 1 below.
 */
-        if (q < 0) *imv = 1;
 
+        if (q < 0) *imv = 1;
 
 /*
 *
 *     F[2] is renamed D2L for its run through Subroutine GIVEF.
 */
+
       d2l = f[2];
 
 /*
 *     HTOT is set to a higher value if D2L<0.001 and MAXJB is not 1
 */
+
       if ((d2l < 0.001) && !iqsf) htot += 1.0e+6;
 
 
@@ -786,14 +770,16 @@ void givef (double f[NUM_SHAPE_PARAMS],
 /*
 *     RMAX - the maximum horizontal recognition distance - is
 *     computed from the direct line distance and height difference,
-*     unless DMAX is less than or equal to THH.	
+*     unless DMAX is less than or equal to THH.
 */
+
       rmax = (dmax <= thh) ? 0.0 : sqrt(dmax*dmax - thh*thh);
 
 
 /*
 *     A range of 0 - 0.2 is set for the attenuation coefficient
 */
+
       if (((q >= 0.2) || (q < 0.)) && !iqsf) htot += 1.0e+6;
 
 
@@ -841,11 +827,12 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     height difference).
 */
 /* Line_160: */
+
       if (kdt == 1) goto Line_230;
 
 /*
-*     If the calculated cover proportion is less than zero, 
-*     htot is set to a high value to deflect the search away 
+*     If the calculated cover proportion is less than zero,
+*     htot is set to a high value to deflect the search away
 *     from such unreal values.
 */
 /* Line_170: */
@@ -861,6 +848,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 /* Line_180: */
       // if (kdt == 1) goto Line_230;	/* JMB: This test will always be false because of the test at Line_160 */
 /* Line_190: */
+
       if (vgh > 0) {
         dvg = vgh*dmax/thh;
         if (dmax <= dvg) goto Line_210;
@@ -871,7 +859,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 Line_210:
       vegmax = pow(1.0-q,dmax);
       vismax = vegmax*topmax;
-Line_220: 
+Line_220:
       ddsm = dmax*dmax;
       prmax = pa*vismax/ddsm;
 
@@ -934,12 +922,14 @@ Line_260:
 *     CINT ('delta-r') is the width of each subclass; it is set
 *     at the class width divided by the number of subclasses used.
 */
+
       cint = clint/(l20);
       hcint = cint/2.0;
 
 /*
 *     A function ERMAX is defined to be an exact multiple of CLINT
 */
+
       iermax = f[3]/clint;
       ermax = iermax * clint;
 
@@ -975,21 +965,18 @@ Line_260:
 *     The program computes a correction, CORRN=(NUMA+NUMO)/NUMA, to
 *     cater for data sets that contain overtakes.
 */
-      corrn = (numa+numo)/numa;
+	  corrn = ((numa+numo)*1.0)/(numa*1.0);
 
 /*
-*
-*
 *     Loop 1180, which calculates expected values and compares them
 *     with observed values, now begins .....
-*
 */
-Loop_1180:
+	Loop_1180:
       for (jj=0; jj < l10; jj++) {			//  DO jj=1,l10
 
 /*
 *     MD is the hth class in the series, calculated in the reverse
-*     order to JJ (going from MD=L10 downwards) because computations 
+*     order to JJ (going from MD=L10 downwards) because computations
 *     begin at RMAX and continue at progressively decreasing r values.
 */
 	md = nclass-jj-1;	// md = (nclass-1), (nclass-2),..., 0
@@ -1003,7 +990,6 @@ Loop_1180:
 	obsd = corrn*val[md];
 
 /*
-*
 *     Where the data are radial distance or fixed point data, EXPD
 *     accumulates the expected frequency values within a class; it
 *     is set at zero before computations for the class begin.
@@ -1013,6 +999,7 @@ Loop_1180:
 *     it is set at zero before computations for the class begin,
 *     while EXPD is allowed to accumulate.
 */
+
 	if (iry <= 0.0) {
 	  expd = 0.0;
 	} else {
@@ -1032,6 +1019,7 @@ Loop_1180:
 *     value (EXPDV) is set at zero and the calculations in Loop
 *     870 are bypassed.
 */
+
 	if ((wl > rmax) || (wl > ermax)) {
 	  expdv = 0.0;
           goto Line_900;
@@ -1045,6 +1033,7 @@ Loop_1180:
 *     expressed as YYH.  If IMV=1, this calculation is bypassed.
 */
 /* Line_360: */
+
 	if (*imv == 1) goto Loop_870;
 
 /*
@@ -1091,42 +1080,42 @@ Loop_1180:
 /*
 *     Approximation 1 is used if bd=1 or bd>1.
 */
-	else { 
+
+	else {
 	   vh = zh*zh + 2.334733*zh + 0.250621;
 	   wh = zh*zh + 3.330457*zh + 1.681534;
 	   vhowh = vh/wh;
 	}
 
-Line_430:
-	ssh = exp(zh);
-	yh = pa/(dh*ssh);
+	Line_430:
+		  ssh = exp(zh);
+		  yh = pa/(dh*ssh);
 
 
 /*
 *     YYH is the area under the detectability curve from
 *     the current DH value to infinity.
 */
+
 	if ((zh > 0.0) && (zh < 1.0)) {
 	   yyh = yh - pa*q*aprexi;
-        } else { 
+        } else {
 	   yyh = yh * (1.0-vhowh);
         }
 
-
 /*
-*
 *
 *     Loop 870, which calculates the expected number in each
 *     arc within the class, and adds them together to produce
 *     a progressive total (EXPD and TEXPD), now begins .....
-*
 */
+
 Loop_870:
 	dnr = tr-hcint;		// DNR is the central r value in an observing arc.
 	dnrh = tr;		// DNRH is the highest r value in an observing arc.
 
-	for (jl=1; jl <= l20; jl++) {    //  DO jl=1,l20	/* JMB: Loop limits do not need to be altered */
-								/* because 'jl' is not used as an array index. */
+	for (jl=1; jl <= l20; jl++) {    //  DO jl=1,l20
+
 /*
 *     DH is the direct-line distance to the outer edge of the
 *     observing arc.
@@ -1151,9 +1140,10 @@ Loop_870:
 *     inner edge of the current observing arc.
 */
 /* Line_470: */
+
 	    dl = sqrt(thh*thh+dnrl*dnrl);
 
-/*                         
+/*
 *     DINT is the difference between DL and DH, and thus the width
 *     of the area under the probability density curve between DH
 *     and DL.
@@ -1166,6 +1156,7 @@ Loop_870:
 *     exponential integral as previously.  If IMV has been set at
 *     1, computation moves to address 570.
 */
+
 Case_GVF480:
 	    switch (*imv) {					// SELECT CASE (imv)
 
@@ -1230,7 +1221,6 @@ Case_GVF480:
 			break;	/* End case imv == 0 */
 	            }
 
-
 /*
 *     Where IMV was set at 1, computation of the probability
 *     is based on its median value in the arc rather than
@@ -1239,6 +1229,7 @@ Case_GVF480:
 *     DD is the direct-line distance to the centre of the arc.
 */
 /* Line_570: */
+
 		case 1: {
 			dd = sqrt(thh*thh+dnr*dnr);
 			dds = dd*dd;
@@ -1246,10 +1237,10 @@ Case_GVF480:
 /*
 *     Visibility and audibility will be affected by topographical
 *     features in habitats where the ground is not level. The total
-*     probability of visibility at DD (VISDD) will be the product of 
-*     the probability VEGDD that the animal is unobscured by 
-*     vegetation at distance DD, and the probability TOPDD that it 
-*     is unobscured by topography there.  VEGDD will be a function of 
+*     probability of visibility at DD (VISDD) will be the product of
+*     the probability VEGDD that the animal is unobscured by
+*     vegetation at distance DD, and the probability TOPDD that it
+*     is unobscured by topography there.  VEGDD will be a function of
 *     d (VISDD=(1-Q)**DD), while TOPDD is approximated by the function
 *     TOPDD=(1-TCOV)**(DD-LTMIN)=(EXP(ln(0.001)/(LTMAX-LTMIN)))**(DD-LTMIN).
 *     and VISDD=VEGDD*TOPDD.  A first step is to calculate TOPDD,
@@ -1258,7 +1249,7 @@ Case_GVF480:
 *     topography is assumed not to affect detectability, so TOPDD is set
 *     at 1 and TCOV is zero.  If DD is less than LTMIN, topography is
 *     also assumed not to affect detectability, so TOPDD is again set at
-*     1.] 
+*     1.]
 */
 			if ((ltmin < 999) && (dd >= ltmin)) {
 			    topdd = pow((1-tcov),(dd-ltmin));
@@ -1335,10 +1326,11 @@ Line_680:
 *     and preset highest r values, PRR is set at zero and QR at 1.
 *     **  JMB: Note that the code does NOT set QR=1 until later **
 *
-*     If the median r value is below either the calculated 
+*     If the median r value is below either the calculated
 *     or observed r value, PRR is allowed to have a value
 *     other than zero.
 */
+		
 Line_710:
 	    if ((dnr >= ermax) && (dnr >= rmax)) prr = 0.0;
 
@@ -1357,8 +1349,8 @@ Line_720:
 *     The subroutine now calculates the number of detections (ED)
 *     expected for radial, fixed-point and perpendicular distance data.
 *     For radial data, computation is based on the assumption
-*     that the arc of radius r and width \u2206r sweeps over 
-*     a series of plots of unit area.  The total number of detections 
+*     that the arc of radius r and width \u2206r sweeps over
+*     a series of plots of unit area.  The total number of detections
 *     expected in such a plot will be [plot area] x [apparent density]
 *     x [probability of detection].
 *
@@ -1392,17 +1384,18 @@ Line_720:
 	    }
 
 /*
-*     The total number expected in a class (EXPD) 
+*     The total number expected in a class (EXPD)
 *     is obtained by progressively adding together
 *     the ED values from each arc with radii between DNRH and DNRL.
 */
 /* Line_790: */
+		
 	    expd += ed;
 
 /*
 *     In the case of perpendicular distance data, all the EXPD
 *     values within a class are added together to give a TEXPD
-*     value for the class (while, for perpendicular distance data, EXPD 
+*     value for the class (while, for perpendicular distance data, EXPD
 *     continues to accumulate from class to class).
 */
 	    if (iry >= 1) texpd += expd;
@@ -1414,6 +1407,7 @@ Line_720:
 *     similarly becomes DH.
 */
 /* Line_810: */
+
 	    dnrh = dnrl;
 	    dh = dl;
 
@@ -1428,6 +1422,7 @@ Line_720:
 *     arc width (CINT).
 */
 /* Line_830: */
+
 	    dnr -= cint;
 
 /*
@@ -1461,13 +1456,11 @@ Line_720:
 	    }
 
 /*
-*
 *     Loop 870 now ends.
 */
 	}                                          //  END DO Loop_870
 
 /*
-*
 *     Loop 1180 is completed by determining the expected value
 *     (EXPDV) in the class; this is arrived at differently for
 *     radial or fixed-point and perpendicular distance data. In
@@ -1479,6 +1472,7 @@ Line_720:
 *     Calculated values are printed out once the program has
 *     converged on a minimum, and KPRINT has been set at 1.
 */
+		  
 Line_900:
         if ((wl > rmax) || ((kdt > 1) && (wl > kdt))) goto Line_1080;
 
@@ -1487,7 +1481,7 @@ Line_900:
 *     is bypassed and a record of this non-computation retained
 *     as the temporary variable MSFAIL.  This is done only when the
 *     program has converged on a minimum (MTEST=1) and in the final
-*     pass through Loop 1180 (JJ=L10). 
+*     pass through Loop 1180 (JJ=L10).
 */
 	if (d2l > 0) {
 	    *s += (expdv/d2l);
@@ -1500,6 +1494,7 @@ Line_900:
 *     KPRINT=1; otherwise this step is bypassed.
 */
 /* Line_930: */
+
 	if (kprint==0) goto Line_1080;
 
 /*
@@ -1507,7 +1502,7 @@ Line_900:
 *     the case of radial distance data, and as EXPDY in the case
 *     of perpendicular distance data.  Negative values of EXPDV
 *     are printed as '0.0' in the output because the 'observations'
-*     are unfloat.   
+*     are unfloat.
 */
 	if (iry > 0) {
 	    yy = tr-(clint/2.0);
@@ -1515,13 +1510,10 @@ Line_900:
 	    if (expdy < 0.0) expdy = 0.0;
 
 	    if (ishow > 0) {
-		if (jj == 0) {		// JMB: jj test changed to '0' for first time through loop, was '1'
-//          WRITE (2,1025) 
-// 1025     FORMAT (/" Columns in order: P(r), Q(r), pdf, E{N(r)}, E{N(y)}"/)
+		if (jj == 0) {		// jj test changed to '0' for first time through loop, was '1'
+			
 		    fprintf(output_results, "\n Columns in order: P(r), Q(r), pdf, E{N(r)}, E{N(y)}\n\n");
 		}
-//        WRITE (2,1030) yy,expdy,obsd
-// 1030   FORMAT ('  y=',f8.1,5x,'Calc.N(y)=',f9.2,5x,'Obsd.N(y)=',f9.1)
 		fprintf(output_results, "  y=%8.1f     Calc.N(y)=%9.2f     Obsd.N(y)=%9.1f\n", yy,expdy,obsd);
 	    }
 	    yout[jj] = yy;
@@ -1534,12 +1526,9 @@ Line_900:
 	    if (expdr < 0.0) expdr = 0.0;
 	    if (ishow > 0) {
 		if (jj == 0) {		// JMB: jj test changed to '0', was '1'
-//          WRITE (2,975)
-//  975     FORMAT (//" Columns, in order: P(r), Q(r), pdf, E{N(r)}, E{N(y)}"/)
+
 		    fprintf(output_results, "\n\n Columns, in order: P(r), Q(r), pdf, E{N(r)}, E{N(y)}\n\n");
 		}
-//        WRITE (2,980) rr,expdr,obsd
-//  980   FORMAT ('  r=',f8.1,5x,'Calc.N(r)=',f9.2,5x,'Obsd.N(r)=',f9.1)
 		fprintf(output_results, "  r=%8.1f     Calc.N(r)=%9.2f     Obsd.N(r)=%9.1f\n", rr,expdr,obsd);
 	    }
 	    rout[jj] = rr;
@@ -1547,21 +1536,17 @@ Line_900:
 	    obsdnr[jj] = obsd;
 	}
 
-
 /*
-*
-*      If the control variable ISHOW has been set at 1, a variety 
-*      of intermediate variables is output.     
+*      If the control variable ISHOW has been set at 1, a variety
+*      of intermediate variables is output.
 */
+		  
 Line_1050:
 	if (ishow == 1) {
-//          WRITE (2,1070) prc,qr,tote,expd,expdv
-// 1070     FORMAT (1x,5(f12.6,3x),/)
 	    fprintf(output_results, " %12.6f   %12.6f   %12.6f   %12.6f   %12.6f\n\n", prc,qr,tote,expd,expdv);
 	}
 
 /*
-*
 *     The difference between each observed (OBSD) and expected
 *     value (EXPDV) for the class is now calculated.
 *
@@ -1570,7 +1555,6 @@ Line_1080:
 	dif = obsd-expdv;
 
 /*
-*
 *      If an upper limit of KDT (>1) has been set for the input
 *      data range, the computed difference between observed and
 *      computed values is reset at zero.
@@ -1578,15 +1562,15 @@ Line_1080:
 	if ((kdt > 1) && (wl > kdt)) dif = 0.0;
 
 /*
-*
 *     Each difference between the expected (EXPDV) and observed
 *     (OBSD) value is squared and a running sum of squares total
 *     (TOT) computed.  The final overall sum (FUNC) - which
 *     includes HTOT values where parameter values are inappropriate
-*     - is then calculated at Step 1300 and returned to the 
+*     - is then calculated at Step 1300 and returned to the
 *     main program.
 */
 /* Line_1090: */
+
 	difsq = dif*dif;
 	tot += difsq;
 
@@ -1597,13 +1581,11 @@ Line_1080:
 	tr -= clint;
 
 /*
-*
 *     Loop 1180 now ends.
 */
       }							//  END DO Loop_1180
 
 /*
-*
 *     The next two outputs occur only if the range of distance
 *     values includes the 99.9% r value and/or an r=0 value.
 *
@@ -1615,8 +1597,6 @@ Line_1080:
       if (kprint > 0) {
 
 	if ((jrlow > 0) && (ishow > 0)) {
-//        WRITE (2,1200) rlow
-// 1200   FORMAT (/' 99.9% r value (rmin) =',f7.2,' m ')
 	  fprintf(output_results, "\n 99.9%% r value (rmin) =%7.2f m\n", rlow);
 	}
 
@@ -1624,32 +1604,29 @@ Line_1080:
 *     If the range of distance values includes a g(0) value, the
 *     program estimates detectability at g(y)=0.
 */
+		  
 	if (tr <= 0.1) {
-//        WRITE (2,1205) tote
-// 1205   FORMAT (' Est.Detectability at g(y=0): ',f4.2)
 	  fprintf(output_results, " Est.Detectability at g(y=0): %4.2f\n", tote);
 	}
 
 //      OPEN (UNIT=3,FILE=graph_file,STATUS='NEW',IOSTAT=ios, ERR=Line_1320)
+
 	output_graph = fopen(graph_file, "w");
-	if (output_graph == NULL) {		
-//
+	if (output_graph == NULL) {
+
 // Line_1320:
-//       WRITE (6,1330) graph_file,ios
-// 1330  FORMAT (' Error opening ',a40,' - IOS = ',i6)
-//
+		
 	    perror("Error opening graph file \'%s\': ");
 	}
 
 	else { /* Graph file is open */
-//
+
 // Line_1210:
-//      WRITE (3,1220)
-// 1220 FORMAT (3x,'   Midpt.   Calculated     Observed   ')
-//
-	  fprintf(output_graph, "      Midpt.   Calculated     Observed   \n");
+
+		fprintf(output_graph, "      Midpt.   Calculated     Observed   \n");
 
 	  if (iry <= 0) {
+		  
 // Loop_1240:
 	    for (jj=0; jj < l10; jj++) {		//  DO jj=1,l10
 	      jv = l10 - jj - 1;
@@ -1659,14 +1636,13 @@ Line_1080:
 		limit = ((dmax-stt) / clint) - 1;	// JMB: subtract 1 because jj starts at 0, not 1
 	      }
 	      if (jj > limit) break;
-//       WRITE (3,1230) rout[jv],calcnr[jv],obsdnr[jv]
-//  1230 FORMAT (5x,f7.1,6x,f7.2,7x,f6.1,4x)
+
 	      fprintf(output_graph, "     %7.1f      %7.2f       %6.1f    \n", rout[jv],calcnr[jv],obsdnr[jv]);
 	    }						//  END DO Loop_1240
 	  } /* end (iry <= 0) */
 
 	  else { /* (iry > 0) */
-	
+
 // Loop_1280:
 	    for (jj=0; jj < l10; jj++) {		//  DO jj=1,l10
 	      jv=l10-jj-1;
@@ -1676,8 +1652,7 @@ Line_1080:
 		limit = ((dmax-stt) / clint) - 1;	// JMB: subtract 1 because jj starts at 0, not 1
 	      }
 	      if (jj > limit) break;
-//      WRITE (3,1270) yout[jv],calcny[jv],obsdny[jv]
-// 1270   FORMAT (5x,f7.1,6x,f7.2,7x,f6.1,4x)
+
 	      fprintf(output_graph, "     %7.1f      %7.2f       %6.1f    \n", yout[jv],calcny[jv],obsdny[jv]);
 	    }						//  END DO Loop_1280
 	  } /* end (iry > 0) */
@@ -1686,6 +1661,7 @@ Line_1080:
 * Line_1290:
 *       CLOSE (unit=3)
 */
+		
 	  fclose(output_graph);
 	}
       }  /* end (kprint > 0) */
@@ -1694,12 +1670,11 @@ Line_1080:
 *     The totalled sum of squares of the differences between
 *     observed and calculated values is now defined as FUNC.
 */
+	
 Line_1300:
       *func = tot + htot;
 
       if (kprint == 1) {
-//        WRITE (2,1370) func
-// 1370   FORMAT (1x,'Final Difference at Minimum = ',f15.6/)
 	fprintf(output_results, " Final Difference at Minimum = %15.6f\n\n", *func);
       }
 
@@ -1711,17 +1686,6 @@ Line_1300:
 *
 *	QSF		Quadratic Surface Fit
 *
-* Modifications
-* -------------
-* 28-Mar-2011	J.Begg		First translation.
-* 12-Apr-2011	J.Begg		Convert array syntax and adjust loop bounds
-* 18-Apr-2011	J.Begg		Convert IF syntax
-* 21-Apr-2011	J.Begg		Convert WRITE/FORMAT statements
-* 18-May-2011	J.Begg		Complete syntax conversion.  Note that the
-*				arithmetic for calculating array indices for the
-*				matrix 'B' is subtly different compared to the
-*				original FORTRAN, because the array indices
-*				start at 0 not 1.
 *
 *******************************************************************************/
 
@@ -1811,19 +1775,17 @@ void qsf (double f[NUM_SHAPE_PARAMS],
        double test, cl1, cl2;
 
 
-//        WRITE (2,10)                                                        
-//   10 FORMAT (//' Fitting of quadratic surface in region of minimum',//) 
       fprintf(output_results, "\n\n Fitting of quadratic surface in region of minimum\n\n\n");
 
 /*
-*
 *      The fitting of the quadratic surface follows the procedure
 *      outlined by Nelder and Mead exactly and, where possible,
 *      the notation in the comments corresponds to theirs also.
 */
+	
       neval = 0;
       dmax = f[3];
-      krun = 0;		/* JMB: Added this initialisation, hope it's OK */
+      krun = 0;
 
 /*
 *      Further function evaluations are counted in NEVAL.
@@ -1833,56 +1795,54 @@ void qsf (double f[NUM_SHAPE_PARAMS],
 *      KRUN is a control variable which allows an automatic rerun
 *      through the program if the criterion TEST is negative during
 *      quadratic surface fitting.  The program begins again using
-*      the computed F[I] values and values of STEP set at one 
+*      the computed F[I] values and values of STEP set at one
 *      tenth the F[I] values.
 *
 *      SIMP is set to a higher value than the stopping criterion STOPC.
 */
+	
       simp = 2*stopc;
 
 /* JMB: The loop at Outer0 runs only once, because the routine either returns or it breaks out of the loop. */
 
 Outer0:
-      for (i=0; i < np1; i++) {				//  DO i=1,np1                                                  
+      for (i=0; i < np1; i++) {				//  DO i=1,np1
 Line_20:
 	test = fabs(h[i]) - func;
 
 	if (test <= approx) {	/* Rerun required */
 	  if (krun <= 0) {
 	    krun = 1;
-//            WRITE (2,30) 
-//   30 FORMAT (' Rerun needed with new initial & step values ')
+
 	    fprintf(output_results, " Rerun needed with new initial & step values \n");
 	    for (in=0; in < nop; in++) {	//  DO in=1,nop
 	      step[in] = f[in]/10.0;
 	    }					//  END DO
 	  }
 	  else {
-//         WRITE (2,50)
-//   50    FORMAT (' Rerun data with class intervals altered ')
+
 	    fprintf(output_results, " Rerun data with class intervals altered \n");
 	  }
 	  return;
 	}
 
-	if (test < simp) { 
+	if (test < simp) {
 
 	  for (j=0; j < nop; j++) {		//  DO j=1,nop
-	    pstst[j] = 1000*(g[i][j]-f[j]) + g[i][j]; 
+	    pstst[j] = 1000*(g[i][j]-f[j]) + g[i][j];
 	  }					//  END DO
 
 	  givef (pstst, &h[i], s, val, clint, /* pd, */ stt, tcov,
 		thh, vgh, ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
-		ltmax, ltmin, nclass, numa, numo, msfail, maxjb,  
-		mtest, TRUE, graph_file);
+		ltmax, ltmin, nclass, numa, numo, msfail, maxjb,
+		mtest, true, graph_file);
 
 	  neval++;
 	  goto Line_20;
 	}
 
         break;
-      }							//  END DO outer0  
-
+      }							//  END DO outer0
 
 Line_60:
       ao = h[0];
@@ -1891,22 +1851,21 @@ Line_60:
 *
 *      The function values Y0(I) are calculated and stored in AVAL.
 */
-      for (i=0; i < nap; i++) {				//  DO i=1,nap                                                    
+      for (i=0; i < nap; i++) {				//  DO i=1,nap
 	i1 = i+1;
-	for (j=0; j < nop; j++) {	//  DO j=1,nop                                                    
+	for (j=0; j < nop; j++) {	//  DO j=1,nop
              pstar[j] = (g[0][j]+g[i1][j])/2.0;
 	}				//  END DO
 
 	givef (pstar, &aval[i], s, val, clint, /* pd, */ stt, tcov,
 	       thh, vgh, ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
 	       ltmax, ltmin, nclass, numa, numo, msfail, maxjb,
-	       mtest, TRUE, graph_file);
+	       mtest, true, graph_file);
 
 	neval++;
-      }							//  END DO 
+      }							//  END DO
 
 /*
-*
 *      The matrix B(I,J) is calculated, and the lower diagonal
 *      section stored in the vector BMAT.
 *
@@ -1915,6 +1874,7 @@ Line_60:
 * arithmetic for calculating the array indices has been subtly
 * altered, especially for the BMAT array.
 */
+
 Outer:
       for (i=0; i < nap; i++) {				//  DO i=1,nap
 
@@ -1927,28 +1887,28 @@ Inner1:
 	  for (j=0; j <= i1; j++) {		//  DO j=1,i1
 	    j1 = j+1;
 
-	    for (k=0; k < nop; k++) {	//  DO k=1,nop                                                    
+	    for (k=0; k < nop; k++) {	//  DO k=1,nop
 	      pstst[k] = (g[i2][k]+g[j1][k])/2.0;
 	    }				//  END DO inner2
 
 	    givef(pstst, hstst, s, val, clint, /* pd, */ stt, tcov,
 		  thh, vgh, ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
 		  ltmax, ltmin, nclass, numa, numo, msfail, maxjb,
-		  mtest, TRUE, graph_file);
+		  mtest, true, graph_file);
 
 	    neval++;
 	    l = i*i2/2 + j;
 	    bmat[l] = 2.0 * (*hstst+ao-aval[i]-aval[j]);
-	  }					//  END DO inner1 
+	  }					//  END DO inner1
 
       }						 //  END DO outer
 
       l = 0;
-      for (i=0; i < nap; i++) {		//  DO i=1,nap                                                   
+      for (i=0; i < nap; i++) {		//  DO i=1,nap
 	i1 = i+1;
 	l = l+i1;
 	bmat[l-1] = 2.0 * (h[i1]+ao-2.0*aval[i]);
-      }					//  END DO  
+      }					//  END DO
 
 
 /*
@@ -1961,12 +1921,12 @@ Inner1:
       }					//  END DO
 
 /*
-*
-*      The matrix Q is calculated and stored in the matrix G.  
-*      Considering the usual orientation of rows and columns, 
+*      The matrix Q is calculated and stored in the matrix G.
+*      Considering the usual orientation of rows and columns,
 *      TRANS(Q) is stored in G.
 */
-      for (i=0; i < nop; i++) {		//  DO i=1,nop                                                   
+	
+      for (i=0; i < nop; i++) {		//  DO i=1,nop
 	pmin[i] = g[0][i];	// JMB: g(1,i) changed to g[0][i]
       }					//  END DO
 
@@ -2031,9 +1991,9 @@ Inner43:
 *        the estimation of variances ends, and the parameter
 *        estimates are printed out.
 */
+		  
 	if (bmat[i5] <= 0) {
-//           WRITE (2,100)
-//  100     FORMAT (' Matrix to be inverted not positive definite ')
+
 	  fprintf(output_results, " Matrix to be inverted not positive definite \n");
 	  mnpd = -1;
 	  goto Line_205;
@@ -2061,10 +2021,10 @@ Inner52:
 	i1++;
       }							//  END DO outer5
 
-      /*
-      *  Comment by J.Begg: This time we use the FORTRAN loop bounds and just
-      *  get the array index by subtracting one when referencing the array.
-      */
+/*
+*  Comment by J.Begg: This time we use the FORTRAN loop bounds and just
+*  get the array index by subtracting one when referencing the array.
+*/
       i1=0;
       for (i=1; i <= np1; i++) {	//  DO i=1,np1
 	i1 += i;
@@ -2082,7 +2042,7 @@ Inner61:
 	  temp = bmat[i2]*bmat[i3];
 	  klessi = k-i;
 Inner62:
-	  for (j=1; j <= klessi; j++) {	//  DO j=1,klessi                                                
+	  for (j=1; j <= klessi; j++) {	//  DO j=1,klessi
 	    j0 = i+j-1;
 	    i4 = j0*(j0+1)/2+i;
 	    i5 = i1+j0;
@@ -2093,9 +2053,9 @@ Inner62:
       }							//  END DO outer6
 
 /*
-*
-*      (B**-1)*A is calculated , and stored in H                         
+*      (B**-1)*A is calculated , and stored in H
 */
+
 Outer7:
       for (i=0; i < nap; i++) {			//  DO i=1,nap
 	h[i] = 0.0;
@@ -2108,10 +2068,9 @@ Inner71:
 	  }
 	  h[i] += bmat[ij]*aval[j];
 	}				//  END DO inner71
-      }						//  END DO outer7 
+      }						//  END DO outer7
 
 /*
-*
 *      The estimated minimum value (YMIN) and its position (PMIN)
 *      are calculated and printed out if IPRINT=1.
 */
@@ -2140,17 +2099,7 @@ Outer8:
 #error "Check output statements in QSF cover all pmin[] and f[] values!"
 #endif
       if (iprint == 1) {
-/*----------
-         WRITE (2,120) ymin, (pmin(i),i=1,nop)                                   
-  120 FORMAT(' Minimum of fitted quadratic surface is ',e13.6,' at: ',/
-     $8(1x,e13.6)/8(1x,e13.6)/4(1x,e13.6)//)                            
-         WRITE (2,130) func, (f(i),i=1,nop )                                   
-  130 FORMAT(/'Compare with minimum found by iteration ',e13.6,' at: ',  
-     &/8(1x,e13.6)/8(1x,e13.6)/4(1x,e13.6)//)                           
-         WRITE (2,140)                                                        
-  140 FORMAT(/' If difference is large, information matrix and errors
-     &are inaccurate'///)
-----------*/
+
 	fprintf(output_results, " Minimum of fitted quadratic surface is %13.6e at: \n", ymin);
 	fprintf(output_results, " %13.6e %13.6e %13.6e %13.6e\n", pmin[0], pmin[1], pmin[2], pmin[3]);
 
@@ -2161,7 +2110,6 @@ Outer8:
       }
 
 /*
-*
 *      Q*(B**-1)*TRANSQ is calculated, and its lower diagonal
 *      section stored in the vector VC.
 */
@@ -2172,13 +2120,13 @@ Inner91:
 	  h[j] = 0.0;
 Inner92:
 	  for (k=0; k < nap; k++) {		//  DO k=1,nap
-	    if (k <= j) {                                                 
+	    if (k <= j) {
 	      jk = j*(j+1)/2+k;
 	    } else {
 	      jk = k*(k+1)/2+j;
 	    }
 	    h[j] += bmat[jk]*g[k][i];
-	  }					//  END DO inner92                                                         
+	  }					//  END DO inner92
 	}						//  END DO inner91
 
 Inner94:
@@ -2192,7 +2140,6 @@ Inner94:
       }								//  END DO outer9
 
 /*
-*
 *      The diagonal elements of VC are stored in VAR.
 */
       for (i=0; i < nop; i++) {		//  DO i=1,nop
@@ -2204,12 +2151,9 @@ Inner94:
       }					//  END DO
 
 /*
-*
 *      The inverse of the information matrix is printed out.
 */
       if (iprint == 1) {
-//         WRITE (2,160)                                                        
-//  160   FORMAT (' Inverse of information matrix '/) 
 	 fprintf(output_results, " Inverse of information matrix \n\n");
 
          for (i=1; i <= nop; i++) {    /* JMB: Was:  DO i=1,nop
@@ -2218,35 +2162,30 @@ Inner94:
 				       */
            nu = i*(i+1)/2;
            nl = i*(i-1)/2+1;
-//           WRITE (2,170) (vc[j],j=nl,nu)
-//  170     FORMAT (8(1X,E13.6)/4X,8(1X,E13.6)/8X,4(1X,E13.6))
+
 	   for (j=nl-1; j < nu; j++) fprintf(output_results, " %13.6e", vc[j]);	// JMB: now we decrement the loop bounds
 	   fprintf(output_results,"\n");
          }  //  END DO
 
        }
 
-//         WRITE (2,190) neval
-//  190 FORMAT(/,i2,' additional evaluations have been used',/)
        fprintf(output_results, "\n%2i additional evaluations have been used\n\n", neval);
 
        if (iprint == 1) {
-//         WRITE (2,200)
-//  200 FORMAT(' End  of  quadratic  surface  fitting ')
+
 	 fprintf(output_results, " End  of  quadratic  surface  fitting \n");
        }
 
 /*
-*
 *      The estimated 'best fit' values of the parameters, together
 *      with their estimated standard errors, are now computed,
 *      tabulated and printed out.  Also, KPRINT is set at 1.
 */
+	
 Line_205:
       *kprint = 1;
 
 /*
-*
 *      A density estimate (DEN) is calculated from D2L=F[2] by
 *      correcting units to no./ha, and dividing by 2L in the case of
 *      line transect data, and by 2Vt in the case of fixed-point data.
@@ -2260,20 +2199,19 @@ Line_205:
       }
 
 /*
-*
 *      If the variance/covariance matrix is not positive definite
 *      (MNPD=-1), the number of degrees of freedom (NDF) is set =0
 */
       if (mnpd < 0) ndf = 0;
 
 /*
-*
 *      The next series of steps determines the number of degrees of
 *      freedom used to compute the variance estimate.  NDF is set
 *      at one less than the number of values (NVALS) supplied to
 *      the program, less the number of parameters estimated by
-*      the program itself. 
+*      the program itself.
 */
+	
 Line_220:
       ndf = nclass-nap-1;
       df = ndf;
@@ -2309,7 +2247,7 @@ Line_220:
 	sd = (1.0e6*sd2l) / (ns*dist*pd);
       } else if ((km == 0) && (ifx == 0)) {
 	sd = (1.0e4*sd2l) / (ns*dist*pd);
-      } else { 
+      } else {
 	sd = (1.0e4*sd2l) / (2.0*rate*durn*ps*pd);
       }
 
@@ -2319,33 +2257,18 @@ Line_220:
 *     The p=0.05(2) distribution of t with sample number is first
 *     approximated by a function T.
 */
+	
       t = (1/(0.093914*pow(nclass,2.09372)))+2.03046;
 
 /*
-*
 *     The 95% lower (CL1) and upper (CL2) confidence limits are now
 *     calculated from the mean and standard deviation.
 */
       cl1 = den - t*sd;
       cl2 = den + t*sd;
 
-/*
-*
-*/
-/*----------
-       WRITE (2,230)
-  230 FORMAT(//' Estimated parameter values: '//)
-!
-      WRITE (2,240)
-  240 FORMAT (' ',77('x')/' x',4(18x,'x'))
-      WRITE (2,250)
-  250 FORMAT (' x    Parameter',5x,'x',6x,'Value',7x,'x',
-     &'  Standard Error  ','x',7x,'Unit',7x,'x')
-      WRITE (2,260)
-  260 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/' x ESTIMATED
-     &',7x,'x',3(18x,'x'))
-----------*/
-      fprintf(output_results, "\n\n Estimated parameter values: \n\n\n");
+
+	fprintf(output_results, "\n\n Estimated parameter values: \n\n\n");
 
       fprintf(output_results, " xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
       fprintf(output_results, " x                  x                  x                  x                  x\n");
@@ -2357,29 +2280,23 @@ Line_220:
 
       if (km == 0) {
         if (ndf == 0) {
-//          WRITE (2,270) den
-//  270     FORMAT (' x DENSITY  (D)',5x,'x',4x,f10.3,4x,'x (indeterminate)  x  indivs./hectare  x')
+
 	  fprintf(output_results, " x DENSITY  (D)     x    %10.3f    x (indeterminate)  x  indivs/hectare  x\n", den);
         } else {
-//          WRITE (2,280) den, sd
-//  280     FORMAT (' x DENSITY  (D)',5x,'x',4x,f10.3,4x,'x',4x,f10.3,4x,'x  indivs/hectare  x')
+
 	  fprintf(output_results, " x DENSITY  (D)     x    %10.3f    x    %10.3f    x  indivs/hectare  x\n", den, sd);
         }
 
       } else if (km == 1) {
         if (ndf > 0) {
-//          WRITE (2,290) den, sd
-//  290     FORMAT (' x DENSITY  (D)',5x,'x',4x,f10.3,4x,'x',4x,f10.3,4x,'x   indivs./sq.km. x')
+
 	  fprintf(output_results, " x DENSITY  (D)     x    %10.3f    x    %10.3f    x   indivs./sq.km. x\n", den, sd);
         } else {
-//          WRITE (2,300) den, sd
-//  300     FORMAT (' x DENSITY  (D)',5x,'x',4x,f10.2,4x,'x',4x,f10.3,4x,'x (indeterminate)  x')
+
 	  fprintf(output_results, " x DENSITY  (D)     x    %10.2f    x    %10.3f    x (indeterminate)  x\n", den, sd);
         }
       }
 
-//      WRITE (2,310)
-//  310 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/' x Conspicuousness  x',3(18x,'x'))
       fprintf(output_results, " x                  x                  x                  x                  x\n");
       fprintf(output_results, " xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
       fprintf(output_results, " x                  x                  x                  x                  x\n");
@@ -2387,61 +2304,46 @@ Line_220:
 
 
       if (ndf == 0) {
-//         WRITE (2,320) f[0]
-//  320   FORMAT (' x Coefficient  (a) x',4x,f10.4,4x,'x (indeterminate)  x      metres      x')
+
 	fprintf(output_results, " x Coefficient  (a) x    %10.4f    x (indeterminate)  x      metres      x\n", f[0]);
       } else {
-//         WRITE (2,330) f[0],sa
-//  330   FORMAT (' x Coefficient  (a) x',4x,f10.3,4x,'x',4x,f10.3,4x,'x',6x,'metres',6x,'x')
+
 	fprintf(output_results, " x Coefficient  (a) x    %10.3f    x    %10.3f    x      metres      x\n", f[0], sa);
       }
 
-
       if (kdt != 1) {
 
-//        WRITE (2,340)
-//  340   FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/' x Cover      ',6x,'x',3(18x,'x'))
 	fprintf(output_results, " x                  x                  x                  x                  x\n");
 	fprintf(output_results, " xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
 	fprintf(output_results, " x                  x                  x                  x                  x\n");
 	fprintf(output_results, " x Cover            x                  x                  x                  x\n");
 
         if (ndf <= 0) {
-//           WRITE (2,350) f[1]
-//  350      FORMAT (' x Proportion   (c)  x',4x,f10.4,4x,'x (indeterminate)  x                  x')
+
 	  fprintf(output_results, " x Proportion   (c)  x    %10.4f    x (indeterminate)  x                  x\n", f[1]);
         } else {
-//           WRITE (2,360) f[1],sb
-//  360   FORMAT(' x Proportion  (c)  x',4x,f10.4,4x,'x',4x,f10.4,4x,'x',4x,'         ',5x,'x')
+
 	  fprintf(output_results, " x Proportion  (c)  x    %10.4f    x    %10.4f    x                  x\n", f[1], sb);
         }
 
       } else { /* kdt == 1 */
 
-//        WRITE (2,370)
-//  370   FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/' x Attenuation',6x,'x',3(18x,'x'))
 	fprintf(output_results, " x                  x                  x                  x                  x\n");
 	fprintf(output_results, " xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
 	fprintf(output_results, " x                  x                  x                  x                  x\n");
 	fprintf(output_results, " x Attenuation      x                  x                  x                  x\n");
 
-
         if (ndf <= 0) {
-//           WRITE (2,380) f[1]
-//  380      FORMAT (' x Coefficient  (b) x',4x,f10.4,4x,'x (indeterminate)  x    per  metre    x')
+
 	  fprintf(output_results, " x Coefficient  (b) x    %10.4f    x (indeterminate)  x    per  metre    x\n", f[1]);
 
         } else {
 
-//          WRITE (2,390) f[1],sb
-//  390   FORMAT (' x Coefficient  (b) x',4x,f10.4,4x,'x',4x,f10.4,4x,'x',4x,'per metre',5x,'x')
 	  fprintf(output_results, " x Coefficient  (b) x    %10.4f    x    %10.4f    x    per metre     x\n", f[1], sb);
          }
 
       }
 
-//        WRITE (2,395)
-//  395   FORMAT (' x',4(18x,'x')/' ',77('x')///)
 	fprintf(output_results, " x                  x                  x                  x                  x\n");
 	fprintf(output_results, " xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n");
 
@@ -2451,11 +2353,9 @@ Line_220:
 *     is being estimated.
 */
       if (nap >= 1) {
-//        WRITE (2,396) cl1,cl2
-//  396   FORMAT(1x,'95% confidence limits for density estimate:',f10.3,' ',f10.3)
+
 	fprintf(output_results, " 95%% confidence limits for density estimate:%10.3f %10.3f\n", cl1, cl2);
       }
-
 
       *estden = den;
       *sden = sd;
@@ -2466,6 +2366,7 @@ Line_400:
 
       return;
 }
+
 //      END SUBROUTINE
 
 /******************************************************************************/
@@ -2478,12 +2379,11 @@ void calculate_density (calc_params *params
 			,int headerlen, int outfilelen, int graphfilelen
 			)
 {
-	/** JMB: if all calling programs are 'C', the '_len' arguments can be removed entirely. **/
-
 
 /*
 *     The variables declared below are in rough alphabetical order
 */
+	
       int nsize[MAX_OBSERVATIONS], nbsz[MAX_OBSERVATIONS];
       int bootstrap;
       int i, ia, ic, ie, iflag, ifx, ig, ih, imax;
@@ -2493,7 +2393,7 @@ void calculate_density (calc_params *params
       int maxjb, mfail, msfail, mtest, nap, neval, notin, ngroups;
       int nloop, nop, np1, ns, numa, numest, numo, nclass;
       int novtks, numoin, numain, nvals, numgra;
-      boolean iqsf;
+      bool iqsf;
       double a, approx, b, c, cf1dif, cf1sum, cf2dif, cf2sum;
       double cf3dif, cf3sum, clint, coeffnt1, coeffnt2;
       double coeffnt3, dcoeff, dendif, dist, dsum,s;
@@ -2516,7 +2416,6 @@ void calculate_density (calc_params *params
       char *graphfile_name;
 
 /*
-*
 *     The program accepts up to 10000 data values, each being the total
 *     number of observations (N[r] or N[y]) within the class
 *     intervals, beginning with that nearest r=0 or y=0 (R[0],
@@ -2572,7 +2471,6 @@ void calculate_density (calc_params *params
       pd = params->pd;
       ps = params->ps;
 
-
 /*
 *  Check selected input parameters for limits
 */
@@ -2589,6 +2487,7 @@ void calculate_density (calc_params *params
 /*
 *  Copy model parameter values and step sizes
 */
+	
 Loop_10:
       for (ig=0; ig < nop; ig++) {    		//  DO ig=1,nop
         f[ig] = params->f[ig];
@@ -2600,28 +2499,22 @@ Loop_10:
 *     in PRECISELY the same sequence as the corresponding R[IH] data,
 *     and that non-overtaking cases where r=0 are altered to r=0.01.
 */
+	
 Loop_20:
       for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
         r[ih] = params->r[ih];
         nsize[ih] = params->nsize[ih];
       }						//  END DO Loop_20
-	/*
-	*  Note: the loop above could be replaced by:
-	*		memcpy(r,params->r,nvals*sizeof(r[0]);
-	*		memcpy(nsize,params->nsize,nvals*sizeof(nsize[0]));
-	*        which would probably be more efficient.
-	*/
 
 /*
 *     The same requirement applies to data on observing angles.
 */
+	
       if (iry<2) {
 Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
           angle[ih] = params->angle[ih];
-	  /* or: memcpy(angle,params->angle, nvals*sizeof(angle[0])); */
         }					//  END DO Loop_30
       }
-
 
 /*
 *  Create the output file
@@ -2632,7 +2525,9 @@ Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 
       output_results = fopen(outfile_name, "w");	// OPEN (UNIT=2,FILE=outfile,STATUS='NEW',IOSTAT=ios,ERR=Line_1930)
       if (output_results == NULL) {
+
 	/* File could not be opened */
+
 	perror("Could not open outfile");
 	return;
       }
@@ -2644,13 +2539,9 @@ Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
       strncpy(graphfile_name, graphfile, graphfilelen);
       graphfile_name[graphfilelen] = '\0';
 
-
-
 /*
-*
-*
 *     If no value of the maximum detection distance F[3] has been
-*     entered (i.e. f[3]=0), and radial detection distances are 
+*     entered (i.e. f[3]=0), and radial detection distances are
 *     provided in the data, an estimated maximum distance is
 *     calculated based on the assumption that the logarithm of
 *     the radial detection distance r is distributed according
@@ -2660,14 +2551,14 @@ Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 *     undertaken to give an F[3] value.
 *
 *     If f[3]=0 and only perpendicular distance data are supplied,
-*     the logarithms of the calculated perpendicular distances are 
-*     assumed to follow a half-normal distribution (a special case of 
-*     the folded normal distribution with a mean of zero). Its maximum 
-*     value is then estimated as (t.001 x s.d.), where s.d. is the 
-*     standard deviation of the half-normal distribution.  If only 
+*     the logarithms of the calculated perpendicular distances are
+*     assumed to follow a half-normal distribution (a special case of
+*     the folded normal distribution with a mean of zero). Its maximum
+*     value is then estimated as (t.001 x s.d.), where s.d. is the
+*     standard deviation of the half-normal distribution.  If only
 *     perpendicular distances are supplied AND a maximum class boundary
-*     distance has been set which is within the observed distribution, 
-*     f[3] should NOT be set at 0 but given an approximate (maximum) 
+*     distance has been set which is within the observed distribution,
+*     f[3] should NOT be set at 0 but given an approximate (maximum)
 *     value instead.
 *
 */
@@ -2684,11 +2575,12 @@ Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
         if (iry < 2) {
 
 /*
-*     This option handles all situations with radial data supplied. 
-*     The first step is to calculate a logarithmic detection distance 
+*     This option handles all situations with radial data supplied.
+*     The first step is to calculate a logarithmic detection distance
 *     total RLTOT, then a logarithmic mean value RLMEAN, using data
 *     from ahead of the observer only.
 */
+			
 Loop_40:  for (ih=0; ih < nvals; ih++) {	//  DO ih=1,nvals
             if (r[ih] > 0) {
               rltot += log(r[ih]+1);
@@ -2703,6 +2595,7 @@ Loop_40:  for (ih=0; ih < nvals; ih++) {	//  DO ih=1,nvals
 *     followed by the estimated logarithmic maximum distance RLF4,
 *     which is then backtransformed to give an F[3] value.
 */
+			
 Outer_45: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
             if (r[ih] > 0) {
 	      float tmp = log(r[ih]+1) - rlmean;
@@ -2725,6 +2618,7 @@ Outer_45: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 *    normal distribution is first square root transformed, the
 *    distance at the final step.
 */
+
 Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 	    float tmp = sqrt(r[ih]+1);
             rdifsq = (tmp*tmp)/(nvals-1);
@@ -2741,10 +2635,8 @@ Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 
       }  /* end if (f[3] == 0) */
 
-
 /*
-*
-*     If a value of either the maximum detection distance F[3] 
+*     If a value of either the maximum detection distance F[3]
 *     or the maximum of the selected interval KDT has been
 *     entered as more than 80 times the class interval, CLINT is
 *     reset at (F[3]-STT or KDT-STT)/80 to avoid computation problems.
@@ -2760,50 +2652,16 @@ Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
       }
 
 /*
-*
 *     The header line now begins the program output.
 */
-//      WRITE (2,50) header
-//   50 FORMAT (a)
+	
       fprintf(output_results, "%.*s\n", headerlen, header);
 
-
 /*
-*
 *     The program now prints out a statement of the various data
 *     supplied as input, as a check on input accuracy.
 */
-/*----------------
-      WRITE (2,51)
-   51 FORMAT (/'INPUT:')
-!
-      IF ((ifx == 0) .and. (iry == 0)) THEN
-        WRITE (2,52)
-   52   FORMAT (/,' Line transect data, based on radial distances from o  
-     &bserver')
-      ELSE IF ((ifx == 0) .and. (iry == 1)) THEN
-        WRITE (2,53)
-   53   FORMAT (/,' Line transect data, based on radial distances and ho  
-     &rizontal angles')
-      ELSE IF ((ifx == 0) .and. (iry == 2)) THEN
-        WRITE (2,54)
-   54  FORMAT (/,' Line transect data, using precalculated perpendicular 
-     & distances')
-      ELSE
-        WRITE (2,55)
-   55   FORMAT (/' Fixed observing point data')
-      END IF
-!
-      IF ((ifx == 0).and.(ns == 1)) THEN
-        WRITE (2,56)
-   56   FORMAT (' Observations from one side of transect line only')
-      ELSE IF ((ifx == 0).and.(ns == 2)) THEN
-        WRITE (2,57)
-   57   FORMAT (' Observations from both sides of transect line')
-      ELSE
-      END IF
-!
-----------------*/
+
       fprintf(output_results, "\nINPUT:\n\n");
 
       if (ifx == 0) {
@@ -2826,29 +2684,12 @@ Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 	fprintf(output_results, " Fixed observing point data\n");
       }
 
-/*----------------
-      IF (km == 1) THEN
-        WRITE (2,58)
-   58   FORMAT (' Transect lengths in km')
-       ELSE IF (km == 2) THEN
-        WRITE (2,59)
-   59  FORMAT (' Detection distances and transect lengths in km')
-       ELSE
-      END IF
-----------------*/
       if (km == 1) {
 	fprintf(output_results, " Transect lengths in km\n");
       } else if (km == 2) {
 	fprintf(output_results, " Detection distances and transect lengths in km\n");
       }
 
-/*----------------
-      IF (kdt > 1) THEN
-        WRITE (2,60) stt,kdt
-   60   FORMAT (' Designated distance range: ',f5.1,' -',i5) 
-       ELSE
-      END IF
-----------------*/
       if (kdt > 1) {
 	fprintf(output_results, " Designated distance range: %5.1f - %5i\n", stt, kdt);
       }
@@ -2860,53 +2701,26 @@ Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 *     and the total transect length travelled.
 */
 
-/*----------------
-      IF (ifx == 1) THEN
-        WRITE (2,65) clint,durn
-   65   FORMAT (' Class interval width =',f7.1,
-     &  ' m.    Total time spent =',f7.1,' min.')
-        GO TO 90
-      END IF
-!
-!
-      IF (km == 0) THEN
-        WRITE (2,70) clint,dist
-   70   FORMAT (' Class interval width =',f7.1,
-     &  ' m.   Total transect length (L) =',f10.3,' m.')
-      ELSE
-        WRITE (2,80) clint,dist
-   80   FORMAT (' Class interval width =',f7.1,
-     &  ' m.   Total transect length (L) =',f10.3,' km.')
-      END IF
-!
-!
-!     If transect lengths have been expressed in kilometres,
-!     transect length is are converted to metres.
-!
-      Outer_90: IF (km > 0) THEN
-        dist=dist*1000
-        Inner_90: IF ((km == 2).and.(f(4) > 0)) THEN
-            f(4)=1000*f(4)
-            estdmax=f(4)
-        END IF Inner_90
-      END IF Outer_90
-----------------*/
-
       if (ifx == 1) {
 	fprintf(output_results, " Class interval width =%7.1f m.    Total time spent =%7.1f min.\n", clint, durn);
       }
       else {
 
 	if (km == 0) {
-	  /* Transect lengths have been expressed in meters. */
+
+	  /* Transect lengths have been expressed in metres. */
+
 	  fprintf(output_results, " Class interval width =%7.1f m.   Total transect length (L) =%10.3f m.\n", clint, dist);
 	}
 
 	else {
-	  /* Transect lengths have been expressed in kilometers. */
+
+	  /* Transect lengths have been expressed in kilometres. */
+
 	  fprintf(output_results, " Class interval width =%7.1f m.   Total transect length (L) =%10.3f km.\n", clint, dist);
 
-	  /* Convert from km to meters */
+	  /* Convert from km to metres */
+
 	  dist *= 1000;
           if ((km == 2) && (f[3] > 0)) {
             f[3] *= 1000;
@@ -2916,32 +2730,13 @@ Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
       }
 
 /*
-*
 *     The original values of NUMA and NUMO are retained (as NUMOIN
-*     and NUMAIN) so they can be printed in the output.  
+*     and NUMAIN) so they can be printed in the output.
 */
 Line_90:
       numoin = numo;
       numain = numa;
 
-/*----------------
-        WRITE (2,91) durn
-   91   FORMAT (' Total time spent =',f7.1,' min.')    
-        WRITE (2,92) rate
-   92   FORMAT (' Overall population movement rate =',f4.1,' m/min.')
-!
-      IF (ltmin<999) THEN
-        WRITE (2,93) ltmin
-   93   FORMAT (' Topography uneven; approximate minimum obscuring dista
-     &nce =',f6.1,' m.')
-      ELSE
-        WRITE (2,94)
-   94   FORMAT (' Topography approximately level')
-      END IF
-!
-      WRITE (2,95)
-   95 FORMAT (/,'OUTPUT:',/)
-----------------*/
       fprintf(output_results," Total time spent =%7.1f min.\n", durn);
       fprintf(output_results," Overall population movement rate =%4.1f m/min.\n", rate);
 
@@ -2955,19 +2750,18 @@ Line_90:
       fprintf(output_results, "\nOUTPUT:\n\n");
 
 /*
-*
 *     If detection distances were entered in kilometres (km=2),
 *     then these distances are also converted to metres.
 */
+	
       if (km == 2) {
-Inner_96: 
+Inner_96:
 	for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
           r[ih] *= 1000;
-        }					//  END DO Inner_96 
+        }					//  END DO Inner_96
       }
 
 /*
-*
 *     The program now calculates the mean overall observer movement
 *     rate (w) as OBSW=DIST/DURN (DIST in m and DURN in min), provided
 *     that an DURN value has been entered and the data are from line
@@ -2979,6 +2773,7 @@ Inner_96:
 * a test for DURN=0 and set FNK accordingly.  (Note that OBSW is not used
 * for any purpose other than to calculate FNK.)
 */
+
       if ((durn >= 0) && (ifx == 0)) {
 	if (durn == 0) {
 	  fnk = 0;
@@ -2994,6 +2789,7 @@ Inner_96:
 *     using an approximation.  Different approximations are used
 *     if k=u/w is less than or greater than 5.
 */
+		  
         if (fnk == 0) {
            estj = 1;
         } else if ((fnk > 0) && (fnk <= 1)) {
@@ -3006,7 +2802,6 @@ Inner_96:
         }
 
 /*
-*
 *     The movement-corrected overall distance travelled (LJ) is
 *     calculated, overriding the DIST value submitted originally.
 *     DURN and RATE are both set at 0 to avoid later computation problems
@@ -3022,7 +2817,7 @@ Inner_96:
 *     F[2] is now raised in value to approximate D2LJ*Ns*Pd in the case
 *     of line transect data, or D2ut*Ps*Pd for fixed point data, in
 *     order to prepare for comparisons with observed values within
-*     subroutine GIVEF.  
+*     subroutine GIVEF.
 */
       sns = ns;
 
@@ -3035,17 +2830,16 @@ Inner_96:
       }
 
 /*
-*
-*     Case_150 treats the situation where calculations are to be based 
+*     Case_150 treats the situation where calculations are to be based
 *     on perpendicular distances (y) from the transect line, and the
 *     data supplied are either radial distances and angles, indicated
-*     by IRY=1, or pre-calculated perpendicular distances, indicated 
+*     by IRY=1, or pre-calculated perpendicular distances, indicated
 *     by IRY=2.  If IRY=2, distances entered as r(in) are reassigned
-*     as y(in) values.  If IRY=1, perpendicular distances are 
-*     calculated from distances and lateral angles using trigonometry.  
+*     as y(in) values.  If IRY=1, perpendicular distances are
+*     calculated from distances and lateral angles using trigonometry.
 *     With both situations, any angle data supplied as negative numbers
 *     (e.g. those to the left of a transect line) are converted to
-*     positive and pooled with the remainder.  
+*     positive and pooled with the remainder.
 *     If calculations are to be based on radial detection distances,
 *     and radial distances only are supplied (IFX=0), no changes are
 *     made (either by calculation or reassignment).
@@ -3053,17 +2847,19 @@ Inner_96:
 *     to the program in the Observations, then each such value will be
 *     recognized as an ÔovertakeÕ at a later point in the program.
 */
+
 Case_150:
       switch(iry) {
 
 	case 2:
 /*
 *     If perp. distance data were entered as r values (IRY=2), they
-*     are renamed as y values at this stage, unless r=0 
+*     are renamed as y values at this stage, unless r=0
 *     when they are 'overtakes' and omitted.  Negative y values
 *     submitted to the program (as negative r value) are
 *     converted to positive and pooled with the rest.
 */
+
 Loop_190:	for (in=0; in < nvals; in++) {		//  DO in=1,nvals
 		  y[in] = fabs(r[in]);
 		}					//  END DO Loop_190
@@ -3071,11 +2867,13 @@ Loop_190:	for (in=0; in < nvals; in++) {		//  DO in=1,nvals
 
 
 	case 1:
+
 /*
 *     For IRY=1, perpendicular distances are calculated from radial
-*     distances and lateral observing angles. 
+*     distances and lateral observing angles.
 */
-Loop_150:	for (in=0; in < nvals; in++) {		// DO in=1, nvals      
+
+Loop_150:	for (in=0; in < nvals; in++) {		// DO in=1, nvals
 		  y[in] = fabs(r[in]*sin((angle[in]*3.14159265)/180.))+0.001;
 		}					// END DO Loop_150
 		break;
@@ -3089,32 +2887,28 @@ Loop_150:	for (in=0; in < nvals; in++) {		// DO in=1, nvals
 
       } /* switch */
 
-
 /*
-*
 *     The initial values of 'a', 'b', 'D2L', and 'dmax' are retained
 *     as FT and the corresponding steps as STEPT to make possible
 *     reruns of calculations.
 */
+
 Loop_210:
       for (ia=0; ia < nop; ia++) {	//  DO ia=1,nop
         ft[ia] = f[ia];
         stept[ia] = step[ia];
       }					//  END DO Loop_210
-	/*
-	* OR: memcpy(ft,f,nop*sizeof(ft[0]));
-	*     memcpy(stept, step, nop*sizeof(stept[0]));
-	*/
 
 /*
 *
 *     The program now calculates a topographical cover value
 *     (TCOV).  If the topography is effectively level (LTMIN=999)
-*     or the value of f[3] is less than the LTMIN value supplied, 
+*     or the value of f[3] is less than the LTMIN value supplied,
 *     then TCOV is set at zero and topography has no effect on
 *     computation of the model.  Otherwise, if LTMAX and LTMIN
 *     values are supplied, a TCOV value is calculated.
 */
+	
       ltmax = f[3];
 
       if ((ltmin < 999) && (ltmax > ltmin)) {
@@ -3129,28 +2923,28 @@ Loop_210:
 *     distance data to the limit of visibility, or perpendicular
 *     distance data to a distance limit (KDT>1). Tested on data.
 */
+	
       if ((iry == 1) || ((iry == 2) && (kdt <= 1))) {
         stopc = 0.0001;
       } else if ((iry == 2) && (kdt > 1)) {
         stopc = 0.00001;
       } else {
-        stopc = 0.005;
+        stopc = 0.0001;
       }
 
 /*
 *     The program now increases the value of STOPC to allow for
 *     highly variable data, by multiplying by NUMAIN/NVALS.
 */
-        stopc *= numain/nvals;
+      stopc *= numain;
+	  stopc = stopc / nvals;
 
 /*
 *     If progress reports are required (IPRINT=1), the program
 *     prints a heading for them.
 */
+	
       if (iprint == 1) {
-//      WRITE (2,280)
-//  280 FORMAT (/' Progress Report (every 1 to 3 function evaluations):'/
-//     &/' Sequence:  Evaln.no.  Min.difnce  Cnsp.cfnt.  Cover prpn.  Density x attributes   max.dist.',/
 	fprintf(output_results,"\n Progress Report (every 1 to 3 function evaluations):\n\n");
 	fprintf(output_results,"\n Sequence:  Evaln.no.  Min.difnce  Cnsp.cfnt.  Cover prpn.  Density x attributes   max.dist.\n\n");
       }
@@ -3158,13 +2952,13 @@ Loop_210:
 /*
 *     The term 'APPROX' is used to test closeness to zero.
 */
-      approx = 1.e-15;	/* JMB: should this be a constant? */
+	
+      approx = 1.e-12;
 
 /*
-*     If no values have been submitted in the input, the program sets 
+*     If no values have been submitted in the input, the program sets
 *     the step variations at: a=1.0, b=0.5, and c= 2.0
 */
-/*JMB:  Note that 'a' has not been initialised prior to this test! */
 
       if (fabs(a) < approx) {
         a = 1.0;
@@ -3184,21 +2978,21 @@ Loop_210:
       dcoeff = 0;
 
 /*
-*
 *     NCLASS is the number of distance classes in the selected range.
 *     0.49 is added to avoid counting errors due to 'chopping'.
 */
+	
       nclass = ((f[3]-stt)/clint)+0.49;
       if (nclass > 80) nclass=80;
 
 /*
-*
 *     If all STEP sizes have been set at zero, and MAXJB has not been
 *     set at 1, then computation goes to Label 1470, calculates the
 *     set of values resulting from the values of a, b, D2L and dmax
 *     supplied, and ends.  Otherwise it uses NAP to indicate the number
 *     of submitted parameters to be varied during subsequent iterations.
 */
+
 Loop_350:
       for (i=0; i < nop; i++) {		//  DO i=1,nop
         if (fabs(step[i]) > approx) {
@@ -3214,19 +3008,19 @@ Loop_350:
           estden = (1.e6*f[2])/(sns*dist*pd);
 	} else if (ifx == 0) {
           estden = (1.e4*f[2])/(sns*dist*pd);
-	} else { 
+	} else {
           estden = (1.e4*f[2])/(2.*rate*durn*ps*pd);
 	}
 
 	goto Line_1470;
-      }	
+      }
 
 /*
-*
 *     To enable parameter estimation using bootstrapping, the basic
 *     MINIM routine is run a predetermined MAXJB times, beginning
 *     with an initial run.  A number of functions are set at zero first.
 */
+
 Line_370:
       jbstp = 0;
       mfail = 0;
@@ -3238,7 +3032,6 @@ Line_370:
       tcoeff3 = 0.0;
 
 /*
-*
 *     The program now sets IMV=1 as a default value, unless the
 *     expected frequency distribution is likely to have a sharp peak,
 *     which may happen if the data are radial, NCLASS has a low
@@ -3246,19 +3039,13 @@ Line_370:
 *     greater than 1).  [The possibility that Q is negative is dealt
 *     with in Subroutine GIVEF.]
 */
-/*------
-      if ((iry == 0) && (kdt <= 1) && (nclass < 20)) {
-         imv = 0;
-       } else {
-         imv = 1;
-      }
-------*/
+
       imv = (iry != 0) || (kdt > 1) || (nclass >= 20);
 
 /*
-*
 *     Seed the random number generator
 */
+	
       iseed = 0;
 Loop_370:
       for (in=0; in < nvals; in++) {		//  DO in = 1, nvals
@@ -3268,10 +3055,10 @@ Loop_370:
       srandnag(iseed);
 
 /*
-*
 *     Loop 1410 now begins.
 *
 */
+
 Loop_1410:
       for (bootstrap=0; bootstrap < maxjb; bootstrap++) {	//  DO bootstrap=1, maxjb
 	params->bootstrap = bootstrap;
@@ -3279,6 +3066,7 @@ Loop_1410:
 /*
 *     The flag variable MTEST is first set at zero.
 */
+		  
 	mtest = 0;
 
 /*
@@ -3298,9 +3086,9 @@ Loop_1410:
 *     within that class.  This will be done for each class interval
 *     in turn, beginning with the calculation of VAL[0] for the
 *     nearest class to r=0 or STT or y=0 or STT.  If a minimum value in the
-*     range (STT) has been specified, or a maximum value for r or y of KDT 
-*     (>1), the program also computes the number of data clusters (NOTIN) 
-*     below STT and above KDT and subtracts it from NVALS to give the 
+*     range (STT) has been specified, or a maximum value for r or y of KDT
+*     (>1), the program also computes the number of data clusters (NOTIN)
+*     below STT and above KDT and subtracts it from NVALS to give the
 *     correct magnitude of NVALS for use in later calculations.
 *
 *
@@ -3309,6 +3097,7 @@ Loop_1410:
 *     An alternative computation works with perpendicular distance
 *     values:
 */
+		  
 	if (iry > 0) goto Line_430;
 
 
@@ -3333,6 +3122,7 @@ Loop_410:
 *     Numbers ahead (NUMA), overtaking (NUMO) and groups are totalled.
 *     The frequency in the class, VAL[IC], is accumulated too.
 */
+		
 	  for (ir=0; ir < nvals; ir++) {	//  DO ir=1,nvals
 	    if ((kdt > 1) && (r[ir] > kdt)) {
 	      continue;
@@ -3352,15 +3142,14 @@ Loop_410:
 	}						//  END DO Loop_410
 
 /*
-*
 *     The frequency distribution of the original data is saved,
 *     as VALT[IG].
 */
+
 Loop_420:
 	for (ig=0; ig < nclass; ig++) {		//  DO ig=1,nclass
 	  valt[ig]=val[ig];
 	}					//  END DO Loop_420
-	/* OR: memcpy(valt, val, nclass*sizeof(valt[0])); */
 
 	if ((maxjb != 1) && (nap <= 0)) goto Line_1320;
 
@@ -3368,13 +3157,12 @@ Loop_420:
         goto Line_620;
 
 /*
-*
 *     Or the initial y class totals, VALT(), are calculated...
 *
 *     Absolute values of Y() are used because data from the
 *     two sides of a transect line are pooled.
-*
 */
+
 Line_430:
 	frst = stt;
 
@@ -3393,37 +3181,38 @@ Loop_460:
           val[ic] = 0.0;
 /*
 *     If a group is in the included data set, the number in each
-*     class is totalled in a series of passes through the values 
+*     class is totalled in a series of passes through the values
 *     supplied.
 */
+		
 	  for (ir=0; ir < nvals; ir++) {	//  DO ir=1,nvals
 	    if ((kdt > 1) && (y[ir] > kdt)) {
-	      continue;	
+	      continue;
 	    }
 	    else if ((y[ir] > frst) && (y[ir] <= (frst+clint))) {
 	      numa += nsize[ir];
 	      ngroups++;
 	      val[ic] += nsize[ir];
             }
-	    else if ((ic == 0) && (y[ir] == 0.)) {  
+	    else if ((ic == 0) && (y[ir] == 0.)) {
 	      numo += nsize[ir];
 	      ngroups++;
 	    }
+
 	  }					//  END DO ir
 
 	  frst += clint;
 	}						//  END DO Loop_460
 
 /*
-*
 *     The frequency distribution of the original data is now saved,
 *     as VALT[IG].
 */
+
 Loop_470:
 	for (ig=0; ig < nclass; ig++) {		//  DO ig=1,nclass
 	  valt[ig] = val[ig];
-	}						//  END DO Loop_470
-	/* OR: memcpy(valt, val, nclass*sizeof(valt[0])); */
+	}					//  END DO Loop_470
 
 	if ((maxjb != 1) && (nap <= 0)) goto Line_1320;
 
@@ -3431,7 +3220,6 @@ Loop_470:
         goto Line_620;
 
 /*
-*
 *     To calculate a bootstrapped distribution, values of R(IN) and
 *     the corresponding group NSIZE(IN) are to be chosen at random
 *     with replacement, based on a randomly-selected value of IN,
@@ -3439,6 +3227,7 @@ Loop_470:
 *     animals detected.  Loop 510 selects these values.
 *
 */
+
 Line_480:
 	if (iry > 0) {
 	  resample (y, nsize, nvals, resamp_dist, nbsz);
@@ -3447,19 +3236,19 @@ Line_480:
         }
 
 /*
-*
 *     There should now be a new set of (N=NVALS) R (or Y) and NSIZE
 *     values to use in putting together a new frequency distribution.
 *
 *     The calculation path differs according to whether radial or
 *     perpendicular distance data are being handled.
 */
+		  
 	if (iry > 0) goto Line_570;
 
 /*
-*
 *     Either: radial distance data are handled....
 */
+		  
 	frst = stt;
 
 	numo = 0;
@@ -3470,11 +3259,13 @@ Loop_550:
 	for (ic=0; ic < nclass; ic++) {			//  DO ic=1,nclass
 
 	  val[ic] = 0.0;
+
 /*
 *     The first class for r begins just above the frst value so that
 *     0's are not included because they are 'overtakes'.
 */
-	  for (irb=0; irb < nvals; irb++) {	//  DO irb=1,nvals
+		
+	for (irb=0; irb < nvals; irb++) {	//  DO irb=1,nvals
 	    if ((kdt > 1) && (resamp_dist[irb] > kdt))  {
 	      continue;
 	    }
@@ -3483,7 +3274,7 @@ Loop_550:
 	      ngroups++;
 	      val[ic] += nbsz[irb];
 	    }
-	    else if ((ic == 0) && (resamp_dist[irb] == 0.)) {  
+	    else if ((ic == 0) && (resamp_dist[irb] == 0.)) {
 	      numo += nbsz[irb];
 	      ngroups++;
 	    }
@@ -3493,16 +3284,15 @@ Loop_550:
        }						//  END DO Loop_550
 
 /*
-*
 *     RESAMP_DIST(IRB) values need to be reassigned at this point
 *     or some values will be carried into subsequent loop
 *     iterations.
 */
+
 Loop_560:
 	for (js=0; js < nvals; js++) {	//  DO js=1,nvals
 	  nbsz[js] = 0;
 	}				//  END DO Loop_560
-	/* OR: memset(nbsz, 0, nvals*sizeof(nbsz[0])); */
 
         goto Line_620;
 
@@ -3510,6 +3300,7 @@ Loop_560:
 *
 *     Or: perpendicular distance data are handled.
 */
+
 Line_570:
 	frst = stt;
 
@@ -3521,10 +3312,12 @@ Loop_600:
 	for (ic=0; ic < nclass; ic++) {			//  DO ic=1,nclass
 
           val[ic]=0;
+
 /*
 *     Numbers in each class are totalled for the groups included
 *     in the data set.
 */
+		
 	  for (irb=0; irb < nvals; irb++) {	//  DO irb=1,nvals
 	    if ((kdt > 1) && (fabs(resamp_dist[irb]) > kdt)) {
 	      continue;
@@ -3534,7 +3327,7 @@ Loop_600:
 	      ngroups++;
 	      val[ic] += nbsz[irb];
             }
-	    else if ((ic == 0) && (resamp_dist[irb] == 0.)) {  
+	    else if ((ic == 0) && (resamp_dist[irb] == 0.)) {
 	      numo += nbsz[irb];
 	      ngroups++;
             }
@@ -3544,31 +3337,24 @@ Loop_600:
 	}						//  END DO Loop_600
 
 /*
-*
 *     RESAMP_DIST[IRB] values need to be reassigned at this point
 *     or some values will be carried into subsequent loop
 *     iterations.
 */
+
 Loop_610:
 	for (js=0; js < nvals; js++) {	//  DO js=1,nvals
 	  nbsz[js] = 0;
 	}				//  END DO Loop_610
-	/* OR: memset(nbsz, 0, nvals*sizeof(nbsz[0])); */
 
 /*
-*
 *     The calculated set of values, VAL[IC], in each class interval
 *     is now printed out for the set of data concerned if JPRINT=1.
-*
 */
-Line_620: 
+
+Line_620:
 	if ((jprint == 1) && (maxjb != 1)) {
-//
-//          WRITE (2,640) bootstrap
-//  640     FORMAT (///'Bootstrap Replicate No. =',i4,'      Individuals per class:',/)
-//          WRITE (2,650) (val(i),i=1,nclass)
-//  650     FORMAT (10f6.0,/)
-//
+
 	  fprintf(output_results, "\n\nBootstrap Replicate No. =%4i      Individuals per class:\n\n", bootstrap+1);
 	  for (i=0, j=0; i < nclass; i++) {
 	    fprintf(output_results, "%6.0f", val[i]);
@@ -3581,10 +3367,10 @@ Line_620:
         }
 
 /*
-*
 *     The initial simplex of program MINIM is now set up.
 *
 */
+
 Loop_660:
 	for (i=0; i < nop; i++) {	//  DO i=1,nop
 	  g[0][i]=f[i];
@@ -3618,7 +3404,7 @@ Loop_730:
 	  givef (f, &h[i], &s, val, clint, /* pd, */ stt, tcov,
 		 thh, vgh, ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
 		 ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
-		 mtest, FALSE, graphfile_name);
+		 mtest, false, graphfile_name);
 
 	  neval++;
 
@@ -3627,12 +3413,6 @@ Loop_730:
 *     All points in the initial simplex become output if IPRINT=1.
 */
 	  if (iprint==1) {
-//          WRITE (2,720) neval,h[i],(f[j],j=0,nop-1)	/* JMB: range has been set, was 1..nop */
-//  720     FORMAT (/3x,i4,4x,e13.6,8(1x,e13.6)/24x,8(1x,e13.6)/24x,4(1x,e13.6))
-//   9999    999999.999999 999999.999999 999999.999999 999999.999999 999999.999999 999999.999999 999999.999999 999999.999999 999999.999999
-//                         999999.999999 999999.999999 999999.999999 999999.999999 999999.999999 999999.999999 999999.999999 999999.999999
-//                         999999.999999 999999.999999 999999.999999 999999.999999
-/* JMB: Above format seems wrong; nop=4 so the WRITE will generate 6 items at most */
 	    DUMP_SS(h[i], f)
 	  }
 
@@ -3673,15 +3453,15 @@ Loop_750:
 	}				//  END DO Loop_750
 
 /*
-*
 *     The centroid of all vertices, excluding the maximum, is
 *     now found.
 */
+
 Loop_790:
 	for (i=0; i < nop; i++) {	//  DO i=1,nop
 	  pbar[i]=0.0;
 	}				//  END DO Loop_790
-	/* Or: memset(pbar, 0, nop*sizeof(pbar[0])); */
+
 
 Loop_800:
 	for (i=0; i < np1; i++) {		//  DO i=1,np1
@@ -3693,10 +3473,10 @@ Loop_810:   for (j=0; j < nop; j++) {	//  DO j=1,nop
 	}					//  END DO Loop_800
 
 /*
-*
 *     The program reflects the maximum through PBAR to PSTAR, and
 *     evaluates the function at PSTAR (to give HSTAR).
 */
+
 Loop_820:
 	for (i=0; i < nop; i++) {		//  DO i=1,nop
 	  pstar[i] = a * (pbar[i]-g[imax][i]) + pbar[i];
@@ -3706,14 +3486,15 @@ Loop_820:
 
 	givef (pstar, &hstar, &dcoeff, val, clint, /* pd, */ stt,
 	       tcov, thh, vgh, ifx, &imv, iry, ishow, kdt, kprint,
-	       /* dmax, */ ltmax, ltmin, nclass, numa, numo, 
-	       &msfail, maxjb, mtest, FALSE, graphfile_name);
+	       /* dmax, */ ltmax, ltmin, nclass, numa, numo,
+	       &msfail, maxjb, mtest, false, graphfile_name);
 
 /*
 *     The next 5 statements test whether a progress report is
 *     required and, if so, provide one.  This procedure occurs
 *     frequently in the program.
 */
+
 	neval++;
 
 /*
@@ -3721,37 +3502,19 @@ Loop_820:
 *     (=MAX), the program prints out parameter values provided that
 *     IPRINT and JPRINT have been set at 1.
 */
+		  
 	if ((neval > max) && (iprint == 1) && (jprint == 1)) {
-	  j = neval/iprint;
-	  k = neval-j*iprint;
-	  if (k<=0) {
-//	    WRITE (2,720) neval,hstar,(pstar[j],j=0,nop-1)	/* JMB: loop range has been set, was 1..nop */
-	    DUMP_SS(hstar,pstar)
-	  }
+	  DUMP_SS(hstar,pstar)
 	}
-/*
-*  Comment by J.Begg:  The above code is redundant and the lines
-*  evaluating 'j' & 'k' can be removed, so that we get:
-*
-*	if ((neval > max) && (iprint == 1) && (jprint == 1)) {
-*	  DUMP_SS(hstar,pstar)
-*	}
-*
-*  This is because when 'j' is evaluated, 'jprint' is 1 (otherwise
-*  the if test will fail) hence 'j' will be set to the value of
-*  'neval' and therefore 'k' will always be 0.  I have applied this
-*  optimisation to the remaining occurrences of this logic.
-*/
-
 
 	if (hstar >= hmin) goto Loop_900;
-
 
 /*
 *     If HSTAR is less than HMIN, PBAR is reflected through PSTAR
 *     (to give PSTST) and the function is evaluated there (to
 *     give HSTST).
 */
+
 Loop_830:
 	for (i=0; i < nop; i++) {		//  DO i=1,nop
 	  pstst[i] = c * (pstar[i]-pbar[i]) + pstar[i];
@@ -3761,8 +3524,8 @@ Loop_830:
 
 	givef (pstst, &hstst, &dcoeff, val, clint, /* pd, */ stt,
 	       tcov, thh, vgh, ifx, &imv, iry, ishow, kdt, kprint,
-	       /* dmax, */ ltmax, ltmin, nclass, numa, numo, 
-	       &msfail, maxjb, mtest, FALSE, graphfile_name);
+	       /* dmax, */ ltmax, ltmin, nclass, numa, numo,
+	       &msfail, maxjb, mtest, false, graphfile_name);
 
 /*
 *     If IPRINT=1 the program prints out the progress of the
@@ -3771,21 +3534,18 @@ Loop_830:
         neval++;
 
 	if ((iprint == 1) && (jprint == 1)) {
-//        WRITE (2,860) neval,hstst,(pstst[j],j=0,nop-1)		/* JMB: loop range has been set, was 1..nop */
-//  860     FORMAT (/3x,i4,4x,e13.6,8(1x,e13.6)/24x,8(1x,e13.6)/24x,4(1x,e13.6))
 	  DUMP_SS(hstst,pstst)
 	}
 
 Line_870:
 	if (hstst >= hmin) goto Loop_1030;
 
-
 /*
-*
 *     If HSTST is less than HMIN, the maximum point of the current
 *     simplex is replaced by PSTST and HMAX is replaced by HSTAR,
 *     then a test is performed.
 */
+
 Loop_880:
 	for (i=0; i < nop; i++) {		//  DO i=1,nop
 	  g[imax][i] = pstst[i];
@@ -3808,7 +3568,6 @@ Loop_900:
 	}					//  END DO Loop_900
 
 /*
-*
 *     If it is less than at least one of these vertices, the
 *     maximum point of the current simplex is replaced by PSTAR and
 *     HMAX by HSTAR.  A test is then performed.
@@ -3821,6 +3580,7 @@ Loop_900:
 *     contracted point PSTST and the function value there (HSTST)
 *     are calculated.
 */
+
 	if (hstar <= hmax) {
 	  for (i=0; i < nop; i++) {		//  DO i=1,nop
 	    g[imax][i] = pstar[i];
@@ -3836,8 +3596,8 @@ Loop_930:
 
         givef (pstst, &hstst, &dcoeff, val, clint, /* pd, */ stt,
 	       tcov, thh, vgh, ifx, &imv, iry, ishow, kdt, kprint,
-	       /* dmax, */ ltmax, ltmin, nclass, numa, numo, 
-	       &msfail, maxjb, mtest, FALSE, graphfile_name);
+	       /* dmax, */ ltmax, ltmin, nclass, numa, numo,
+	       &msfail, maxjb, mtest, false, graphfile_name);
 
 	neval++;
 	if ((iprint == 1) && (jprint == 1)) {
@@ -3847,16 +3607,11 @@ Loop_930:
 
 Line_970:
 
-/* Comment added by J.Begg: the comments below, regarding HSTST and HMAX,
-*  do not accurately reflect the logic, in that they ignore HSTST == HMAX.
-*  The first should say "If HSTST is not greater than HMAX ..." and the
-*  second should say "If HSTST is greater than HMAX ...".  */
-
 /*
-*
-*     If HSTST is less than HMAX, the maximum point is replaced by
+*     If HSTST is not greater than HMAX, the maximum point is replaced by
 *     PSTST and HMAX by HSTST.  A test is then applied.
 */
+
 	if (hstst <= hmax) {
 	  for (i=0; i < nop; i++) {		//  DO i=1,nop
 	    g[imax][i] = pstst[i];
@@ -3865,13 +3620,13 @@ Line_970:
 	  goto Line_1050;
 	}
 /*
-*
-*     If HSTST is not less than HMAX, each point in the current
+*     If HSTST is greater than HMAX, each point in the current
 *     simplex is replaced by a point midway between its current
 *     position and the position of the minimum point of the
 *     current simplex.  The function is evaluated at each new
 *     vertex and the test performed.
 */
+
 Loop_990:
 	for (i=0; i < np1; i++) {		//  DO i=1,np1,1
 	  for (j=0; j < nop; j++) {	//  DO j=1,nop,1
@@ -3880,27 +3635,26 @@ Loop_990:
 	}					//  END DO Loop_990
 
 /*
-*
-*     The conditional loop Inner_1010 is the first of several 
-*     introduced to ensure the program uses supplied f values 
-*     wherever the stepsize is set at zero (to avoid a processor 
+*     The conditional loop Inner_1010 is the first of several
+*     introduced to ensure the program uses supplied f values
+*     wherever the stepsize is set at zero (to avoid a processor
 *     error?).
 */
+
 Loop_1020:
 	for (i=0; i < np1; i++) {		//  DO i=1,np1,1
 	  for (j=0; j < nop; j++) {	//  DO j=1,nop,1
 	    f[j] = g[i][j];
 	    if (step[i] < approx) f[i] = ft[i];	/* Inner_1010 */
-	  }                                         //  END DO Loop_1010  
+	  }                                         //  END DO Loop_1010
 
           givef (f, &h[i], &dcoeff, val, clint, /* pd, */ stt,
 		 tcov, thh, vgh, ifx, &imv, iry, ishow, kdt,
-		 kprint, /* dmax, */ ltmax, ltmin, nclass, numa, numo, 
-		 &msfail, maxjb, mtest, FALSE, graphfile_name);
+		 kprint, /* dmax, */ ltmax, ltmin, nclass, numa, numo,
+		 &msfail, maxjb, mtest, false, graphfile_name);
 
 	  neval++;
 	  if ((iprint == 1) && (jprint == 1)) {
-//            WRITE (2,720) neval,h[i],(f[j],j=0,nop-1)	/* JMB: loop range has been set, was 1..nop */
 	    DUMP_SS(h[i],f)
           }
 	}					//  END DO Loop_1020
@@ -3918,16 +3672,17 @@ Loop_1030:
 *     If LOOP=NLOOP, tests for convergence begin.  Otherwise
 *     computation goes back to the beginning of the basic loop.
 */
+
 Line_1050:
 	if (loop != nloop) goto Line_740;
 
 /*
-*
 *   Tests for Convergence -
 *
 *     The mean and standard deviation of the function values of the
 *     current simplex are now calculated.
 */
+
 	hstd = 0.0;
 	hmean = 0.0;
 
@@ -3942,43 +3697,30 @@ Loop_1060:
 	hstd = sqrt(fabs(hstd));
 
 /*
-*
 *     The parameter values (F) at the centroid of the current
 *     simplex and the function value there (FUNC) are now
 *     calculated.
-*/
-Loop_1080:
-	for (i=0; i < nop; i++) {		//  DO i=1,nop,1
-	  f[i] = 0.0;
-	  for (j=0; j < np1; j++) {	//  DO j=1,np1,1
-	    f[i] += g[j][i];
-	    if (step[i] < approx) f[i] = ft[i];
-	  }				//  END DO
-          f[i] /= (np1);
-	  if (step[i] < approx) f[i]=ft[i];
-	}					//  END DO Loop_1080
-
-/*++++
-* Comment by J.Begg: Loop_1080 is horibly sub-optimal
-* when step[i] < approx.  It should be rewritten as:
 *
-*	for (i=0; i < nop; i++) {
-*	  if (step[i] < approx) {
-*	    f[i] = ft[i];
-*	  }
-*	  else {
-*	    for (j=0; j < np1; j++) {
-*	      f[i] += g[j][i];
-*	    }
-*	    f[i] /= nop;
-*	  }
-*	}
-*----*/
+*/
+
+Loop_1080:
+	for (i=0; i < nop; i++) {
+	    if (step[i] < approx) {
+		f[i] = ft[i];
+	    }
+	    else {
+		f[i] = 0.0;
+		for (j=0; j < np1; j++) {
+		    f[i] += g[j][i];
+		}
+		f[i] = f[i]/np1;
+	    }
+	}
 
         givef (f, &func, &dcoeff, val, clint, /* pd, */ stt, tcov,
 	       thh, vgh, ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
-	       ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,  
-	       mtest, FALSE, graphfile_name);
+	       ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
+	       mtest, false, graphfile_name);
 
 	neval++;
 
@@ -3991,6 +3733,7 @@ Loop_1080:
 *     the value of MAXJB later, and the next run through the loop
 *     begins.
 */
+
 	if (neval >= max) {
 
 /*
@@ -4009,17 +3752,6 @@ Loop_1080:
 
 	  if ((iprint != 1) && (jprint != 1)) goto Line_1380;
 
-/* Line_1100: */
-/*----------
-        WRITE (2,1110) max
- 1110   FORMAT (' NUMBER OF FUNCTION EVALUATIONS EXCEEDS ',i4)
-        WRITE (2,1120) hstd
- 1120   FORMAT (' STANDARD ERROR OF FUNCTION VALUES OF LAST SIMPLEX ',e13.6)
-        WRITE (2,1130) (f[i],i=0,nop-1)			// JMB: loop range has been set, was 1..nop
- 1130   FORMAT ('  CENTROID OF LAST SIMPLEX  ',8e13.5,(/28x,8e13.5))
-        WRITE (2,1140) func
- 1140   FORMAT ('  FUNCTION VALUE AT CENTROID   ',e13.6)
-----------*/
 	  fprintf(output_results, " NUMBER OF FUNCTION EVALUATIONS EXCEEDS %4i\n", max);
 	  fprintf(output_results, " STANDARD ERROR OF FUNCTION VALUES OF LAST SIMPLEX %13.6e\n", hstd);
 	  fprintf(output_results, "  CENTROID OF LAST SIMPLEX  %13.5e%13.5e%13.5e%13.5e\n", f[0], f[1], f[2], f[3]);
@@ -4031,11 +3763,9 @@ Loop_1080:
 	  goto Line_1375;
 	}
 
-
 /* Line_1150: */
+
 	if (iprint == 1) {
-//          WRITE (2,1155) neval,func,(f[j],j=0,nop-1)	/* JMB: loop range has been set, was 1..nop */
-// 1155     FORMAT (/3x,i4,4x,e13.6,8(1x,e13.6)/24x,8(1x,e13.6)/24x,4(1x,e13.6))
 	  DUMP_SS(func,f)
 	}
 
@@ -4044,21 +3774,13 @@ Loop_1080:
 *     the criterion set (STOPC), IFLAG and LOOP are set to zero
 *     and the basic loop begins again.
 */
-	if (hstd >= stopc) {
+	  if (hstd >= stopc) {
 	  iflag = 0;
 	  loop = 0;
 	  goto Line_740;
 	}
 
 	if ((iprint == 1) && (jprint == 1)) {
-/*----------
-        WRITE (2,1180)
- 1180   FORMAT (' *'/'  INITIAL EVIDENCE OF CONVERGENCE')
-        WRITE (2,1190) (f[i],i=0,nop-1)				// JMB: loop range has been set, was 1..nop
- 1190   FORMAT ('  CENTROID OF LAST SIMPLEX  ',8e13.5,(/28x,8e13.5))
-        WRITE (2,1200) func
- 1200   FORMAT ('  FUNCTION VALUE AT CENTROID   ',e13.6)
-----------*/
 	  fprintf(output_results," *\n  INITIAL EVIDENCE OF CONVERGENCE\n");
 	  fprintf(output_results,"  CENTROID OF LAST SIMPLEX  %13.5e%13.5e%13.5e%13.5e\n", f[0],f[1],f[2],f[3]);
 #if (NUM_SHAPE_PARAMS != 4)
@@ -4077,6 +3799,7 @@ Loop_1080:
 *     values of the current simplex are saved (as SAVEMN), and
 *     computation goes back to the beginning of the basic loop.
 */
+
 Line_1210:
 	if (iflag <= 0) {
 	  iflag = 1;
@@ -4093,15 +3816,6 @@ Line_1210:
 *     basic loop.  STOPC and TEST values tested empirically.
 */
 
-/*------
-        IF (hmean == 0) GO TO 1250
-        test=savemn/hmean
-      IF ((test > 0.9999995).and.(test < 1.0000005)) GO TO 1250
-        iflag=0
-        loop=0
-        GO TO 740
-------*/
-
 	if (hmean != 0) {
 	  test = savemn / hmean;
 	  if ((test <= 0.9999995) || (test >= 1.0000005)) {
@@ -4115,18 +3829,10 @@ Line_1210:
 *     If JPRINT=1 the program prints out the results of each successful
 *     convergence on a minimum.
 */
+
 Line_1250:
 	if ((jprint == 1) && (maxjb != 1)) {
-/*----------
-          WRITE (2, 1270) neval
- 1270     FORMAT (/,' Process converges on minimum after ', i4,' function evaluations'/)
-          WRITE (2, 1280) (f[i], i=0, nop-1)		// JMB: loop range has been set, was 1..nop
- 1280     FORMAT (' Minimum at   ',4(1x,e13.6))
-          WRITE (2, 1290) func
- 1290     FORMAT (/' Minimum function value   ',e13.6)
-          WRITE (2, 1300)
- 1300     FORMAT (/' End of Search'/1x,13('*'))
-----------*/
+
 	  fprintf(output_results, "\n\n Process converges on minimum after %4i function evaluations\n\n", neval);
 	  fprintf(output_results," Minimum at    %13.6e %13.6e %13.6e %13.6e\n", f[0],f[1],f[2],f[3]);
 #if (NUM_SHAPE_PARAMS != 4)
@@ -4137,39 +3843,39 @@ Line_1250:
         }
 
 /*
-*
 *     MTEST is set at 1 to flag that convergence has occurred.  This
 *     is carried into Subroutine GIVEF to trigger computation of
 *     MSFAIL where computation of S cannot occur.
 */
+
 Line_1320:
 	mtest = 1;
 
 /*
-*     Program execution returns to the subroutine to yield final 
+*     Program execution returns to the subroutine to yield final
 *     values of F[0], F[1] and F[2].
 *
 */
 	givef (f, &func, &dcoeff, val, clint, /* pd, */ stt, tcov,
 	       thh, vgh, ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
-	       ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,  
-	       mtest, FALSE, graphfile_name);
+	       ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
+	       mtest, false, graphfile_name);
 
 
 	kprint = 0;
 
 /*
-*
 *     The estimated 'best fit' values of the parameters from the current
 *     pass through Loop 1410 are now computed, tabulated and printed out.
 *
-*     This involves dividing by the same variables used earlier to 
+*     This involves dividing by the same variables used earlier to
 *     compare calculated with observed values in Subroutine GIVEF.
 *
 *     A density estimate (DEN) is calculated from D2L=F[2] by
 *     correcting units to no./ha, and dividing by 2L in the case of
 *     line transect data, and by 2Vt in the case of fixed-point data.
 */
+
 	if (km > 0) {
 	  den[bootstrap] = (1.e6*f[2])/(sns*dist*pd);
 	}
@@ -4186,14 +3892,16 @@ Line_1320:
 *     the estimates of F[0] and F[1], thus:
 */
 /* Line_1370: */
+
 	coeff1[bootstrap] = f[0];
 	coeff2[bootstrap] = f[1];
 	coeff3[bootstrap] = dcoeff;
 
 /*
-*      The density estimate is transformed to TRDEN by a logarithmic 
+*      The density estimate is transformed to TRDEN by a logarithmic
 *      transformation, then a running total TTRDEN is calculated.
 */
+
 	trden[bootstrap] = log(1 + den[bootstrap]);
 	ttrden += trden[bootstrap];
 
@@ -4201,6 +3909,7 @@ Line_1320:
 *     Running totals of DEN, COEFF1 and COEFF2 are now made to
 *     enable calculation of mean values after the loop ends.
 */
+
 Line_1375:
 	tden += den[bootstrap];
 	tcoeff1 += coeff1[bootstrap];
@@ -4210,13 +3919,13 @@ Line_1375:
 	if (maxjb == 1) goto Line_1468;
 
 /*
-*
 *     Loop 1410 now ends, returning calculations to the start until the
 *     maximum preset number of bootstraps (MAXJB) value is reached.
 *     LOOP is reset to zero to enable a new series of iterations in the
 *     basic loop to begin again, as are G[I][J] values.
 *
 */
+
 Line_1380:
 	loop = 0;
 	iflag = 0;
@@ -4228,7 +3937,6 @@ Loop_1390:
 	    g[i][j] = 0.0;
 	  }				//  END DO
 	}					//  END DO Loop_1390
-	/* Hmm. Might be simpler & quicker to simply memset(g, 0, sizeof(g)) */
 
 /*
 *     If the number of detections is less than 80, the conspicuousness
@@ -4236,9 +3944,10 @@ Loop_1390:
 *     proportion step size is not zero, then the program saves
 *     the 'a' value calculated from the original data by altering the
 *     values of ft[0] and stept[0] in subsequent runs, fixing the
-*     'a' value to that calculated from the original data. 
-*     NAP is reduced by 1 because there is one variable fewer to alter. 
+*     'a' value to that calculated from the original data.
+*     NAP is reduced by 1 because there is one variable fewer to alter.
 */
+
 	if ((bootstrap==0) && (nvals<80) && (step[0]!=0) && (step[1]!=0) && (ishow!=1)) {
 	  ft[0] = f[0];
 	  stept[0] = 0.0;
@@ -4246,23 +3955,19 @@ Loop_1390:
 	}
 
 /*
-*
 *     Other F and STEP values are reset to their original values.
 */
+
 Loop_1400:
 	for (ie=0; ie < nop; ie++) {		//  DO ie=1,nop
 	  f[ie] = ft[ie];
 	  step[ie] = stept[ie];
 	}					//  END DO Loop_1400
-	/* OR: memcpy(f, ft, nop*sizeof(f[0]));
-	*      memcpy(step, stept, nop*sizeof(step[0]));
-	*/
 
 /*
 *     The main loop 1410 now ends.
 */
       }								//  END DO Loop_1410
-
 
 /*
 *
@@ -4274,6 +3979,7 @@ Loop_1400:
 *     The overall means ESTDEN, COEFFNT1 and COEFFNT2 are calculated
 *     first.  NUMEST is the number of parameter estimations made.
 */
+	
       numest = maxjb - mfail;
       if (numest == 0) numest = 1;
 
@@ -4281,9 +3987,10 @@ Loop_1400:
 *     Each of the following variables is an estimate of a parameter
 *     mean value, beginning with the population mean ESTDEN, then
 *     the other parameters - conspicuousness coefficient COEFFNT1,
-*     cover proportion or attenuation coefficient COEFFNT2 - and the 
+*     cover proportion or attenuation coefficient COEFFNT2 - and the
 *     detectability coefficient COEFFNT3, in sequence.
 */
+
       estden = tden/numest;
       coeffnt1 = tcoeff1/numest;
       coeffnt2 = tcoeff2/numest;
@@ -4291,6 +3998,7 @@ Loop_1400:
 /*
 *     A mean of the transformed values, TTRDENMN, is calculated too.
 */
+
       ttrdenmn = ttrden/numest;
 
 /*
@@ -4300,6 +4008,7 @@ Loop_1400:
       // if (numest == msfail) numest++;
       // coeffnt3 = tcoeff3/(numest-msfail);
       // if (numest == (msfail+1)) numest--;
+
       coeffnt3 = (numest == msfail) ? tcoeff3 : (tcoeff3/(numest-msfail));
 
 /*
@@ -4309,6 +4018,7 @@ Loop_1400:
 *     Each is the standard deviation of the parameter estimates.
 *     If NUMEST is 0 or 1, standard error calculation is bypassed.
 */
+	
       if (numest <= 1) goto Line_1470;
 
       dsum = 0.0;
@@ -4353,13 +4063,13 @@ Loop_1460:
       if ((numest-msfail-1) > 0) scf3 = sqrt(cf3sum/(numest-msfail-1));
 
 /*
-*
 *     A standard deviation of the transformed means, STRDEN, is now
 *     computed.
 */
+
       tdsum=0.0;
 Loop_1465:
-      for (bootstrap=0; bootstrap < maxjb; bootstrap++) {	//  DO bootstrap = 1, maxjb 
+      for (bootstrap=0; bootstrap < maxjb; bootstrap++) {	//  DO bootstrap = 1, maxjb
 	if (trden[bootstrap] != 0.0) {
 	  tdendif = trden[bootstrap]-ttrdenmn;
 	  tdsum += tdendif*tdendif;
@@ -4368,18 +4078,18 @@ Loop_1465:
       strden = sqrt(tdsum/(numest-1));
 
 /*
-*
 *     The p=0.05(2) distribution of t with sample number is now
 *     approximated by a function T.
 */
+
       t = (1.0/(0.093914*pow(maxjb,2.09372)))+2.03046;
 
 /*
-*
 *     The 95% lower (CL1) and upper (CL2) confidence limits are now
 *     calculated from the transformed mean and standard deviation,
 *     then back-transformed to the original units.
 */
+
       tcl1 = ttrdenmn - t*strden;
       tcl2 = ttrdenmn + t*strden;
       cl1 = exp(tcl1) - 1.0;
@@ -4390,6 +4100,7 @@ Loop_1465:
 *     parameters need to be given valuues that will correspond to
 *     those where at least one parameter was estimated.
 */
+
 Line_1470:
       if (nap <= 0) {
 	numest = 1;
@@ -4398,64 +4109,52 @@ Line_1470:
       }
 
 /*
-*
 *     The products of the program are now output.
 *
-*     The number of animal groups in the selected range (NGROUPS) is 
-*     first, followed by the estimated topographical cover (TCOV), 
+*     The number of animal groups in the selected range (NGROUPS) is
+*     first, followed by the estimated topographical cover (TCOV),
 *     then the number of actual parameter estimations made (NUMEST).
 */
+
 Line_1468:
+
 //      WRITE (2,1471) ngroups
 // 1471 FORMAT (/,' Number of Groups in Distance Range = ',i4)
+
       fprintf(output_results, "\n Number of Groups in Distance Range = %4i\n", ngroups);
 
       if (ifx == 0) {
+
 //        WRITE (2,1472) numain
 // 1472   FORMAT (' Number of Individuals Detected Ahead = ',i5)
+
 	fprintf(output_results," Number of Individuals Detected Ahead = %5i\n", numain);
       } else {
+
 //        WRITE (2,1473) numain
 // 1473   FORMAT (' Number of Individuals Detected =',i5)
-	fprintf(output_results, " Number of Individuals Detected = %i5\n", numain);
-      }  
+
+	fprintf(output_results, " Number of Individuals Detected = %5i\n", numain);
+      }
 
       if (ifx == 0) {
-//        WRITE (2,1474) numoin
-// 1474   FORMAT (' Number Overtaking (distance unmeasured) = ',i4)
 	fprintf(output_results, " Number Overtaking (distance unmeasured) = %4i\n", numoin);
       }
 
 /* Line_1475: */
-//      WRITE (2,1478) thh
-// 1478 FORMAT (' Height Difference from Eyelevel = ',f5.1,' m')
+
       fprintf(output_results, " Height Difference from Eyelevel = %5.1f m\n", thh);
 
       if (ifx == 0) {
-//        WRITE (2,1479) estj
-// 1479   FORMAT (' Movement Correction Factor (J) = ',f6.3)
 	fprintf(output_results, " Movement Correction Factor (J) = %6.3f\n", estj);
       }
 
       if (ifx == 0) {
-//        WRITE (2,1480) dist
-// 1480   FORMAT (' Adjusted Transect Length (LJ) = ',f11.3,' m')
 	fprintf(output_results, " Adjusted Transect Length (LJ) = %11.3f m\n", dist);
       }
 
-//      WRITE (2,1481) tcov
-// 1481 FORMAT (' Topographical Cover Value = ',f6.4)
       fprintf(output_results, " Topographical Cover Value = %6.4f\n", tcov);
 
-/*----------
-      IF (estdmax == 0) THEN
-        WRITE (2,1482) f(4)
- 1482   FORMAT (' Maximum Detection Distance (preset) =',f7.1,' m')
-      ELSE
-        WRITE (2,1483) estdmax
- 1483   FORMAT (' Maximum Detection Distance (estimated) =',f7.1,' m')
-      END IF
-----------*/
       if (estdmax == 0) {
 	fprintf(output_results, " Maximum Detection Distance (preset) =%7.1f m\n", f[NUM_SHAPE_PARAMS-1]);
       }
@@ -4464,43 +4163,31 @@ Line_1468:
       }
 
       if (maxjb == 1) {
-//          WRITE (2, 1485) neval
-// 1485     FORMAT (///,' Process converges on minimum after ', i4,' function evaluations')
 	fprintf(output_results, "\n\n Process converges on minimum after %4i function evaluations\n", neval);
 
 /*
 *     Subroutine qsf is now called if MAXJB=1.
 */
+
 	qsf (f, func, approx, dist, durn, rate, step, stopc,
 	     &s, val, clint, stt, tcov, thh, vgh, &imv, ishow, &kprint, ltmax,
 	     ltmin, nclass, numa, numo, &msfail, mtest, &estden, &sden, &hstst,
 	     pd, ps, ifx, iprint, iry, kdt, km, nap, /* neval,*/ nop, ns, /* nvals, */
 	     np1, g, h, maxjb, /* jprint, */ graphfile_name);
-	iqsf = TRUE;
+	iqsf = true;
 	goto Line_1920;
       }
 
-//      WRITE (2,1490) numest
-// 1490 FORMAT (' Number of Parameter Estimations =',i4)
       fprintf(output_results, " Number of Parameter Estimations =%4i\n", numest);
 
 /*
-*
 *     Now follow general headings for the results table.
 *
 */
-//      WRITE (2,1500)
-// 1500 FORMAT (/' Estimated Parameter Values:'/)
-      fprintf(output_results, "\n 	Estimated Parameter Values:\n\n");
+      fprintf(output_results, "\n Estimated Parameter Values:\n\n");
       kprint = 1;
-/*----------
-      WRITE (2,1520)
- 1520 FORMAT (' ',77('x')/' x',4(18x,'x'))
-      WRITE (2,1530)
- 1530 FORMAT (' x    Parameter',5x,'x',6x,'Value',7x,'x','  Standard Error  ','x',7x,'Unit',7x,'x')
-      WRITE (2,1540)
- 1540 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/' x ESTIMATED',8x,'x',3(18x,'x'))
-----------*/
+
+	
       fprintf(output_results,     " xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
       fprintf(output_results,     " x                  x                  x                  x                  x\n");
       fprintf(output_results,     " x    Parameter     x      Value       x  Standard Error  x       Unit       x\n");
@@ -4512,28 +4199,7 @@ Line_1468:
 /*
 *     Density estimates are printed.
 */
-/*----------
-      IF (km == 0) THEN
- 1550 IF (maxjb>1) GO TO 1580
-      WRITE (2,1570) estden
- 1570 FORMAT (' x DENSITY  (D)',5x,'x',4x,f10.3,4x,
-     &'x (indeterminate)  x  indivs./hectare  x')
-      GO TO 1650
- 1580 WRITE (2,1590) estden,sden
- 1590 FORMAT (' x DENSITY  (D)',5x,'x',4x,f10.3,4x,'x',4x,f10.3,4x,
-     &'x  indivs/hectare  x')
-      GO TO 1650
-      END IF
-!
- 1600 IF (maxjb > 1) GO TO 1630
-      WRITE (2,1620) estden
- 1620 FORMAT (' x DENSITY  (D)',5x,'x',4x,f10.2,4x,
-     &'x (indeterminate)  x   indivs./sq.km. x')
-      GO TO 1650
- 1630 WRITE (2,1640) estden,sden
- 1640 FORMAT (' x DENSITY  (D)',5x,'x',4x,f10.3,4x,'x',4x,f10.3,4x,
-     &'x   indivs./sq.km. x')
-----------*/
+	
       if (km == 0) {
 	if (maxjb > 1) {
 	  fprintf(output_results, " x DENSITY  (D)     x    %10.3f    x    %10.3f    x  indivs/hectare  x\n", estden,sden);
@@ -4554,22 +4220,22 @@ Line_1468:
 /*
 *     The conspicuousness coefficient is next printed.
 */
+
 Line_1650:
-//      WRITE (2,1660)
-// 1660 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/' x Conspicuousness  x',3(18x,'x'))
+
       fprintf(output_results,     " x                  x                  x                  x                  x\n");
       fprintf(output_results,     " xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
       fprintf(output_results,     " x                  x                  x                  x                  x\n");
       fprintf(output_results,     " x Conspicuousness  x                  x                  x                  x\n");
-      if (maxjb == 1) {  
-//      WRITE (2,1680) coeffnt1
-// 1680 FORMAT (' x Coefficient  (a) x',4x,f10.4,4x,'x (indeterminate)  x      metres      x')
+
+      if (maxjb == 1) {
+
 	fprintf(output_results,   " x Coefficient  (a) x    %10.4f    x (indeterminate)  x      metres      x\n", coeffnt1);
+
 //      goto Line_1710;
-      } 
+      }
       else {
-//      WRITE (2,1700) coeffnt1,scf1
-// 1700 FORMAT (' x Coefficient  (a) x',4x,f10.3,4x,'x',4x,f10.3,4x,'x',6x,'metres',6x,'x')
+
 	fprintf(output_results,   " x Coefficient  (a) x    %10.3f    x    %10.3f    x      metres      x\n", coeffnt1, scf1);
       }
 
@@ -4577,41 +4243,13 @@ Line_1650:
 *     The second coefficient is either a cover proportion or a sound
 *     attenuation coefficient, decided by the values of KDT.
 */
+
 Line_1710:
       fprintf(output_results,     " x                  x                  x                  x                  x\n");
       fprintf(output_results,     " xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
       fprintf(output_results,     " x                  x                  x                  x                  x\n");
-/*----------
- 1710 IF (kdt == 1) GO TO 1780
- 1720 WRITE (2,1730)
- 1730 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/
-     &' x Cover      ',6x,'x',3(18x,'x'))
-      IF (maxjb == 1) THEN  
-      WRITE (2,1750) coeffnt2
- 1750 FORMAT (' x Proportion   (c)  x',4x,f10.4,4x,
-     &'x (indeterminate)  x                  x')
-      GO TO 1840
-      ELSE
-      WRITE (2,1770) coeffnt2,scf2
- 1770 FORMAT (' x Proportion  (c)  x',4x,f10.4,4x,'x',4x,f10.4,4x,'x',
-     &4x,'         ',5x,'x')
-      GO TO 1840
-      END IF
-!
- 1780 WRITE (2,1790)
- 1790 FORMAT (' x',4(18x,'x')/' ',77('x')/' x',4(18x,'x')/
-     &' x Attenuation',6x,'x',3(18x,'x'))
-      IF (maxjb == 1) THEN
-      WRITE (2,1810) coeffnt2
- 1810 FORMAT (' x Coefficient  (b) x',4x,f10.4,4x,
-     &'x (indeterminate)  x    per  metre    x')
-      GO TO 1840
-      ELSE
-      WRITE (2,1830) coeffnt2,scf2
- 1830 FORMAT (' x Coefficient  (b) x',4x,f10.4,4x,'x',4x,f10.4,4x,'x',
-     &4x,'per metre',5x,'x')
-      END IF
-----------*/
+
+
       if (kdt == 1) {
 	fprintf(output_results,   " x Attenuation      x                  x                  x                  x\n");
 	if (maxjb == 1) {
@@ -4635,31 +4273,25 @@ Line_1710:
 *     The table is now ruled off and some other details printed.
 *
 */
+
 Line_1840:
-//        WRITE (2,1850)
-// 1850   FORMAT (' x',4(18x,'x')/' ',77('x')/)
+
       fprintf(output_results,     " x                  x                  x                  x                  x\n");
       fprintf(output_results,     " xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n");
 
 
 /*
-*
 *     The next two parameters are output only if at least one parameter
 *     is being estimated.
 */
+	
       if (nap >= 1) {
-/*----------
-        WRITE (2,1865) cl1,cl2
- 1865   FORMAT(1x,'95% confidence limits for density estimate:',f10.3,' ',f10.3)
-        WRITE (2,1860) coeffnt3,scf3
- 1860   FORMAT (1x,'Detectability Coefficient (S) =',f9.2,', SE =',f9.2)
-----------*/
+
 	fprintf(output_results, " 95%% confidence limits for density estimate:%10.3f %10.3f\n", cl1, cl2);
 	fprintf(output_results, " Detectability Coefficient (S) =%9.2f, SE =%9.2f\n", coeffnt3, scf3);
       }
 
 /*
-*
 *     Key model estimates are now output if ISHOW was originally set
 *     at 1.  The best estimates of F[0], F[1] and F[2] must be entered
 *     in the subroutine GIVEF to do this.  The totals in the class
@@ -4670,16 +4302,17 @@ Line_1840:
 *     f[0] and f[1] are left at their original values if all parameters
 *     were preset (STEP=0).
 */
+
       if (nap > 0) {
 	f[0] = coeffnt1;
 	f[1] = coeffnt2;
       }
 
 /* Loop_1870: */
+
       for (jv=0; jv < nclass; jv++) {		//  DO jv=1,nclass
         val[jv] = valt[jv];
       }						//  END DO Loop_1870
-	/* OR: memcpy(val, valt, nclass*sizeof(val[0])); */
 
       numo = numoin;
       numa = numain;
@@ -4690,8 +4323,9 @@ Line_1840:
 *    Subroutine GIVEF.
 */
 /* Line_1890: */
+
       if (ifx == 0) {
-	 /* JMB: Is the following correct, i.e. if the first is /1e4 shouldn't the other be /1e7 ? */
+
          if (km == 0) {
             f[2] = (estden*dist*pd*sns) / 1.e4;
          } else {
@@ -4706,7 +4340,7 @@ Line_1840:
 Line_1920:
       givef (f, &func, &dcoeff, val, clint, /* pd, */ stt, tcov,
 	     thh, vgh, ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
-	     ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,  
+	     ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
 	     mtest, iqsf, graphfile_name);
 
       params->complete = 1;
