@@ -40,14 +40,16 @@
 	<string>au.edu.unimelb.zoology.wildlifedensity</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string></string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>
 	<string>WLDN</string>
 	<key>CFBundleVersion</key>
 	<string>1.1</string>
-	<key>CFBundleName</key>
-	<string></string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.utilities</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
