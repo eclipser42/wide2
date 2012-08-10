@@ -777,10 +777,10 @@ void givef (double f[NUM_SHAPE_PARAMS],
 
 
 /*
-*     A range of 0 - 0.2 is set for the attenuation coefficient
+*     A range of 0 - 0.3 is set for the attenuation coefficient
 */
 
-      if (((q >= 0.2) || (q < 0.)) && !iqsf) htot += 1.0e+6;
+      if (((q >= 0.3) || (q < 0.)) && !iqsf) htot += 1.0e+6;
 
 
 /*
@@ -1486,8 +1486,8 @@ Line_900:
 	if (d2l > 0) {
 	    *s += (expdv/d2l);
 	} else if ((mtest == 1) && (jj == (l10-1))) {		// JMB: jj test changed to 'l10-1', was 'l10'
-	    *msfail++;
-        }
+	    (*msfail)++;
+    }
 
 /*
 *     Final values of key internal functions are now output if
@@ -2396,14 +2396,14 @@ void calculate_density (calc_params *params
       bool iqsf;
       double a, approx, b, c, cf1dif, cf1sum, cf2dif, cf2sum;
       double cf3dif, cf3sum, clint, coeffnt1, coeffnt2;
-      double coeffnt3, dcoeff, dendif, dist, dsum,s;
-      double estden, estj, fnk, frst, func, hmax, hmean, hmin;
+      double coeffnt3, dcoeff, dendif, dist, dsum, s;
+      double estden, estj, ests, fnk, frst, func, hmax, hmean, hmin;
       double hstar, hstd, hstst, durn, ltmin, ltmax, obsw;
       double pd, ps, rate, savemn, scf1, scf2, scf3;
       double sden, sns, stopc, stt, test, tcoeff1, tcoeff2;
       double tcoeff3, tcov, tden, thh, vgh, dmax, t001;
-      float rltot, rlmean, rlsum, rlsd, rlf4, rdifsq, estdmax, ttrdenmn;
-      float ttrden, tdsum, tdendif, strden, t,tcl1,tcl2,cl1,cl2;
+      float rltot, rlmean, rlsum, rlsd, rlf4, rdifsq, ttrdenmn;
+      float estdmax, ttrden, tdsum, tdendif, strden, t,tcl1,tcl2,cl1,cl2;
       float r[MAX_OBSERVATIONS], resamp_dist[MAX_OBSERVATIONS], y[MAX_OBSERVATIONS];
       float angle[MAX_OBSERVATIONS], trden[5000];
       double val[80], valt[80];
@@ -2801,6 +2801,85 @@ Inner_96:
            estj = 0.8183*fnk;
         }
 
+/*
+*     Unless the number of iterations has been set at 1 and bottom option 3 has not
+*     been selected, the Line_100 sequence computes revised initial estimates of the 
+*	  parameters ‘a’‘c’ and ‘D’, together with initial step sizes for them, 
+*     f[2] using a detectability coefficient estimate (ests), whenever the
+*	  number of evaluations (MAXJB) is set above 1 and the initial step
+*	  size for either f[0] or f[1] is set at zero OR . . . (to come).
+*     This step is bypassed if the 'Tabulate final . . ' option is chosen
+*     (when ishow is set at 1).
+*
+*/
+          
+      Line_100:
+          if  ((maxjb > 1) && (ishow == 0))      {
+              if ((nvals < 80) || (step[0] == 0) || (step[1] == 0)) {
+                  f[0] = pow((2.618*estdmax) + 24.833, 0.333) ;
+                  f[1] = 34.4294*pow(estdmax, -1.35094) ; 
+                  ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ;   
+              }
+              else if ((nvals >= 80) && ((step[0] == 0) && (step[1] == 0) && (step[2] == 0)))   {
+                  f[0] = pow((2.618*estdmax) + 24.833, 0.333) ;
+                  f[1] = 34.4294*pow(estdmax, -1.35094) ; 
+                  ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ; 
+              }
+/*
+*     Computation of an initial values for f[2] and step[2] depends on whether
+*	  line transect data (ifx=0) or fixed point (ifx=1) data are provided.
+*
+*/
+              if (ifx == 0)	{
+                  f[2] = (1.e4*(numain + numoin)) / (ns*dist*estj*pd*ests);
+                  step[2] = 0.5*f[2];
+              }
+              else   {
+                  f[2] = (1.e4*(numain + numoin)) / (2*rate*durn*ps*pd*ests);
+                  step[2] = 0.5*f[2];
+              } 
+/*
+*
+*	  Revised initial step sizes are now set for the other parameters, unless the
+*     initial step size had akready been fixed at zero.
+*
+*/		
+              if (step[0] != 0)  {
+                  step[0] = (0.3*f[0]) ;
+              }
+              if (step[1] != 0)  {
+                  step[1] = f[1] ;
+              }
+            }
+/*
+*              Line_100 ends
+*
+*     If the number of detections is less than 80, and both step[0] and step[1] are not 
+*     zero, f[1] is fixed at its just-calculated value. If nvals<80 and both step[0] and 
+*     step[1] are set at zero, this is overriden to preset f[0] but not f[1].  If the
+*     number of detections is at least 80, and all step sizes were set at zero, all the 
+*     approximated f[] and step[] values are set for use in the program.  
+*
+*/
+          if ( (maxjb > 1) && (ishow == 0) )    {
+              
+            if ( (nvals < 80) && (step[0] != 0) && (step[1] != 0) ) { 
+                step[0] = 0.0;
+            }
+            else if ( (nvals < 80) && (step[0] == 0) && (step[1] == 0) ) { 
+                step[0] = 0.0;
+                step[1] = f[1];
+            } 
+   
+            else if ( (nvals >= 80) && (step[0] == 0) && (step[1] == 0) && (step[2] == 0) )     {
+                f[0] = f[0];
+                f[1] = f[1];
+                f[2] = f[2];
+                step[0] = 0.0;
+                step[1] = f[1];
+                step[2] = 0.5*f[2];
+            }
+          }
 /*
 *     The movement-corrected overall distance travelled (LJ) is
 *     calculated, overriding the DIST value submitted originally.
@@ -3939,22 +4018,7 @@ Loop_1390:
 	}					//  END DO Loop_1390
 
 /*
-*     If the number of detections is less than 80, the conspicuousness
-*     coefficient step has been set greater than zero, and the cover
-*     proportion step size is not zero, then the program saves
-*     the 'a' value calculated from the original data by altering the
-*     values of ft[0] and stept[0] in subsequent runs, fixing the
-*     'a' value to that calculated from the original data.
-*     NAP is reduced by 1 because there is one variable fewer to alter.
-*/
-
-	if ((bootstrap==0) && (nvals<80) && (step[0]!=0) && (step[1]!=0) && (ishow!=1)) {
-	  ft[0] = f[0];
-	  stept[0] = 0.0;
-	  nap--;
-	}
-
-/*
+*
 *     Other F and STEP values are reset to their original values.
 */
 
