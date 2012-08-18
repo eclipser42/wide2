@@ -2800,6 +2800,7 @@ Inner_96:
         } else {
            estj = 0.8183*fnk;
         }
+      }
 
 /*
 *     Unless the number of iterations has been set at 1 and bottom option 3 has not
@@ -2807,92 +2808,113 @@ Inner_96:
 *	  parameters ‘a’‘c’ and ‘D’, together with initial step sizes for them, 
 *     f[2] using a detectability coefficient estimate (ests), whenever the
 *	  number of evaluations (MAXJB) is set above 1 and the initial step
-*	  size for either f[0] or f[1] is set at zero OR . . . (to come).
-*     This step is bypassed if the 'Tabulate final . . ' option is chosen
-*     (when ishow is set at 1).
+*	  size for either or both of f[0] or f[1] is set at zero or all step sizes
+*     are set at zero.
 *
 */
           
       Line_100:
           if  ((maxjb > 1) && (ishow == 0))      {
-              if ((nvals < 80) || (step[0] == 0) || (step[1] == 0)) {
-                  f[0] = pow((2.618*estdmax) + 24.833, 0.333) ;
-                  f[1] = 34.4294*pow(estdmax, -1.35094) ; 
-                  ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ;   
-              }
-              else if ((nvals >= 80) && ((step[0] == 0) && (step[1] == 0) && (step[2] == 0)))   {
+              if ( ((step[0] && step[1] && step[2]) == 0) )   {
                   f[0] = pow((2.618*estdmax) + 24.833, 0.333) ;
                   f[1] = 34.4294*pow(estdmax, -1.35094) ; 
                   ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ; 
               }
+              else if ((step[0] == 0) || (step[1] == 0) || (step[2] == 0)) {
+                  f[0] = pow((2.618*estdmax) + 24.833, 0.333) ;
+                  f[1] = 34.4294*pow(estdmax, -1.35094) ; 
+                  ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ;   
+              }
+              else if ((nvals < 80) && ((step[0] && step[1] && step[2]) != 0))   {
+                  f[0] = pow((2.618*estdmax) + 24.833, 0.333) ;
+                  f[1] = 34.4294*pow(estdmax, -1.35094) ; 
+                  ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ;
+              }
+ 
 /*
 *     Computation of an initial values for f[2] and step[2] depends on whether
-*	  line transect data (ifx=0) or fixed point (ifx=1) data are provided.
+*	  line transect data (ifx=0) or fixed point (ifx=1) data are provided.  
 *
 */
               if (ifx == 0)	{
                   f[2] = (1.e4*(numain + numoin)) / (ns*dist*estj*pd*ests);
                   step[2] = 0.5*f[2];
               }
-              else   {
+              else if (ifx == 1)   {
                   f[2] = (1.e4*(numain + numoin)) / (2*rate*durn*ps*pd*ests);
                   step[2] = 0.5*f[2];
               } 
-/*
-*
-*	  Revised initial step sizes are now set for the other parameters, unless the
-*     initial step size had akready been fixed at zero.
-*
-*/		
-              if (step[0] != 0)  {
-                  step[0] = (0.3*f[0]) ;
-              }
-              if (step[1] != 0)  {
-                  step[1] = f[1] ;
-              }
-            }
-/*
-*              Line_100 ends
-*
-*     If the number of detections is less than 80, and both step[0] and step[1] are not 
-*     zero, f[1] is fixed at its just-calculated value. If nvals<80 and both step[0] and 
-*     step[1] are set at zero, this is overriden to preset f[0] but not f[1].  If the
-*     number of detections is at least 80, and all step sizes were set at zero, all the 
-*     approximated f[] and step[] values are set for use in the program.  
-*
-*/
-          if ( (maxjb > 1) && (ishow == 0) )    {
-              
-            if ( (nvals < 80) && (step[0] != 0) && (step[1] != 0) ) { 
-                step[0] = 0.0;
-            }
-            else if ( (nvals < 80) && (step[0] == 0) && (step[1] == 0) ) { 
-                step[0] = 0.0;
-                step[1] = f[1];
-            } 
-   
-            else if ( (nvals >= 80) && (step[0] == 0) && (step[1] == 0) && (step[2] == 0) )     {
-                f[0] = f[0];
-                f[1] = f[1];
-                f[2] = f[2];
-                step[0] = 0.0;
-                step[1] = f[1];
-                step[2] = 0.5*f[2];
-            }
-          }
-/*
-*     The movement-corrected overall distance travelled (LJ) is
-*     calculated, overriding the DIST value submitted originally.
-*     DURN and RATE are both set at 0 to avoid later computation problems
-*     before the IF . . THEN loop ends.
-*/
-        dist *= estj;
-        durn = 0;
-        rate = 0;
-      }
+
 
 /*
 *
+*	  Revised initial step sizes are now set for the other parameters. initial
+*     conspicuousness being preset in the case of smaller samples (<80).
+*
+*/		
+              if  ( nvals >= 80 )  {
+                  if ( (step[0] == 0.0) && (step[1] == 0.0) )   {
+                      step[0] = 0.3*f[0] ;
+                      step[1] = f[1] ;
+                      step[2] = (0.5*f[2]) ;
+                  }
+                  else if ( (step[0] == 0.0) && (step[1] > 0) )  {
+                      step[0] = 0.0 ;
+                      step[1] = f[1] ;
+                      step[2] = (0.5*f[2]) ;
+                  }
+                  else if ( (step[1] == 0.0) && (step[0] > 0) ) {
+                      step[0] = (0.3*f[0]) ;
+                      step[1] = 0.0 ;
+                      step[2] = (0.5*f[2]) ;
+                  }
+                  else if ( (step[0] > 0.0) && (step[1] > 0) ) {
+                      step[0] = (0.3*f[0]) ;
+                      step[1] = f[1] ;
+                      step[2] = (0.5*f[2]) ;          
+                  }
+              }
+              else if ( nvals < 80 )    {
+                  if ( (step[0] == 0.0) && (step[1] == 0.0) )   {
+                      step[0] = 0.0 ;
+                      step[1] = f[1] ;
+                      step[2] = 0.5*f[2] ;
+                  }
+                  else if ( (step[0] == 0.0) && (step[1] > 0) )  {
+                      step[0] = 0.0 ;
+                      step[1] = f[1] ;
+                      step[2] = (0.5*f[2]) ;
+                  }
+                  else if ( (step[1] == 0) && (step[0] > 0) ) {
+                      step[0] = (0.3*f[0]) ;
+                      step[1] = 0.0 ;
+                      step[2] = (0.5*f[2]) ;
+                  }
+                  else if ( (step[0] > 0.0) && (step[1] > 0) ) {
+                      step[0] = 0.0 ;
+                      step[1] = f[1] ;
+                      step[2] = (0.5*f[2]) ;          
+                  }
+              }
+
+            }
+
+/*
+*              Line_100 ends
+*
+*
+*     For line transect data, the movement-corrected overall distance travelled (LJ) is
+*     now calculated, overriding the DIST value submitted originally.
+*     DURN and RATE are both set at 0 to avoid later computation problems.
+*     
+*/
+            if (ifx == 0)       {
+                dist *= estj;
+                durn = 0;
+                rate = 0;
+            }
+
+/*
 *     F[2] is now raised in value to approximate D2LJ*Ns*Pd in the case
 *     of line transect data, or D2ut*Ps*Pd for fixed point data, in
 *     order to prepare for comparisons with observed values within
