@@ -1769,7 +1769,7 @@ void qsf (double f[NUM_SHAPE_PARAMS],
        int mnpd,  iless1, neval;
        double pstar[20], aval[20], bmat[210], ao, dmax;
        double temp, ymin, vc[210], var[NUM_SHAPE_PARAMS], vra, sa, sb, sd2l;
-       double sdmax, sd, vrb, vrd2l, vrdmax, den, simp;
+       double sdmax, sd, t05, vrb, vrd2l, vrdmax, den, simp;
        double pmin[20], /* pbar[20], */ pstst[20], t;
        double df, vrs;
        double test, cl1, cl2;
@@ -2401,7 +2401,7 @@ void calculate_density (calc_params *params
       double hstar, hstd, hstst, durn, ltmin, ltmax, obsw;
       double pd, ps, rate, savemn, scf1, scf2, scf3;
       double sden, sns, stopc, stt, test, tcoeff1, tcoeff2;
-      double tcoeff3, tcov, tden, thh, vgh, dmax, t001;
+      double tcoeff3, tcov, tden, thh, vgh, dmax, t001, t05;
       float rltot, rlmean, rlsum, rlsd, rlf4, rdifsq, ttrdenmn;
       float estdmax, ttrden, tdsum, tdendif, strden, t,tcl1,tcl2,cl1,cl2;
       float r[MAX_OBSERVATIONS], resamp_dist[MAX_OBSERVATIONS], y[MAX_OBSERVATIONS];
@@ -2570,7 +2570,7 @@ Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
         rlsum = 0.0;
         rdifsq = 0.0;
         numgra = 0;
-        t001 = 3.2704 + 12.9288/nvals;
+        t001 = 3.1093 + 23.4777/pow(nvals, 1.33);
 
         if (iry < 2) {
 
@@ -2843,7 +2843,7 @@ Inner_96:
               else if (ifx == 1)   {
                   f[2] = (1.e4*(numain + numoin)) / (2*rate*durn*ps*pd*ests);
                   step[2] = 0.5*f[2];
-              } 
+              }
 
 
 /*
@@ -4165,10 +4165,10 @@ Loop_1465:
 
 /*
 *     The p=0.05(2) distribution of t with sample number is now
-*     approximated by a function T.
+*     approximated by a function t05.
 */
 
-      t = (1.0/(0.093914*pow(maxjb,2.09372)))+2.03046;
+      t05 = 1.97623 + 5.95434/pow(nvals, 1.4);
 
 /*
 *     The 95% lower (CL1) and upper (CL2) confidence limits are now
@@ -4176,8 +4176,8 @@ Loop_1465:
 *     then back-transformed to the original units.
 */
 
-      tcl1 = ttrdenmn - t*strden;
-      tcl2 = ttrdenmn + t*strden;
+      tcl1 = ttrdenmn - t05*strden;
+      tcl2 = ttrdenmn + t05*strden;
       cl1 = exp(tcl1) - 1.0;
       cl2 = exp(tcl2) - 1.0;
 
