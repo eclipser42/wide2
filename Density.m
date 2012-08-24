@@ -715,7 +715,7 @@
 {
     // Approximate newlineCharacterSet on Tiger
     NSCharacterSet *newlineCharacterSet;
-    long systemVersion = 0;
+    SInt32 systemVersion = 0;
     OSStatus err = Gestalt(gestaltSystemVersion, &systemVersion);
     if (systemVersion >= 0x1050) {
         newlineCharacterSet = [NSCharacterSet newlineCharacterSet];
