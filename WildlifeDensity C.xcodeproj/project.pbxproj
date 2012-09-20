@@ -23,6 +23,8 @@
 		8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165FFE840EACC02AAC07 /* InfoPlist.strings */; };
 		8D15AC320486D014006FF6A4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A37F4B0FDCFA73011CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D15AC340486D014006FF6A4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */; };
+		ACFF01781609E6AF009EDB79 /* Result.m in Sources */ = {isa = PBXBuildFile; fileRef = ACFF01771609E6AF009EDB79 /* Result.m */; };
+		ACFF017E1609EA65009EDB79 /* Result.xib in Resources */ = {isa = PBXBuildFile; fileRef = ACFF017C1609EA65009EDB79 /* Result.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +51,9 @@
 		4295D9CA06C73467005558C3 /* mnps2.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = mnps2.h; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* WildlifeDensity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WildlifeDensity.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		ACFF01761609E6AF009EDB79 /* Result.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Result.h; sourceTree = "<group>"; };
+		ACFF01771609E6AF009EDB79 /* Result.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Result.m; sourceTree = "<group>"; };
+		ACFF017D1609EA65009EDB79 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/Result.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +108,8 @@
 		2A37F4ABFDCFA73011CA2CEA /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				ACFF01761609E6AF009EDB79 /* Result.h */,
+				ACFF01771609E6AF009EDB79 /* Result.m */,
 				1A3C1B2D1089D4F9008BD5A5 /* DensityHelp.h */,
 				1A3C1B2C1089D4F9008BD5A5 /* DensityHelp.m */,
 				420B005406C6E99600695CAB /* DensityController.h */,
@@ -134,6 +141,7 @@
 				2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */,
 				2A37F4B6FDCFA73011CA2CEA /* MainMenu.nib */,
 				420B004F06C6E96000695CAB /* Density.nib */,
+				ACFF017C1609EA65009EDB79 /* Result.xib */,
 				8D15AC360486D014006FF6A4 /* Info.plist */,
 				089C165FFE840EACC02AAC07 /* InfoPlist.strings */,
 			);
@@ -212,6 +220,7 @@
 				1A9534E209F10EC6002E1E3A /* Dataset Icon.icns in Resources */,
 				1AB250360C19AA18000920F2 /* Graph Results Plot macro in Resources */,
 				1A3C1B361089D60C008BD5A5 /* WildlifeDensity Manual.pdf in Resources */,
+				ACFF017E1609EA65009EDB79 /* Result.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -227,6 +236,7 @@
 				420B007406C6EED000695CAB /* Density.m in Sources */,
 				1A3C1B2E1089D4F9008BD5A5 /* DensityHelp.m in Sources */,
 				4231405313979E30000F35F7 /* mnps2.c in Sources */,
+				ACFF01781609E6AF009EDB79 /* Result.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,6 +281,14 @@
 				420B005006C6E96000695CAB /* English */,
 			);
 			name = Density.nib;
+			sourceTree = "<group>";
+		};
+		ACFF017C1609EA65009EDB79 /* Result.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				ACFF017D1609EA65009EDB79 /* English */,
+			);
+			name = Result.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
