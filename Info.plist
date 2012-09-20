@@ -32,16 +32,16 @@
 			<string>Density</string>
 		</dict>
 		<dict>
-			<key>CFBundleTypeName</key>
-			<string>WildlifeDensity Result</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>graphData</string>
 			</array>
-			<key>NSDocumentClass</key>
-			<string>Result</string>
+			<key>CFBundleTypeName</key>
+			<string>WildlifeDensity Result</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
+			<key>NSDocumentClass</key>
+			<string>GraphData</string>
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>

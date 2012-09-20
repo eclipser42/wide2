@@ -12,9 +12,7 @@
 		1A9534E209F10EC6002E1E3A /* Dataset Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1A9534E109F10EC6002E1E3A /* Dataset Icon.icns */; };
 		1AB250360C19AA18000920F2 /* Graph Results Plot macro in Resources */ = {isa = PBXBuildFile; fileRef = 1AB250350C19AA18000920F2 /* Graph Results Plot macro */; };
 		420B005106C6E96000695CAB /* Density.nib in Resources */ = {isa = PBXBuildFile; fileRef = 420B004F06C6E96000695CAB /* Density.nib */; };
-		420B005606C6E99600695CAB /* DensityController.h in Resources */ = {isa = PBXBuildFile; fileRef = 420B005406C6E99600695CAB /* DensityController.h */; };
 		420B005706C6E99600695CAB /* DensityController.m in Sources */ = {isa = PBXBuildFile; fileRef = 420B005506C6E99600695CAB /* DensityController.m */; };
-		420B007306C6EED000695CAB /* Density.h in Resources */ = {isa = PBXBuildFile; fileRef = 420B007106C6EED000695CAB /* Density.h */; };
 		420B007406C6EED000695CAB /* Density.m in Sources */ = {isa = PBXBuildFile; fileRef = 420B007206C6EED000695CAB /* Density.m */; };
 		422BF475074B760D00FE654A /* WildlifeDensity Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 422BF474074B760D00FE654A /* WildlifeDensity Icon.icns */; };
 		4231405313979E30000F35F7 /* mnps2.c in Sources */ = {isa = PBXBuildFile; fileRef = 4231405213979E30000F35F7 /* mnps2.c */; };
@@ -23,8 +21,10 @@
 		8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165FFE840EACC02AAC07 /* InfoPlist.strings */; };
 		8D15AC320486D014006FF6A4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A37F4B0FDCFA73011CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D15AC340486D014006FF6A4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */; };
+		AC9DDA4E160B431900AB1A89 /* GraphKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC9DDA4D160B431900AB1A89 /* GraphKit.framework */; };
+		AC9DDA51160B435200AB1A89 /* GraphData.m in Sources */ = {isa = PBXBuildFile; fileRef = AC9DDA50160B435200AB1A89 /* GraphData.m */; };
 		ACFF01781609E6AF009EDB79 /* Result.m in Sources */ = {isa = PBXBuildFile; fileRef = ACFF01771609E6AF009EDB79 /* Result.m */; };
-		ACFF017E1609EA65009EDB79 /* Result.xib in Resources */ = {isa = PBXBuildFile; fileRef = ACFF017C1609EA65009EDB79 /* Result.xib */; };
+		ACFF017E1609EA65009EDB79 /* GraphData.xib in Resources */ = {isa = PBXBuildFile; fileRef = ACFF017C1609EA65009EDB79 /* GraphData.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,9 +51,20 @@
 		4295D9CA06C73467005558C3 /* mnps2.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = mnps2.h; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* WildlifeDensity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WildlifeDensity.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC9DDA45160B427100AB1A89 /* GRAreaDataSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRAreaDataSet.h; sourceTree = "<group>"; };
+		AC9DDA46160B427100AB1A89 /* GRAxes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRAxes.h; sourceTree = "<group>"; };
+		AC9DDA47160B427100AB1A89 /* GRChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRChartView.h; sourceTree = "<group>"; };
+		AC9DDA48160B427100AB1A89 /* GRColumnDataSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRColumnDataSet.h; sourceTree = "<group>"; };
+		AC9DDA49160B427100AB1A89 /* GRDataSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRDataSet.h; sourceTree = "<group>"; };
+		AC9DDA4A160B427100AB1A89 /* GRLineDataSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRLineDataSet.h; sourceTree = "<group>"; };
+		AC9DDA4B160B427100AB1A89 /* GRPieDataSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRPieDataSet.h; sourceTree = "<group>"; };
+		AC9DDA4C160B427100AB1A89 /* GRXYDataSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRXYDataSet.h; sourceTree = "<group>"; };
+		AC9DDA4D160B431900AB1A89 /* GraphKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GraphKit.framework; path = ../../../System/Library/PrivateFrameworks/GraphKit.framework; sourceTree = "<group>"; };
+		AC9DDA4F160B435200AB1A89 /* GraphData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphData.h; sourceTree = "<group>"; };
+		AC9DDA50160B435200AB1A89 /* GraphData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GraphData.m; sourceTree = "<group>"; };
 		ACFF01761609E6AF009EDB79 /* Result.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Result.h; sourceTree = "<group>"; };
 		ACFF01771609E6AF009EDB79 /* Result.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Result.m; sourceTree = "<group>"; };
-		ACFF017D1609EA65009EDB79 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/Result.xib; sourceTree = "<group>"; };
+		ACFF017D1609EA65009EDB79 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/GraphData.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +73,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D15AC340486D014006FF6A4 /* Cocoa.framework in Frameworks */,
+				AC9DDA4E160B431900AB1A89 /* GraphKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -97,6 +109,7 @@
 			isa = PBXGroup;
 			children = (
 				2A37F4ABFDCFA73011CA2CEA /* Classes */,
+				AC9DDA44160B427100AB1A89 /* GraphKit Headers */,
 				2A37F4AFFDCFA73011CA2CEA /* Other Sources */,
 				2A37F4B8FDCFA73011CA2CEA /* Resources */,
 				2A37F4C3FDCFA73011CA2CEA /* Frameworks */,
@@ -116,6 +129,8 @@
 				420B005506C6E99600695CAB /* DensityController.m */,
 				420B007106C6EED000695CAB /* Density.h */,
 				420B007206C6EED000695CAB /* Density.m */,
+				AC9DDA4F160B435200AB1A89 /* GraphData.h */,
+				AC9DDA50160B435200AB1A89 /* GraphData.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -141,7 +156,7 @@
 				2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */,
 				2A37F4B6FDCFA73011CA2CEA /* MainMenu.nib */,
 				420B004F06C6E96000695CAB /* Density.nib */,
-				ACFF017C1609EA65009EDB79 /* Result.xib */,
+				ACFF017C1609EA65009EDB79 /* GraphData.xib */,
 				8D15AC360486D014006FF6A4 /* Info.plist */,
 				089C165FFE840EACC02AAC07 /* InfoPlist.strings */,
 			);
@@ -151,10 +166,27 @@
 		2A37F4C3FDCFA73011CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				AC9DDA4D160B431900AB1A89 /* GraphKit.framework */,
 				1058C7A6FEA54F5311CA2CBB /* Linked Frameworks */,
 				1058C7A8FEA54F5311CA2CBB /* Other Frameworks */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		AC9DDA44160B427100AB1A89 /* GraphKit Headers */ = {
+			isa = PBXGroup;
+			children = (
+				AC9DDA45160B427100AB1A89 /* GRAreaDataSet.h */,
+				AC9DDA46160B427100AB1A89 /* GRAxes.h */,
+				AC9DDA47160B427100AB1A89 /* GRChartView.h */,
+				AC9DDA48160B427100AB1A89 /* GRColumnDataSet.h */,
+				AC9DDA49160B427100AB1A89 /* GRDataSet.h */,
+				AC9DDA4A160B427100AB1A89 /* GRLineDataSet.h */,
+				AC9DDA4B160B427100AB1A89 /* GRPieDataSet.h */,
+				AC9DDA4C160B427100AB1A89 /* GRXYDataSet.h */,
+			);
+			name = "GraphKit Headers";
+			path = GraphKit;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -214,13 +246,11 @@
 				8D15AC2D0486D014006FF6A4 /* MainMenu.nib in Resources */,
 				8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */,
 				420B005106C6E96000695CAB /* Density.nib in Resources */,
-				420B005606C6E99600695CAB /* DensityController.h in Resources */,
-				420B007306C6EED000695CAB /* Density.h in Resources */,
 				422BF475074B760D00FE654A /* WildlifeDensity Icon.icns in Resources */,
 				1A9534E209F10EC6002E1E3A /* Dataset Icon.icns in Resources */,
 				1AB250360C19AA18000920F2 /* Graph Results Plot macro in Resources */,
 				1A3C1B361089D60C008BD5A5 /* WildlifeDensity Manual.pdf in Resources */,
-				ACFF017E1609EA65009EDB79 /* Result.xib in Resources */,
+				ACFF017E1609EA65009EDB79 /* GraphData.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -237,6 +267,7 @@
 				1A3C1B2E1089D4F9008BD5A5 /* DensityHelp.m in Sources */,
 				4231405313979E30000F35F7 /* mnps2.c in Sources */,
 				ACFF01781609E6AF009EDB79 /* Result.m in Sources */,
+				AC9DDA51160B435200AB1A89 /* GraphData.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -283,12 +314,12 @@
 			name = Density.nib;
 			sourceTree = "<group>";
 		};
-		ACFF017C1609EA65009EDB79 /* Result.xib */ = {
+		ACFF017C1609EA65009EDB79 /* GraphData.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
 				ACFF017D1609EA65009EDB79 /* English */,
 			);
-			name = Result.xib;
+			name = GraphData.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -298,6 +329,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks\"",
+				);
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
@@ -320,6 +355,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks\"",
+				);
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -339,6 +378,10 @@
 		4206D92C093D5F580056509F /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks\"",
+				);
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;

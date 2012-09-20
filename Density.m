@@ -1193,7 +1193,7 @@ double deg2rad(double deg) {
     } while ([fileMgr fileExistsAtPath:[self resultsFileName]]
              || [fileMgr fileExistsAtPath:[self graphDataFileName]]);
 
-    long systemVersion = 0;
+    SInt32 systemVersion = 0;
     OSStatus err = Gestalt(gestaltSystemVersion, &systemVersion);
     if (systemVersion >= 0x1040) {
         [NSThread detachNewThreadSelector:@selector(calculationThread:) toTarget:self withObject:nil];
