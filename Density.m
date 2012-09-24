@@ -8,6 +8,7 @@
 
 #import "Density.h"
 #import "DensityController.h"
+#import "GraphData.h"
 
 #import "Foundation/NSFileManager.h"
 #import <unistd.h>
@@ -1223,12 +1224,17 @@ double deg2rad(double deg) {
     [completeMsg release];
     if (params.complete) {
         completeMsg = [NSString stringWithFormat:@"Calculation complete %c%cDensity estimate: %.3g  Standard error: %.2g%c%cDetailed results in %@ and %@",
-            10, 10, params.estden, params.sden, 10, 10, outFile, [graphFile lastPathComponent]];
+            10, 10, params.results.estden, params.results.sden, 10, 10, outFile, [graphFile lastPathComponent]];
     } else {
         completeMsg = [NSString stringWithFormat:@"Calculation failed: Detailed results in %@", outFile];
         params.complete = 1;
     }
     [completeMsg retain];
+
+    GraphData *graphData = [[GraphData alloc] initForURL:[NSURL fileURLWithPath:graphFile] withContents:&params.results];
+    [[NSDocumentController sharedDocumentController] addDocument:graphData];
+    [graphData makeWindowControllers];
+    [graphData showWindows];
 }
 
 @end

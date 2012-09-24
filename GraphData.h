@@ -4,6 +4,7 @@
 //  Created by James Clough on 25/11/2011.
 //
 
+#import "mnps2.h"
 #import <Cocoa/Cocoa.h>
 #import "GRChartView.h"
 
@@ -18,5 +19,6 @@
     GRDataSet * modelData;
     GRDataSet * observedData;
 }
+- (id)initForURL:(NSURL *)url withContents:(calc_results *)results;
 
 @end

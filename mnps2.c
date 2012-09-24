@@ -689,7 +689,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 	    int maxjb,
 	    int mtest,
 	    bool iqsf,
-	    char *graph_file)
+        calc_results *results)
 {
 
 /*
@@ -1495,7 +1495,7 @@ Line_900:
 */
 /* Line_930: */
 
-	if (kprint==0) goto Line_1080;
+    if (kprint > 0) {
 
 /*
 *     For output purposes only, EXPDV is redefined as EXPDR in
@@ -1504,6 +1504,7 @@ Line_900:
 *     are printed as '0.0' in the output because the 'observations'
 *     are unfloat.
 */
+    jv = nclass - jj - 1;
 	if (iry > 0) {
 	    yy = tr-(clint/2.0);
 	    expdy = expdv;
@@ -1516,9 +1517,9 @@ Line_900:
 		}
 		fprintf(output_results, "  y=%8.1f     Calc.N(y)=%9.2f     Obsd.N(y)=%9.1f\n", yy,expdy,obsd);
 	    }
-	    yout[jj] = yy;
-	    calcny[jj] = expdy;
-	    obsdny[jj] = obsd;
+        results->midpoints[jv] = yy;
+        results->calcn[jv] = expdy;
+        results->obsdn[jv] = obsd;
 	}
 	else {  /* iry <= 0 */
 	    rr = tr-(clint/2.0);
@@ -1531,9 +1532,9 @@ Line_900:
 		}
 		fprintf(output_results, "  r=%8.1f     Calc.N(r)=%9.2f     Obsd.N(r)=%9.1f\n", rr,expdr,obsd);
 	    }
-	    rout[jj] = rr;
-	    calcnr[jj] = expdr;
-	    obsdnr[jj] = obsd;
+        results->midpoints[jv] = rr;
+        results->calcn[jv] = expdr;
+        results->obsdn[jv] = obsd;
 	}
 
 /*
@@ -1545,6 +1546,7 @@ Line_1050:
 	if (ishow == 1) {
 	    fprintf(output_results, " %12.6f   %12.6f   %12.6f   %12.6f   %12.6f\n\n", prc,qr,tote,expd,expdv);
 	}
+    }
 
 /*
 *     The difference between each observed (OBSD) and expected
@@ -1609,61 +1611,6 @@ Line_1080:
 	  fprintf(output_results, " Est.Detectability at g(y=0): %4.2f\n", tote);
 	}
 
-//      OPEN (UNIT=3,FILE=graph_file,STATUS='NEW',IOSTAT=ios, ERR=Line_1320)
-
-	output_graph = fopen(graph_file, "w");
-	if (output_graph == NULL) {
-
-// Line_1320:
-		
-	    perror("Error opening graph file \'%s\': ");
-	}
-
-	else { /* Graph file is open */
-
-// Line_1210:
-
-		fprintf(output_graph, "      Midpt.   Calculated     Observed   \n");
-
-	  if (iry <= 0) {
-		  
-// Loop_1240:
-	    for (jj=0; jj < l10; jj++) {		//  DO jj=1,l10
-	      jv = l10 - jj - 1;
-	      if (kdt > 1) {
-		limit = ((kdt-stt) / clint) - 1;	// JMB: subtract 1 because jj starts at 0, not 1
-	      } else {
-		limit = ((dmax-stt) / clint) - 1;	// JMB: subtract 1 because jj starts at 0, not 1
-	      }
-	      if (jj > limit) break;
-
-	      fprintf(output_graph, "     %7.1f      %7.2f       %6.1f    \n", rout[jv],calcnr[jv],obsdnr[jv]);
-	    }						//  END DO Loop_1240
-	  } /* end (iry <= 0) */
-
-	  else { /* (iry > 0) */
-
-// Loop_1280:
-	    for (jj=0; jj < l10; jj++) {		//  DO jj=1,l10
-	      jv=l10-jj-1;
-	      if (kdt > 1) {
-		limit = ((kdt-stt) / clint) - 1;	// JMB: subtract 1 because jj starts at 0, not 1
-	      } else {
-		limit = ((dmax-stt) / clint) - 1;	// JMB: subtract 1 because jj starts at 0, not 1
-	      }
-	      if (jj > limit) break;
-
-	      fprintf(output_graph, "     %7.1f      %7.2f       %6.1f    \n", yout[jv],calcny[jv],obsdny[jv]);
-	    }						//  END DO Loop_1280
-	  } /* end (iry > 0) */
-
-/*
-* Line_1290:
-*       CLOSE (unit=3)
-*/
-		
-	  fclose(output_graph);
-	}
       }  /* end (kprint > 0) */
 
 /*
@@ -1755,7 +1702,7 @@ void qsf (double f[NUM_SHAPE_PARAMS],
 	  double h[21],
 	  int maxjb,
 	  /* int jprint, */
-	  char *graph_file)
+	  calc_results *results)
 {
 
 /*
@@ -1835,7 +1782,7 @@ Line_20:
 	  givef (pstst, &h[i], s, val, clint, /* pd, */ stt, tcov,
 		thh, vgh, ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
 		ltmax, ltmin, nclass, numa, numo, msfail, maxjb,
-		mtest, true, graph_file);
+		mtest, true, results);
 
 	  neval++;
 	  goto Line_20;
@@ -1860,7 +1807,7 @@ Line_60:
 	givef (pstar, &aval[i], s, val, clint, /* pd, */ stt, tcov,
 	       thh, vgh, ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
 	       ltmax, ltmin, nclass, numa, numo, msfail, maxjb,
-	       mtest, true, graph_file);
+	       mtest, true, results);
 
 	neval++;
       }							//  END DO
@@ -1894,7 +1841,7 @@ Inner1:
 	    givef(pstst, hstst, s, val, clint, /* pd, */ stt, tcov,
 		  thh, vgh, ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
 		  ltmax, ltmin, nclass, numa, numo, msfail, maxjb,
-		  mtest, true, graph_file);
+		  mtest, true, results);
 
 	    neval++;
 	    l = i*i2/2 + j;
@@ -3505,7 +3452,7 @@ Loop_730:
 	  givef (f, &h[i], &s, val, clint, /* pd, */ stt, tcov,
 		 thh, vgh, ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
 		 ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
-		 mtest, false, graphfile_name);
+		 mtest, false, &params->results);
 
 	  neval++;
 
@@ -3588,7 +3535,7 @@ Loop_820:
 	givef (pstar, &hstar, &dcoeff, val, clint, /* pd, */ stt,
 	       tcov, thh, vgh, ifx, &imv, iry, ishow, kdt, kprint,
 	       /* dmax, */ ltmax, ltmin, nclass, numa, numo,
-	       &msfail, maxjb, mtest, false, graphfile_name);
+	       &msfail, maxjb, mtest, false, &params->results);
 
 /*
 *     The next 5 statements test whether a progress report is
@@ -3626,7 +3573,7 @@ Loop_830:
 	givef (pstst, &hstst, &dcoeff, val, clint, /* pd, */ stt,
 	       tcov, thh, vgh, ifx, &imv, iry, ishow, kdt, kprint,
 	       /* dmax, */ ltmax, ltmin, nclass, numa, numo,
-	       &msfail, maxjb, mtest, false, graphfile_name);
+	       &msfail, maxjb, mtest, false, &params->results);
 
 /*
 *     If IPRINT=1 the program prints out the progress of the
@@ -3698,7 +3645,7 @@ Loop_930:
         givef (pstst, &hstst, &dcoeff, val, clint, /* pd, */ stt,
 	       tcov, thh, vgh, ifx, &imv, iry, ishow, kdt, kprint,
 	       /* dmax, */ ltmax, ltmin, nclass, numa, numo,
-	       &msfail, maxjb, mtest, false, graphfile_name);
+	       &msfail, maxjb, mtest, false, &params->results);
 
 	neval++;
 	if ((iprint == 1) && (jprint == 1)) {
@@ -3752,7 +3699,7 @@ Loop_1020:
           givef (f, &h[i], &dcoeff, val, clint, /* pd, */ stt,
 		 tcov, thh, vgh, ifx, &imv, iry, ishow, kdt,
 		 kprint, /* dmax, */ ltmax, ltmin, nclass, numa, numo,
-		 &msfail, maxjb, mtest, false, graphfile_name);
+		 &msfail, maxjb, mtest, false, &params->results);
 
 	  neval++;
 	  if ((iprint == 1) && (jprint == 1)) {
@@ -3821,7 +3768,7 @@ Loop_1080:
         givef (f, &func, &dcoeff, val, clint, /* pd, */ stt, tcov,
 	       thh, vgh, ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
 	       ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
-	       mtest, false, graphfile_name);
+	       mtest, false, &params->results);
 
 	neval++;
 
@@ -3960,7 +3907,7 @@ Line_1320:
 	givef (f, &func, &dcoeff, val, clint, /* pd, */ stt, tcov,
 	       thh, vgh, ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
 	       ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
-	       mtest, false, graphfile_name);
+	       mtest, false, &params->results);
 
 
 	kprint = 0;
@@ -4259,7 +4206,7 @@ Line_1468:
 	     &s, val, clint, stt, tcov, thh, vgh, &imv, ishow, &kprint, ltmax,
 	     ltmin, nclass, numa, numo, &msfail, mtest, &estden, &sden, &hstst,
 	     pd, ps, ifx, iprint, iry, kdt, km, nap, /* neval,*/ nop, ns, /* nvals, */
-	     np1, g, h, maxjb, /* jprint, */ graphfile_name);
+	     np1, g, h, maxjb, /* jprint, */ &params->results);
 	iqsf = true;
 	goto Line_1920;
       }
@@ -4427,12 +4374,47 @@ Line_1920:
       givef (f, &func, &dcoeff, val, clint, /* pd, */ stt, tcov,
 	     thh, vgh, ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
 	     ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
-	     mtest, iqsf, graphfile_name);
+	     mtest, iqsf, &params->results);
 
+    fclose(output_results);	// CLOSE (unit=2)
+
+/*
+* And finally, write a file which tabulates observed and calculated frequencies.
+*/
+      if (kdt > 1) {
+          params->results.num_intervals = ((kdt-stt) / clint) - 1;
+      } else {
+          params->results.num_intervals = ((dmax-stt) / clint) - 1;
+      }
+
+      if (kprint > 0) {
+
+          output_graph = fopen(graphfile_name, "w");
+          if (output_graph == NULL) {
+
+              perror("Error opening graph file \'%s\': ");
+
+          } else {
+
+              /* Graph file is open */
+
+              fprintf(output_graph, "      Midpt.   Calculated     Observed   \n");
+
+              for (int jv=0; jv < params->results.num_intervals; jv++) {
+                  fprintf(output_graph,
+                          "     %7.1f      %7.2f       %6.1f    \n",
+                          params->results.midpoints[jv],
+                          params->results.calcn[jv],
+                          params->results.obsdn[jv]);
+              }
+              fclose(output_graph);
+          }
+
+      }  /* end (kprint > 0) */
+
+      params->results.estden = estden;
+      params->results.sden = sden;
       params->complete = 1;
-      params->estden = estden;
-      params->sden = sden;
-      fclose(output_results);	// CLOSE (unit=2)
       return;
 
 }

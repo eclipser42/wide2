@@ -20,11 +20,26 @@
 @end
 
 @implementation GraphData
+
+- (id)initForURL:(NSURL *)url withContents:(calc_results *)results
+{
+    [super init];
+    [self setFileName:[url path]];
+    internalResults = YES;
+    return self;
+}
+
 - (void) dealloc
 {
     [modelData release];
     [observedData release];
     [super dealloc];
+}
+
+- (BOOL)canConcurrentlyReadDocumentsOfType:(NSString *)aType
+{
+    // Our document-reading code can be safely executed concurrently, in non-main threads.
+    return YES;
 }
 
 - (BOOL)loadDataRepresentation:(NSData *)data ofType:(NSString *)type

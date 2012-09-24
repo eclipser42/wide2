@@ -23,7 +23,6 @@
 		8D15AC340486D014006FF6A4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */; };
 		AC9DDA4E160B431900AB1A89 /* GraphKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC9DDA4D160B431900AB1A89 /* GraphKit.framework */; };
 		AC9DDA51160B435200AB1A89 /* GraphData.m in Sources */ = {isa = PBXBuildFile; fileRef = AC9DDA50160B435200AB1A89 /* GraphData.m */; };
-		ACFF01781609E6AF009EDB79 /* Result.m in Sources */ = {isa = PBXBuildFile; fileRef = ACFF01771609E6AF009EDB79 /* Result.m */; };
 		ACFF017E1609EA65009EDB79 /* GraphData.xib in Resources */ = {isa = PBXBuildFile; fileRef = ACFF017C1609EA65009EDB79 /* GraphData.xib */; };
 /* End PBXBuildFile section */
 
@@ -62,8 +61,6 @@
 		AC9DDA4D160B431900AB1A89 /* GraphKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GraphKit.framework; path = ../../../System/Library/PrivateFrameworks/GraphKit.framework; sourceTree = "<group>"; };
 		AC9DDA4F160B435200AB1A89 /* GraphData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphData.h; sourceTree = "<group>"; };
 		AC9DDA50160B435200AB1A89 /* GraphData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GraphData.m; sourceTree = "<group>"; };
-		ACFF01761609E6AF009EDB79 /* Result.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Result.h; sourceTree = "<group>"; };
-		ACFF01771609E6AF009EDB79 /* Result.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Result.m; sourceTree = "<group>"; };
 		ACFF017D1609EA65009EDB79 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/GraphData.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -121,8 +118,6 @@
 		2A37F4ABFDCFA73011CA2CEA /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				ACFF01761609E6AF009EDB79 /* Result.h */,
-				ACFF01771609E6AF009EDB79 /* Result.m */,
 				1A3C1B2D1089D4F9008BD5A5 /* DensityHelp.h */,
 				1A3C1B2C1089D4F9008BD5A5 /* DensityHelp.m */,
 				420B005406C6E99600695CAB /* DensityController.h */,
@@ -266,7 +261,6 @@
 				420B007406C6EED000695CAB /* Density.m in Sources */,
 				1A3C1B2E1089D4F9008BD5A5 /* DensityHelp.m in Sources */,
 				4231405313979E30000F35F7 /* mnps2.c in Sources */,
-				ACFF01781609E6AF009EDB79 /* Result.m in Sources */,
 				AC9DDA51160B435200AB1A89 /* GraphData.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
