@@ -1234,7 +1234,11 @@ double deg2rad(double deg) {
     GraphData *graphData = [[GraphData alloc] initForURL:[NSURL fileURLWithPath:graphFile] withContents:&params.results];
     [[NSDocumentController sharedDocumentController] addDocument:graphData];
     [graphData makeWindowControllers];
-    [graphData showWindows];
+    //[graphData showWindows];
 }
 
+- (calc_results *)internalResults
+{
+    return &params.results;
+}
 @end

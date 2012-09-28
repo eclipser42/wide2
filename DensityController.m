@@ -1,3 +1,4 @@
+#import "GraphData.h"
 #import "DensityController.h"
 
 @implementation DensityController
@@ -259,6 +260,11 @@
         [progressBar setHidden:YES];
         [document setValue:[document valueForKey:@"completeMsg"] forKey:@"completeMsg"];
         [calculateButton setHidden:NO];
+
+        GraphData *graphData = [[GraphData alloc] initForURL:[NSURL fileURLWithPath:[document graphDataFileName]] withContents:[document internalResults]];
+        [[NSDocumentController sharedDocumentController] addDocument:graphData];
+        [graphData makeWindowControllers];
+        [graphData showWindows];
     }
 }
 

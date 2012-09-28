@@ -125,4 +125,6 @@
 - (void)calculationThread:(id)ignored;
 
 - (void)calculationWork;
+
+- (calc_results *)internalResults;
 @end

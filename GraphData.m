@@ -26,6 +26,16 @@
     [super init];
     [self setFileName:[url path]];
     internalResults = YES;
+    densityEstimate = results->estden;
+    standardError = results->sden;
+    distance = [[NSMutableArray alloc] init];
+    model = [[NSMutableArray alloc] init];
+    observed = [[NSMutableArray alloc] init];
+    for (int i = 0; i < results->num_intervals; ++i) {
+        [distance addObject:[NSNumber numberWithDouble:results->midpoints[i]]];
+        [model addObject:[NSNumber numberWithDouble:results->calcn[i]]];
+        [observed addObject:[NSNumber numberWithDouble:results->obsdn[i]]];
+    }
     return self;
 }
 
@@ -86,9 +96,9 @@
 	[axes setProperty: [NSNumber numberWithInt: 0] forKey: @"GRAxesYPlotMin"];
 	[axes setProperty: [NSNumber numberWithInt: 1] forKey: @"GRAxesFixedYPlotMin"];
 
-	//modelData = [[GRLineDataSet alloc] initWithOwnerChart: chartView];
+	modelData = [[GRLineDataSet alloc] initWithOwnerChart: chartView];
 	[chartView addDataSet: modelData loadData: YES];
-	//observedData = [[GRLineDataSet alloc] initWithOwnerChart: chartView];
+	observedData = [[GRLineDataSet alloc] initWithOwnerChart: chartView];
     [observedData setProperty:[NSArray arrayWithObjects:[NSNumber numberWithInt:6],
                                [NSNumber numberWithInt:4],
                                nil] forKey:GRDataSetPlotLineDashPattern];

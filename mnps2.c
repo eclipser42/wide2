@@ -4382,9 +4382,9 @@ Line_1920:
 * And finally, write a file which tabulates observed and calculated frequencies.
 */
       if (kdt > 1) {
-          params->results.num_intervals = ((kdt-stt) / clint) - 1;
+          params->results.num_intervals = ((kdt-stt) / clint);
       } else {
-          params->results.num_intervals = ((dmax-stt) / clint) - 1;
+          params->results.num_intervals = ((f[3]-stt) / clint);
       }
 
       if (kprint > 0) {
