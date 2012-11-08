@@ -12,9 +12,9 @@
     bool internalResults;
     double densityEstimate;
     double standardError;
-	NSArray * distance;
-	NSArray * model;
-	NSArray * observed;
+	NSMutableArray * distance;
+	NSMutableArray * model;
+	NSMutableArray * observed;
 	IBOutlet	GRChartView * chartView;
     GRDataSet * modelData;
     GRDataSet * observedData;

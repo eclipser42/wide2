@@ -41,6 +41,9 @@
 
 - (void) dealloc
 {
+    [distance release];
+    [model release];
+    [observed release];
     [modelData release];
     [observedData release];
     [super dealloc];
@@ -120,6 +123,11 @@
         return [[model objectAtIndex: element] doubleValue];
     else
         return [[observed objectAtIndex: element] doubleValue];
+}
+
+- (double) chart: (GRChartView *) chartView xValueForDataSet: (GRDataSet *) dataSet element: (NSInteger) element
+{
+    return [[distance objectAtIndex: element] doubleValue];
 }
 
 - (NSColor *) chart: (GRChartView *) chartView colorForDataSet: (GRDataSet *) dataSet element: (NSInteger) element
