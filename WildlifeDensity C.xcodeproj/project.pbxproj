@@ -214,7 +214,7 @@
 				LastUpgradeCheck = 0440;
 			};
 			buildConfigurationList = 4206D92D093D5F580056509F /* Build configuration list for PBXProject "WildlifeDensity C" */;
-			compatibilityVersion = "Xcode 2.4";
+			compatibilityVersion = "Xcode 3.0";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
@@ -338,7 +338,6 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "";
 				LIBRARY_STYLE = DYNAMIC;
-				PREBINDING = NO;
 				PRODUCT_NAME = WildlifeDensity;
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = YES;
@@ -362,7 +361,6 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "";
 				LIBRARY_STYLE = DYNAMIC;
-				PREBINDING = NO;
 				PRODUCT_NAME = WildlifeDensity;
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
@@ -385,7 +383,6 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "";
 				LIBRARY_STYLE = DYNAMIC;
-				PREBINDING = NO;
 				PRODUCT_NAME = WildlifeDensity;
 				WRAPPER_EXTENSION = app;
 			};
@@ -394,8 +391,8 @@
 		4206D92E093D5F580056509F /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_VERSION = "";
 				"GCC_VERSION[arch=ppc]" = 4.0;
-				"MACOSX_DEPLOYMENT_TARGET[arch=ppc]" = 10.3;
 				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				SDKROOT = macosx;
 			};
@@ -406,9 +403,10 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
 				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
+				GCC_VERSION = "";
 				"GCC_VERSION[arch=ppc]" = 4.0;
-				"MACOSX_DEPLOYMENT_TARGET[arch=ppc]" = 10.3;
-				SDKROOT = macosx;
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				SDKROOT = "";
 			};
 			name = Deployment;
 		};
