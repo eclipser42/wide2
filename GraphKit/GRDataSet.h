@@ -12,6 +12,7 @@
 @class GRAxes;
 
 extern NSString * GRDataSetDrawPlotLine;				// set to 1 to display plot lines (e.g. for rectangle lines in GRColumnDataSet)
+extern NSString * GRDataSetLegendLabel;
 extern NSString * GRDataSetPlotLineDashPattern;
 extern NSString * GRDataSetPlotLineWidth;
 
