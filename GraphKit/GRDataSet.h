@@ -26,7 +26,7 @@ extern NSString * GRDataSetPlotLineWidth;
 	GRAxes *_axes;	// 24 = 0x18
 	BOOL _customSelection;	// 28 = 0x1c
 	NSMutableDictionary *_dataSetProperties;	// 32 = 0x20
-	struct _NSRange _selectedRange;	// 36 = 0x24
+	NSRange _selectedRange;	// 36 = 0x24
 	id _identifier;	// 44 = 0x2c
 	unsigned int elementCapacity;	// 48 = 0x30
 	unsigned int _autoPlotColorIndex;	// 52 = 0x34
@@ -66,7 +66,7 @@ extern NSString * GRDataSetPlotLineWidth;
 - (void)_updateTextProperties;	// IMP=0x4d59b534
 - (id)_defaultLabelAttributes;	// IMP=0x4d59b538
 - (unsigned int)numberOfElements;	// IMP=0x4d59b7f0
-- (void)reloadDataInRange:(struct _NSRange)fp8;	// IMP=0x4d59b7f8
+- (void)reloadDataInRange:(NSRange)fp8;	// IMP=0x4d59b7f8
 - (void)reloadData;	// IMP=0x4d59c45c
 - (void)setDataSource:(id)fp8;	// IMP=0x4d59b828
 - (id)dataSource;	// IMP=0x4d59b8c4
@@ -78,9 +78,9 @@ extern NSString * GRDataSetPlotLineWidth;
 - (id)chart;	// IMP=0x4d59baf4
 - (void)setIdentifier:(id)fp8;	// IMP=0x4d59bafc
 - (id)identifier;	// IMP=0x4d59bb58
-- (struct _NSRange)selectedRange;	// IMP=0x4d59bb60
-- (BOOL)_setSelectedRangeWithoutChangingAnchorPoint:(struct _NSRange)fp8;	// IMP=0x4d59bb74
-- (BOOL)setSelectedRange:(struct _NSRange)fp8;	// IMP=0x4d59bc5c
+- (NSRange)selectedRange;	// IMP=0x4d59bb60
+- (BOOL)_setSelectedRangeWithoutChangingAnchorPoint:(NSRange)fp8;	// IMP=0x4d59bb74
+- (BOOL)setSelectedRange:(NSRange)fp8;	// IMP=0x4d59bc5c
 - (BOOL)selectPrevious;	// IMP=0x4d59bca0
 - (BOOL)selectPreviousByExtendingSelection;	// IMP=0x4d59bd54
 - (BOOL)selectNext;	// IMP=0x4d59be3c
@@ -89,8 +89,8 @@ extern NSString * GRDataSetPlotLineWidth;
 - (BOOL)_supportsCopyOnScroll;	// IMP=0x4d59bfd0
 - (void)resetAutoPlotColor;	// IMP=0x4d59c00c
 - (id)autoPlotColor;	// IMP=0x4d59c064
-- (void)drawDataSetRect:(struct _NSRect)fp8;	// IMP=0x4d59c0fc
-- (void)drawLegendSampleInRect:(struct _NSRect)fp8;	// IMP=0x4d59c110
+- (void)drawDataSetRect:(NSRect)fp8;	// IMP=0x4d59c0fc
+- (void)drawLegendSampleInRect:(NSRect)fp8;	// IMP=0x4d59c110
 - (void)_addCursorRects;	// IMP=0x4d59c3b8
 - (id)description;	// IMP=0x4d59c3bc
 - (double)_maximumUsefulZoomForRealAxis:(BOOL)fp8;	// IMP=0x4d59c450
