@@ -225,7 +225,19 @@
     if (bestType != nil) {
         NSString *contents = [pb stringForType:bestType];
         [self willChangeValueForKey:@"nvals"];
-        
+
+        // Determine point at which to paste
+        NSIndexSet *selection = [observationsController selectionIndexes];
+        unsigned insertionPoint;
+        if ([selection count] == 0) {
+            insertionPoint = [observations count];
+            NSLog(@"inserting at end (%d)", insertionPoint);
+        } else {
+            insertionPoint = [selection lastIndex] + 1;
+            NSLog(@"inserting at %d", insertionPoint);
+        }
+        unsigned nextInsertion = insertionPoint;
+
         // Parse pasteboard into cells
         NSScanner *scanner = [NSScanner scannerWithString:contents];
         while (true) {
@@ -253,19 +265,10 @@
                 else
                     rowIsValid = NO;
             }
-            if (rowIsValid)
-            {
+            if (rowIsValid) {
                 // TODO: insert all rows or put up an alert
-                NSIndexSet *selection = [observationsController selectionIndexes];
-                unsigned insertionPoint;
-                if ([selection count] == 0) {
-                    insertionPoint = [observations count];
-                    NSLog(@"inserting at end (%d)", insertionPoint);
-                } else {
-                    insertionPoint = [selection lastIndex] + 1;
-                    NSLog(@"inserting at %d", insertionPoint);
-                }
-                [self insertObject:newRow inObservationsAtIndex:insertionPoint];
+                [self insertObject:newRow inObservationsAtIndex:nextInsertion];
+                ++nextInsertion;
                 [[self undoManager] setActionName:@"Paste"];
                 if ([scanner isAtEnd])
                     break;
@@ -275,6 +278,12 @@
             }
         }
         [self didChangeValueForKey:@"nvals"];
+        if (nextInsertion > insertionPoint) {
+            // Select the just-pasted rows
+            // TODO: Also make this selection on redo
+            NSRange newSelection = NSMakeRange(insertionPoint, nextInsertion - insertionPoint);
+            [observationsController setSelectionIndexes:[NSIndexSet indexSetWithIndexesInRange:newSelection]];
+        }
     }
 }
 
