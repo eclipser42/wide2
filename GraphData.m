@@ -5,6 +5,7 @@
 //
 
 #import "GraphData.h"
+#import "GRAxes.h"
 #import "GRLineDataSet.h"
 
 @interface DataSetContent : NSObject
@@ -99,9 +100,21 @@
 	[axes setProperty: [NSNumber numberWithInt: 0] forKey: @"GRAxesYPlotMin"];
 	[axes setProperty: [NSNumber numberWithInt: 1] forKey: @"GRAxesFixedYPlotMin"];
 
+    // Add a legend (using GRDataSetLegendLabels below)
+    [axes setProperty: [NSNumber numberWithInt: 1] forKey: GRAxesDrawLegend];
+
+    // Add axis labels
+    [axes setProperty: @"Detection Distance (m)" forKey: GRAxesXTitle];
+    [axes setProperty: @"Individuals Detected" forKey: GRAxesYTitle];
+
+    // Add the first dataset
 	modelData = [[GRLineDataSet alloc] initWithOwnerChart: chartView];
+    [modelData setProperty:@"Model" forKey:GRDataSetLegendLabel];
 	[chartView addDataSet: modelData loadData: YES];
+
+    // And the second dataset
 	observedData = [[GRLineDataSet alloc] initWithOwnerChart: chartView];
+    [observedData setProperty:@"Observed" forKey:GRDataSetLegendLabel];
     [observedData setProperty:[NSArray arrayWithObjects:[NSNumber numberWithInt:6],
                                [NSNumber numberWithInt:4],
                                nil] forKey:GRDataSetPlotLineDashPattern];
@@ -109,8 +122,8 @@
     [observedData setProperty:[NSNumber numberWithDouble:0.8] forKey:GRDataSetPlotLineWidth];
 	[chartView addDataSet: observedData loadData: YES];
 }
-// Delegate methods for GRChartView
-// Or maybe these are the dataSource methods
+
+#pragma mark GRChartView dataSource methods
 
 - (NSInteger) chart: (GRChartView *) chartView numberOfElementsForDataSet: (GRDataSet *) dataSet
 {

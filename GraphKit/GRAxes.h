@@ -10,10 +10,14 @@
 
 @class GRChartView;
 
+extern NSString * GRAxesDrawLegend;
+extern NSString * GRAxesXTitle;
+extern NSString * GRAxesYTitle;
+
 @interface GRAxes : NSObject <NSCoding, NSCopying>
 {
-	struct _NSRect _canvasRect;	// 4 = 0x4
-	struct _NSRect _plotRect;	// 20 = 0x14
+	NSRect _canvasRect;	// 4 = 0x4
+	NSRect _plotRect;	// 20 = 0x14
 	NSMutableDictionary *_axesProperties;	// 36 = 0x24
 	NSMutableDictionary *_subTitleTextAttributes;	// 40 = 0x28
 	id _owner;	// 44 = 0x2c
@@ -22,9 +26,9 @@
 	id _identifier;	// 56 = 0x38
 	BOOL _needsLayout;	// 60 = 0x3c
 	struct {
-		struct _NSRect rect;
-		struct _NSSize sz;
-		struct _NSRect * prect;
+		NSRect rect;
+		NSSize sz;
+		NSRect * prect;
 		NSArray * arr;
 		NSMutableDictionary * md;
 		char ch;
@@ -64,33 +68,33 @@
 - (id)properties;	// IMP=0x4d58d29c
 - (void)setProperties:(id)fp8;	// IMP=0x4d58d2dc
 - (void)_updateTextProperties;	// IMP=0x4d58d2ec
-- (void)setCanvasRect:(struct _NSRect)fp8;	// IMP=0x4d58d42c
-- (struct _NSRect)canvasRect;	// IMP=0x4d58d5b8
-- (struct _NSRect)plotRect;	// IMP=0x4d58d5dc
-- (void)setPlotRect:(struct _NSRect)fp8;	// IMP=0x4d590530
+- (void)setCanvasRect:(NSRect)fp8;	// IMP=0x4d58d42c
+- (NSRect)canvasRect;	// IMP=0x4d58d5b8
+- (NSRect)plotRect;	// IMP=0x4d58d5dc
+- (void)setPlotRect:(NSRect)fp8;	// IMP=0x4d590530
 - (id)legendLabels;	// IMP=0x4d58d600
-- (struct _NSRect)legendRect;	// IMP=0x4d58ec88
+- (NSRect)legendRect;	// IMP=0x4d58ec88
 - (BOOL)computeLayout;	// IMP=0x4d58d614
 - (void)setNeedsLayout:(BOOL)fp8;	// IMP=0x4d58dd2c
 - (BOOL)needsLayout;	// IMP=0x4d58dd8c
 - (BOOL)_supportsCopyOnScroll;	// IMP=0x4d58dd98
-- (void)drawLegendSampleInRect:(struct _NSRect)fp8 forDataSet:(unsigned int)fp24 withHighlight:(BOOL)fp28;	// IMP=0x4d58dda0
-- (void)drawLegendRect:(struct _NSRect)fp8;	// IMP=0x4d5907f8
-- (void)drawBackgroundInRect:(struct _NSRect)fp8;	// IMP=0x4d58ddb4
-- (void)drawGridRect:(struct _NSRect)fp8;	// IMP=0x4d58e0c0
-- (void)drawAxesRect:(struct _NSRect)fp8;	// IMP=0x4d58e130
-- (BOOL)_zoomInRect:(struct _NSRect)fp8;	// IMP=0x4d58e490
+- (void)drawLegendSampleInRect:(NSRect)fp8 forDataSet:(unsigned int)fp24 withHighlight:(BOOL)fp28;	// IMP=0x4d58dda0
+- (void)drawLegendRect:(NSRect)fp8;	// IMP=0x4d5907f8
+- (void)drawBackgroundInRect:(NSRect)fp8;	// IMP=0x4d58ddb4
+- (void)drawGridRect:(NSRect)fp8;	// IMP=0x4d58e0c0
+- (void)drawAxesRect:(NSRect)fp8;	// IMP=0x4d58e130
+- (BOOL)_zoomInRect:(NSRect)fp8;	// IMP=0x4d58e490
 - (BOOL)_zoomOut;	// IMP=0x4d58e4a8
 - (BOOL)_autoscale;	// IMP=0x4d58e4b0
 - (BOOL)deselectAllPoints;	// IMP=0x4d58e4b8
-- (BOOL)selectPoint:(struct _NSPoint)fp8 byExtendingSelection:(BOOL)fp16;	// IMP=0x4d58e5d0
-- (BOOL)clickPoint:(struct _NSPoint)fp8;	// IMP=0x4d58e5e0
+- (BOOL)selectPoint:(NSPoint)fp8 byExtendingSelection:(BOOL)fp16;	// IMP=0x4d58e5d0
+- (BOOL)clickPoint:(NSPoint)fp8;	// IMP=0x4d58e5e0
 - (double)_pixelValueForAxis:(unsigned short)fp8;	// IMP=0x4d58e5f0
 - (double)xPixelValue;	// IMP=0x4d58e78c
 - (double)yPixelValue;	// IMP=0x4d58e79c
-- (double)_valueAtPoint:(struct _NSPoint)fp8 axis:(unsigned short)fp16;	// IMP=0x4d58e7ac
-- (double)xValueAtPoint:(struct _NSPoint)fp8;	// IMP=0x4d58e9c8
-- (double)yValueAtPoint:(struct _NSPoint)fp8;	// IMP=0x4d58e9e0
-- (struct _NSPoint)locationForXValue:(double)fp8 yValue:(double)fp16;	// IMP=0x4d58e9f8
+- (double)_valueAtPoint:(NSPoint)fp8 axis:(unsigned short)fp16;	// IMP=0x4d58e7ac
+- (double)xValueAtPoint:(NSPoint)fp8;	// IMP=0x4d58e9c8
+- (double)yValueAtPoint:(NSPoint)fp8;	// IMP=0x4d58e9e0
+- (NSPoint)locationForXValue:(double)fp8 yValue:(double)fp16;	// IMP=0x4d58e9f8
 
 @end
