@@ -689,7 +689,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 	    int maxjb,
 	    int mtest,
 	    bool iqsf,
-        calc_results *results)
+            calc_results *results)
 {
 
 /*
@@ -697,8 +697,8 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     common values, dimensions and symbols for key variables.
 *
 */
-      int iermax,jj,jl,jrlow,jv;
-      int l10,l20,limit;
+      int iermax,jj,jl,jrlow;
+      int l10,l20;
       int md;
 
       double aprexi,auc,cint,d2l,dd,dds,ddsm,dh,dif;
@@ -710,8 +710,6 @@ void givef (double f[NUM_SHAPE_PARAMS],
       double texpd,topdd,topmax,tot,tote,tr,vegdd;
       double vegmax,vh,visdd,vismax,vl,vlowm,wh;
       double vhowh,wl,wm,yh,yl,yy,yyh,yyl,zh,zl;
-      double rout[80],calcnr[80],obsdnr[80];
-      double yout[80],calcny[80],obsdny[80];
 
 /*
 *     TOT is the progressive value of the sum of squares of the
@@ -1504,7 +1502,6 @@ Line_900:
 *     are printed as '0.0' in the output because the 'observations'
 *     are unfloat.
 */
-    jv = nclass - jj - 1;
 	if (iry > 0) {
 	    yy = tr-(clint/2.0);
 	    expdy = expdv;
@@ -1517,9 +1514,9 @@ Line_900:
 		}
 		fprintf(output_results, "  y=%8.1f     Calc.N(y)=%9.2f     Obsd.N(y)=%9.1f\n", yy,expdy,obsd);
 	    }
-        results->midpoints[jv] = yy;
-        results->calcn[jv] = expdy;
-        results->obsdn[jv] = obsd;
+            results->midpoints[md] = yy;
+            results->calcn[md] = expdy;
+            results->obsdn[md] = obsd;
 	}
 	else {  /* iry <= 0 */
 	    rr = tr-(clint/2.0);
@@ -1532,9 +1529,9 @@ Line_900:
 		}
 		fprintf(output_results, "  r=%8.1f     Calc.N(r)=%9.2f     Obsd.N(r)=%9.1f\n", rr,expdr,obsd);
 	    }
-        results->midpoints[jv] = rr;
-        results->calcn[jv] = expdr;
-        results->obsdn[jv] = obsd;
+            results->midpoints[md] = rr;
+            results->calcn[md] = expdr;
+            results->obsdn[md] = obsd;
 	}
 
 /*
@@ -2323,7 +2320,6 @@ Line_400:
 
 void calculate_density (calc_params *params
 			,const char *header, const char *outfile, const char *graphfile
-			,int headerlen, int outfilelen, int graphfilelen
 			)
 {
 
@@ -2358,9 +2354,6 @@ void calculate_density (calc_params *params
       double h[21], pbar[20], pstar[20], pstst[20];
       double coeff1[5000], coeff2[5000], coeff3[5000];
       double den[5000];
-
-      char *outfile_name;
-      char *graphfile_name;
 
 /*
 *     The program accepts up to 10000 data values, each being the total
@@ -2466,11 +2459,7 @@ Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 /*
 *  Create the output file
 */
-      outfile_name = malloc(outfilelen+1);
-      strncpy(outfile_name, outfile, outfilelen);
-      outfile_name[outfilelen] = '\0';
-
-      output_results = fopen(outfile_name, "w");	// OPEN (UNIT=2,FILE=outfile,STATUS='NEW',IOSTAT=ios,ERR=Line_1930)
+      output_results = fopen(outfile, "w");	// OPEN (UNIT=2,FILE=outfile,STATUS='NEW',IOSTAT=ios,ERR=Line_1930)
       if (output_results == NULL) {
 
 	/* File could not be opened */
@@ -2478,13 +2467,6 @@ Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 	perror("Could not open outfile");
 	return;
       }
-
-/*
-*  Make a copy of the graphfile name for use by GIVEF
-*/
-      graphfile_name = malloc(graphfilelen+1);
-      strncpy(graphfile_name, graphfile, graphfilelen);
-      graphfile_name[graphfilelen] = '\0';
 
 /*
 *     If no value of the maximum detection distance F[3] has been
@@ -2602,7 +2584,7 @@ Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 *     The header line now begins the program output.
 */
 	
-      fprintf(output_results, "%.*s\n", headerlen, header);
+      fprintf(output_results, "%s\n", header);
 
 /*
 *     The program now prints out a statement of the various data
@@ -4381,15 +4363,19 @@ Line_1920:
 /*
 * And finally, write a file which tabulates observed and calculated frequencies.
 */
-      if (kdt > 1) {
-          params->results.num_intervals = ((kdt-stt) / clint);
-      } else {
-          params->results.num_intervals = ((f[3]-stt) / clint);
-      }
+    if (kdt > 1) {
+        // Possibly NCLASS should take this value when KDT >= 2, but as of v2.0
+        // intervals are computed all the way down to F(3)-STT
+        if ((kdt-stt) > 0 && clint > 0) {
+            params->results.num_intervals = ((kdt-stt) / clint);
+        }
+    } else {
+        params->results.num_intervals = nclass;
+    }
 
       if (kprint > 0) {
 
-          output_graph = fopen(graphfile_name, "w");
+          output_graph = fopen(graphfile, "w");
           if (output_graph == NULL) {
 
               perror("Error opening graph file \'%s\': ");

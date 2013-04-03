@@ -32,5 +32,4 @@ typedef struct {
 } calc_params;
 
 extern void calculate_density (calc_params *params,
-                              const char *header, const char *outfile, const char *graphfile,
-                              int headerlen, int outfilelen, int graphfilelen);
+                              const char *header, const char *outfile, const char *graphfile);

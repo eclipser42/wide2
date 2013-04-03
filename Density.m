@@ -187,7 +187,8 @@
     NSArray* tigerLines = [header componentsSeparatedByString:NL_STRING];
     NSArray* headerLines = [[tigerLines objectAtIndex:0] componentsSeparatedByString:CR_STRING];
     if ([headerLines count] > 1 || [tigerLines count] > 1) {
-        NSLog(@"Trimming header to just first line (discarding %d later lines)", [headerLines count] - 1);
+        unsigned long discardedLines = [headerLines count] - 1;
+        NSLog(@"Trimming header to just first line (discarding %ld later lines)", discardedLines);
         [self setValue:[headerLines objectAtIndex:0] forKey:@"header"];
     }
     
@@ -213,8 +214,6 @@
 {
     return [self undoManager];
 }
-
-#pragma mark NSTableView delegate
 
 - (void)paste:(id)sender
 {
@@ -273,7 +272,7 @@
                 if ([scanner isAtEnd])
                     break;
             } else {
-                NSLog(@"Failed parsing %@ after %d", contents, [scanner scanLocation]);
+                NSLog(@"Failed parsing %@ after %ld", contents, (unsigned long)[scanner scanLocation]);
                 break;
             }
         }
@@ -1136,6 +1135,8 @@ double deg2rad(double deg) {
 - (void)launchCalculation
 {
     [self endEditingSavingCurrentResponder];
+    calc_results empty_results = { 0 };
+    params.results = empty_results;
     params.complete = 0;
     [self setValue:@"" forKey:@"completeMsg"];
 
@@ -1228,7 +1229,7 @@ double deg2rad(double deg) {
     const char * out = [outFile UTF8String];
     const char * graph = [graphFile UTF8String];
 
-    calculate_density(&params, hdr, out, graph, strlen(hdr), strlen(out), strlen(graph));
+    calculate_density(&params, hdr, out, graph);
 
     [completeMsg release];
     if (params.complete) {

@@ -30,7 +30,6 @@
 {
     [anglesColumn retain];
     [elevationsColumn retain];
-    [observationsTable setDelegate:document];
     [document addObserver:self
                forKeyPath:@"kdt"
                   options:0
