@@ -37,6 +37,7 @@
     calc_params params;
     BOOL complete;
     NSString *completeMsg;
+    BOOL manualOptions;
 }
 
 - (void)setHeader:(NSString*)newHeader;
