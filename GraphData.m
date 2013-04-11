@@ -90,9 +90,9 @@
 {
     return @"GraphData";
 }
+
 - (void) awakeFromNib
 {
-    NSLog(@"Hello");
 	[chartView setProperty: [NSNumber numberWithInt: 0] forKey: GRChartDrawBackground];
 
 	// Force the Y-axis to display from zero

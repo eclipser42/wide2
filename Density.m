@@ -174,6 +174,20 @@
 {
     [controller updateTableColumns];
     [[windowController window] setDelegate:self];
+
+    NSString *graphFile = [self graphDataFileName];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:graphFile]) {
+        NSError *outError;
+        GraphData *graphData = [[GraphData alloc] initWithContentsOfURL:[NSURL fileURLWithPath:graphFile] ofType:@"WildlifeDensity Result" error:&outError];
+        if (graphData == nil) {
+            NSLog(@"Previous results failed to open with: %@", [outError localizedDescription]);
+        } else {
+            [[NSDocumentController sharedDocumentController] addDocument:graphData];
+            [graphData makeWindowControllers];
+            //[graphData showWindows];
+            [[graphData windowForSheet] displayIfNeeded];
+        }
+    }
 }
 
 #define NL_STRING ([NSString stringWithFormat:@"%c", 10])

@@ -1711,7 +1711,7 @@ void qsf (double f[NUM_SHAPE_PARAMS],
        int nless1, in, jk, jless1, l;
        int iplus1, klessi, nu, nl, ij, ndf, jplus1;
        int mnpd,  iless1, neval;
-       double pstar[20], aval[20], bmat[210], ao, dmax;
+       double pstar[20], aval[20], bmat[210], ao/*, dmax*/;
        double temp, ymin, vc[210], var[NUM_SHAPE_PARAMS], vra, sa, sb, sd2l;
        double sdmax, sd, t05, vrb, vrd2l, vrdmax, den, simp;
        double pmin[20], /* pbar[20], */ pstst[20], t;
@@ -1726,9 +1726,8 @@ void qsf (double f[NUM_SHAPE_PARAMS],
 *      outlined by Nelder and Mead exactly and, where possible,
 *      the notation in the comments corresponds to theirs also.
 */
-	
+
       neval = 0;
-      dmax = f[3];
       krun = 0;
 
 /*
@@ -2340,13 +2339,12 @@ void calculate_density (calc_params *params
       double a, approx, b, c, cf1dif, cf1sum, cf2dif, cf2sum;
       double cf3dif, cf3sum, clint, coeffnt1, coeffnt2;
       double coeffnt3, dcoeff, dendif, dist, dsum, s;
-      double estden, estj, ests, fnk, frst, func, hmax, hmean, hmin;
+      double estden, estj, fnk, frst, func, hmax, hmean, hmin;
       double hstar, hstd, hstst, durn, ltmin, ltmax, obsw;
       double pd, ps, rate, savemn, scf1, scf2, scf3;
       double sden, sns, stopc, stt, test, tcoeff1, tcoeff2;
-      double tcoeff3, tcov, tden, thh, vgh, dmax, t001, t05;
-      float rltot, rlmean, rlsum, rlsd, rlf4, rdifsq, ttrdenmn;
-      float estdmax, ttrden, tdsum, tdendif, strden, t,tcl1,tcl2,cl1,cl2;
+      double tcoeff3, tcov, tden, thh, vgh, /*dmax, */ t05;
+      float estdmax, ttrden, ttrdenmn, tdsum, tdendif, strden, t,tcl1,tcl2,cl1,cl2;
       float r[MAX_OBSERVATIONS], resamp_dist[MAX_OBSERVATIONS], y[MAX_OBSERVATIONS];
       float angle[MAX_OBSERVATIONS], trden[5000];
       double val[80], valt[80];
@@ -2354,6 +2352,7 @@ void calculate_density (calc_params *params
       double h[21], pbar[20], pstar[20], pstst[20];
       double coeff1[5000], coeff2[5000], coeff3[5000];
       double den[5000];
+      bool dmaxIsPreset = true;
 
 /*
 *     The program accepts up to 10000 data values, each being the total
@@ -2491,9 +2490,12 @@ Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 *     value instead.
 *
 */
-      estdmax = 0.0;
 
       if (f[3] == 0) {
+        float rltot, rlmean, rlsum, rlsd, rlf4, rdifsq;
+        double t001;
+
+        dmaxIsPreset = false;
         rltot = 0.0;
         rlmean = 0.0;
         rlsum = 0.0;
@@ -2559,8 +2561,6 @@ Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
           f[3] = rlf4 * rlf4 - 1;
 
         }
-
-        estdmax = f[3];
 
       }  /* end if (f[3] == 0) */
 
@@ -2653,10 +2653,11 @@ Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 	  dist *= 1000;
           if ((km == 2) && (f[3] > 0)) {
             f[3] *= 1000;
-            estdmax = f[3];
 	  }
         }
       }
+
+      estdmax = f[3];
 
 /*
 *     The original values of NUMA and NUMO are retained (as NUMOIN
@@ -2744,27 +2745,20 @@ Inner_96:
           
       Line_100:
           if  ((maxjb > 1) && (ishow == 0))      {
-              if ( ((step[0] && step[1] && step[2]) == 0) )   {
+              /* True if either or both of the initial step sizes are zero, so also
+               * true if all three initial step sizes are zero */
+              bool stepSizeIsZero = ((step[0] == 0) || (step[1] == 0));
+              if ((nvals < 80) || stepSizeIsZero) {
                   f[0] = pow((2.618*estdmax) + 24.833, 0.333) ;
-                  f[1] = 34.4294*pow(estdmax, -1.35094) ; 
-                  ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ; 
+                  f[1] = 34.4294*pow(estdmax, -1.35094) ;
               }
-              else if ((step[0] == 0) || (step[1] == 0) || (step[2] == 0)) {
-                  f[0] = pow((2.618*estdmax) + 24.833, 0.333) ;
-                  f[1] = 34.4294*pow(estdmax, -1.35094) ; 
-                  ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ;   
-              }
-              else if ((nvals < 80) && ((step[0] && step[1] && step[2]) != 0))   {
-                  f[0] = pow((2.618*estdmax) + 24.833, 0.333) ;
-                  f[1] = 34.4294*pow(estdmax, -1.35094) ; 
-                  ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ;
-              }
- 
+
 /*
 *     Computation of an initial values for f[2] and step[2] depends on whether
 *	  line transect data (ifx=0) or fixed point (ifx=1) data are provided.  
 *
 */
+              double ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ;
               if (ifx == 0)	{
                   f[2] = (1.e4*(numain + numoin)) / (ns*dist*estj*pd*ests);
                   step[2] = 0.5*f[2];
@@ -4170,12 +4164,9 @@ Line_1468:
 
       fprintf(output_results, " Topographical Cover Value = %6.4f\n", tcov);
 
-      if (estdmax == 0) {
-	fprintf(output_results, " Maximum Detection Distance (preset) =%7.1f m\n", f[NUM_SHAPE_PARAMS-1]);
-      }
-      else {
-	fprintf(output_results, " Maximum Detection Distance (estimated) =%7.1f m\n", estdmax);
-      }
+      fprintf(output_results, " Maximum Detection Distance (%s) = %7.1f m\n",
+              dmaxIsPreset ? "preset" : "estimated",
+              estdmax);
 
       if (maxjb == 1) {
 	fprintf(output_results, "\n\n Process converges on minimum after %4i function evaluations\n", neval);

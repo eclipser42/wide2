@@ -251,7 +251,7 @@
 - (void)updateProgress:(NSTimer*)timer
 {
     double iteration = [document currentIteration];
-    if (iteration > 0)
+    if (iteration >= 0)
     {
         [progressBar setDoubleValue:iteration];
     } else {
