@@ -35,9 +35,9 @@ extern NSString * GRLineDataSetPlotStroke;
 - (void)axes:(id)fp8 propertyChangedForKey:(id)fp12 from:(id)fp16 to:(id)fp20;	// IMP=0x4d59ffc4
 - (BOOL)supportsRangesOnAxis:(unsigned short)fp8;	// IMP=0x4d5a0170
 - (void)_updateTextProperties;	// IMP=0x4d5a0178
-- (void)drawLegendSampleInRect:(struct _NSRect)fp8;	// IMP=0x4d5a0264
-- (void)drawDataSetRect:(struct _NSRect)fp8;	// IMP=0x4d5a0608
-- (id)view:(id)fp8 stringForToolTip:(int)fp12 point:(struct _NSPoint)fp16 userData:(void *)fp24;	// IMP=0x4d5a2d84
+- (void)drawLegendSampleInRect:(NSRect)fp8;	// IMP=0x4d5a0264
+- (void)drawDataSetRect:(NSRect)fp8;	// IMP=0x4d5a0608
+- (id)view:(id)fp8 stringForToolTip:(int)fp12 point:(NSPoint)fp16 userData:(void *)fp24;	// IMP=0x4d5a2d84
 - (unsigned int)indexOfXvalue:(double)fp8 yValue:(double)fp16 exactMatch:(BOOL)fp24;	// IMP=0x4d5a308c
 
 @end

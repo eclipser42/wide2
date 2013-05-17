@@ -611,7 +611,70 @@ void randgen (double *result)
       *result = (nextn * 1.0) / (modlus * 1.0);
 }
 //      END SUBROUTINE randgen
-
+
+
+/*******************************************************************************
+*
+*	FREQ_DISTRIB     Calculate frequencies of each class
+*
+*       Inputs: NCLASS, STT, CLINT, NVALS, KDT - as described above
+*               Y  - distance to observed groups, whether radial or perpendicular,
+*                    original or resampled
+*               ABSOLUTE_DISTANCES  - if true, consider negative distances as positive
+*               NSIZE  - size of the observed groups, original or resampled
+*
+*       Outputs: NUMA, NUMO, VAL, NGROUPS - as described above
+*
+*******************************************************************************/
+
+void freq_distrib(int nclass, double stt, double clint, int nvals, int kdt, float y[],
+                 bool absolute_distances, int nsize[],
+                 int *numa, int *numo, double val[], int *ngroups)
+{
+    *numo = 0;
+    *numa = 0;
+    *ngroups = 0;
+    double frst = stt;
+
+    for (int ic=0; ic < nclass; ic++) {			//  DO ic=1,nclass
+
+        val[ic]=0;
+/*
+ *      Numbers ahead (NUMA), overtaking (NUMO) and groups are totalled.
+ *      Numbers in each class, VAL[IC], are also accumulated for the groups
+ *      included in the data set.
+ */
+        for (int irb=0; irb < nvals; irb++) {	//  DO irb=1,nvals
+
+            float group_distance = y[irb];
+            if (absolute_distances) {
+             /*
+              * When data from the two sides of a transect line are pooled,
+              * absolute values of Y() are used.
+              */
+                group_distance = fabs(y[irb]);
+            }
+
+            if ((kdt > 1) && (group_distance > kdt)) {
+                // group distance is beyond maximum detection distance
+                continue;
+            }
+            else if ((group_distance > frst) &&  (group_distance <= (frst+clint))) {
+                *numa += nsize[irb];
+                (*ngroups)++;
+                val[ic] += nsize[irb];
+            }
+            else if ((ic == 0) && (group_distance == 0.)) {
+                *numo += nsize[irb];
+                (*ngroups)++;
+            }
+        }					//  END DO irb
+
+        frst += clint;
+    }
+}
+
+
 /*******************************************************************************
 *
 *	GIVEF		Calculate frequencies across classes
@@ -635,6 +698,9 @@ void resample (float orig_dist[], int orig_size[], int nvals,
 
       /* printf("\n");
          printf("Resampling ...\n"); */
+      for (int js=0; js < nvals; js++) {	//  DO js=1,nvals
+        resamp_size[js] = 0;
+      }
       for (ix=0; ix < nvals; ix++) {	//    DO ix = 1, nvals
 	randgen(&x);
 	n = x*nvals;
@@ -2328,18 +2394,17 @@ void calculate_density (calc_params *params
 	
       int nsize[MAX_OBSERVATIONS], nbsz[MAX_OBSERVATIONS];
       int bootstrap;
-      int i, ia, ic, ie, iflag, ifx, ig, ih, imax;
-      int imin, imv, in, ios, iprint, ir, irb, irow, iry, iseed;
-      int ishow, j, jbstp, jprint, js, jv;
-      int k, kdt, km, kprint, loop, max;
-      int maxjb, mfail, msfail, mtest, nap, neval, notin, ngroups;
+      int i, ia, ie, iflag, ifx, ig, ih, imax;
+      int imin, imv, in, iprint, irow, iry, iseed, ishow;
+      int j, jprint, jv, k, kdt, km, kprint, loop, max;
+      int maxjb, mfail, msfail, mtest, nap, neval, ngroups;
       int nloop, nop, np1, ns, numa, numest, numo, nclass;
-      int novtks, numoin, numain, nvals, numgra;
+      int numoin, numain, nvals, numgra;
       bool iqsf;
       double a, approx, b, c, cf1dif, cf1sum, cf2dif, cf2sum;
       double cf3dif, cf3sum, clint, coeffnt1, coeffnt2;
       double coeffnt3, dcoeff, dendif, dist, dsum, s;
-      double estden, estj, fnk, frst, func, hmax, hmean, hmin;
+      double estden, estj, fnk, func, hmax, hmean, hmin;
       double hstar, hstd, hstst, durn, ltmin, ltmax, obsw;
       double pd, ps, rate, savemn, scf1, scf2, scf3;
       double sden, sns, stopc, stt, test, tcoeff1, tcoeff2;
@@ -2379,7 +2444,6 @@ void calculate_density (calc_params *params
       max = 750;
       nop = NUM_SHAPE_PARAMS;
       nloop = 1;
-      novtks = 0;
 
 /*
 *  Initialise miscellaneous local variables - J.Begg 24-May-2011
@@ -3046,7 +3110,6 @@ Loop_350:
 */
 
 Line_370:
-      jbstp = 0;
       mfail = 0;
       msfail = 0;
       tden = 0.0;
@@ -3078,10 +3141,11 @@ Loop_370:
       }						//  END DO Loop_370
       srandnag(iseed);
 
-/*
-*     Loop 1410 now begins.
-*
-*/
+/* ==============================================================
+*  ======                                                  ======
+*  ======             Start of the main loop               ======
+*  ======                                                  ======
+*  =============================================================*/
 
 Loop_1410:
       for (bootstrap=0; bootstrap < maxjb; bootstrap++) {	//  DO bootstrap=1, maxjb
@@ -3114,119 +3178,16 @@ Loop_1410:
 *     (>1), the program also computes the number of data clusters (NOTIN)
 *     below STT and above KDT and subtracts it from NVALS to give the
 *     correct magnitude of NVALS for use in later calculations.
-*
-*
-*     Either the initial r class totals, VALT[], are calculated...
-*
-*     An alternative computation works with perpendicular distance
-*     values:
 */
 		  
-	if (iry > 0) goto Line_430;
-
-
-	frst = stt;
-
-/*
-*     Computation goes to Step 480 if bootstrapping has begun (JBSTP=1).
-*/
-	if (jbstp == 1) goto Line_480;
-
-        numo = 0;
-        numa = 0;
-        ngroups = 0;
-
-
-Loop_410:
-	for (ic=0; ic < nclass; ic++) {			//  DO ic=1,nclass
-
-	  val[ic] = 0.0;
-
-/*
-*     Numbers ahead (NUMA), overtaking (NUMO) and groups are totalled.
-*     The frequency in the class, VAL[IC], is accumulated too.
-*/
-		
-	  for (ir=0; ir < nvals; ir++) {	//  DO ir=1,nvals
-	    if ((kdt > 1) && (r[ir] > kdt)) {
-	      continue;
-	    }
-	    else if ((r[ir] > frst) && (r[ir] <= (frst+clint))) {
-	      numa += nsize[ir];
-	      ngroups++;
-	      val[ic] += nsize[ir];
-	    }
-	    else if ((ic == 0) && (r[ir] == 0.))  {
-	      numo += nsize[ir];
-	      ngroups++;
-	    }
-	  }					// END DO ir
-
-          frst += clint;
-	}						//  END DO Loop_410
-
-/*
-*     The frequency distribution of the original data is saved,
-*     as VALT[IG].
-*/
-
-Loop_420:
-	for (ig=0; ig < nclass; ig++) {		//  DO ig=1,nclass
-	  valt[ig]=val[ig];
-	}					//  END DO Loop_420
-
-	if ((maxjb != 1) && (nap <= 0)) goto Line_1320;
-
-        jbstp = 1;
-        goto Line_620;
-
-/*
-*     Or the initial y class totals, VALT(), are calculated...
-*
-*     Absolute values of Y() are used because data from the
-*     two sides of a transect line are pooled.
-*/
-
-Line_430:
-	frst = stt;
-
-/*
-*     Computation goes to Step 480 if bootstrapping has begun (JBSTP=1).
-*/
-	if (jbstp == 1) goto Line_480;
-
-        numo = 0;
-        numa = 0;
-        ngroups = 0;
-
-Loop_460:
-	for (ic=0; ic < nclass; ic++) {			//  DO ic=1,nclass
-
-          val[ic] = 0.0;
-/*
-*     If a group is in the included data set, the number in each
-*     class is totalled in a series of passes through the values
-*     supplied.
-*/
-		
-	  for (ir=0; ir < nvals; ir++) {	//  DO ir=1,nvals
-	    if ((kdt > 1) && (y[ir] > kdt)) {
-	      continue;
-	    }
-	    else if ((y[ir] > frst) && (y[ir] <= (frst+clint))) {
-	      numa += nsize[ir];
-	      ngroups++;
-	      val[ic] += nsize[ir];
-            }
-	    else if ((ic == 0) && (y[ir] == 0.)) {
-	      numo += nsize[ir];
-	      ngroups++;
-	    }
-
-	  }					//  END DO ir
-
-	  frst += clint;
-	}						//  END DO Loop_460
+          if (bootstrap == 0) {
+              if (iry > 0) {
+                  freq_distrib(nclass, stt, clint, nvals, kdt, y, false, nsize,
+                               &numa, &numo, val, &ngroups);
+              } else {
+                  freq_distrib(nclass, stt, clint, nvals, kdt, r, false, nsize,
+                               &numa, &numo, val, &ngroups);
+              }
 
 /*
 *     The frequency distribution of the original data is now saved,
@@ -3234,15 +3195,13 @@ Loop_460:
 */
 
 Loop_470:
-	for (ig=0; ig < nclass; ig++) {		//  DO ig=1,nclass
-	  valt[ig] = val[ig];
-	}					//  END DO Loop_470
+              for (ig=0; ig < nclass; ig++) {		//  DO ig=1,nclass
+                  valt[ig] = val[ig];
+              }					//  END DO Loop_470
+              
+              if ((maxjb != 1) && (nap <= 0)) goto Line_1320;
 
-	if ((maxjb != 1) && (nap <= 0)) goto Line_1320;
-
-        jbstp = 1;
-        goto Line_620;
-
+          } else {
 /*
 *     To calculate a bootstrapped distribution, values of R(IN) and
 *     the corresponding group NSIZE(IN) are to be chosen at random
@@ -3251,126 +3210,14 @@ Loop_470:
 *     animals detected.  Loop 510 selects these values.
 *
 */
-
-Line_480:
-	if (iry > 0) {
-	  resample (y, nsize, nvals, resamp_dist, nbsz);
-        } else {
-	  resample (r, nsize, nvals, resamp_dist, nbsz);
-        }
-
-/*
-*     There should now be a new set of (N=NVALS) R (or Y) and NSIZE
-*     values to use in putting together a new frequency distribution.
-*
-*     The calculation path differs according to whether radial or
-*     perpendicular distance data are being handled.
-*/
-		  
-	if (iry > 0) goto Line_570;
-
-/*
-*     Either: radial distance data are handled....
-*/
-		  
-	frst = stt;
-
-	numo = 0;
-	numa = 0;
-	ngroups = 0;
-
-Loop_550:
-	for (ic=0; ic < nclass; ic++) {			//  DO ic=1,nclass
-
-	  val[ic] = 0.0;
-
-/*
-*     The first class for r begins just above the frst value so that
-*     0's are not included because they are 'overtakes'.
-*/
-		
-	for (irb=0; irb < nvals; irb++) {	//  DO irb=1,nvals
-	    if ((kdt > 1) && (resamp_dist[irb] > kdt))  {
-	      continue;
-	    }
-	    else if ((resamp_dist[irb] > frst) && (resamp_dist[irb] <= (frst+clint))) {
-	      numa += nbsz[irb];
-	      ngroups++;
-	      val[ic] += nbsz[irb];
-	    }
-	    else if ((ic == 0) && (resamp_dist[irb] == 0.)) {
-	      numo += nbsz[irb];
-	      ngroups++;
-	    }
-          }					//  END DO irb
-
-          frst += clint;
-       }						//  END DO Loop_550
-
-/*
-*     RESAMP_DIST(IRB) values need to be reassigned at this point
-*     or some values will be carried into subsequent loop
-*     iterations.
-*/
-
-Loop_560:
-	for (js=0; js < nvals; js++) {	//  DO js=1,nvals
-	  nbsz[js] = 0;
-	}				//  END DO Loop_560
-
-        goto Line_620;
-
-/*
-*
-*     Or: perpendicular distance data are handled.
-*/
-
-Line_570:
-	frst = stt;
-
-        numo = 0;
-        numa = 0;
-        ngroups = 0;
-
-Loop_600:
-	for (ic=0; ic < nclass; ic++) {			//  DO ic=1,nclass
-
-          val[ic]=0;
-
-/*
-*     Numbers in each class are totalled for the groups included
-*     in the data set.
-*/
-		
-	  for (irb=0; irb < nvals; irb++) {	//  DO irb=1,nvals
-	    if ((kdt > 1) && (fabs(resamp_dist[irb]) > kdt)) {
-	      continue;
-	    }
-	    else if ((fabs(resamp_dist[irb]) > frst) &&  (fabs(resamp_dist[irb]) <= (frst+clint))) {
-	      numa += nbsz[irb];
-	      ngroups++;
-	      val[ic] += nbsz[irb];
-            }
-	    else if ((ic == 0) && (resamp_dist[irb] == 0.)) {
-	      numo += nbsz[irb];
-	      ngroups++;
-            }
-	  }					//  END DO irb
-
-          frst += clint;
-	}						//  END DO Loop_600
-
-/*
-*     RESAMP_DIST[IRB] values need to be reassigned at this point
-*     or some values will be carried into subsequent loop
-*     iterations.
-*/
-
-Loop_610:
-	for (js=0; js < nvals; js++) {	//  DO js=1,nvals
-	  nbsz[js] = 0;
-	}				//  END DO Loop_610
-
+              if (iry > 0) {
+                  resample (y, nsize, nvals, resamp_dist, nbsz);
+              } else {
+                  resample (r, nsize, nvals, resamp_dist, nbsz);
+              }
+              freq_distrib(nclass, stt, clint, nvals, kdt, resamp_dist, (iry > 0), nbsz,
+                           &numa, &numo, val, &ngroups);
+          }
 /*
 *     The calculated set of values, VAL[IC], in each class interval
 *     is now printed out for the set of data concerned if JPRINT=1.
@@ -3973,9 +3820,12 @@ Loop_1400:
 	  step[ie] = stept[ie];
 	}					//  END DO Loop_1400
 
-/*
-*     The main loop 1410 now ends.
-*/
+/* ==============================================================
+*  ======                                                  ======
+*  ======               End of the main loop               ======
+*  ======                                                  ======
+*  =============================================================*/
+        
       }								//  END DO Loop_1410
 
 /*
