@@ -274,9 +274,9 @@
 *
 *          Setting the STEP value at 0.0 for a parameter fixes an F[]
 *          value at that supplied to the program.  Where a data set
-*          (NVALS) is small (say, < 50 detections), STEP[1] should be
-*          set at 0.0 .  Where the set is very small (say, < 30
-*          detections), STEP[0] should also be set at 0.0 .
+*          (NVALS) is not great (say, < 250 detections), STEP[1] is
+*          set at 0.0 by the program.  Where the set is very small
+*          (say, < 30 detections), STEP[0] should also be set at 0.0 .
 *
 *     STT (& FRST) - the detection distance value (r or y) from which
 *          class intervals begin (usually zero).
@@ -2812,7 +2812,7 @@ Inner_96:
               /* True if either or both of the initial step sizes are zero, so also
                * true if all three initial step sizes are zero */
               bool stepSizeIsZero = ((step[0] == 0) || (step[1] == 0));
-              if ((nvals < 80) || stepSizeIsZero) {
+              if ((nvals < 250) || stepSizeIsZero) {
                   f[0] = pow((2.618*estdmax) + 24.833, 0.333) ;
                   f[1] = 34.4294*pow(estdmax, -1.35094) ;
               }
@@ -2836,10 +2836,10 @@ Inner_96:
 /*
 *
 *	  Revised initial step sizes are now set for the other parameters. initial
-*     conspicuousness being preset in the case of smaller samples (<80).
+*     conspicuousness being preset in the case of smaller samples (<250).
 *
 */		
-              if  ( nvals >= 80 )  {
+              if  ( nvals >= 250 )  {
                   if ( (step[0] == 0.0) && (step[1] == 0.0) )   {
                       step[0] = 0.3*f[0] ;
                       step[1] = f[1] ;
@@ -2861,7 +2861,7 @@ Inner_96:
                       step[2] = (0.5*f[2]) ;          
                   }
               }
-              else if ( nvals < 80 )    {
+              else {  // nvals < 250
                   if ( (step[0] == 0.0) && (step[1] == 0.0) )   {
                       step[0] = 0.0 ;
                       step[1] = f[1] ;
