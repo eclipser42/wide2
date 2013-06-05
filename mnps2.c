@@ -628,8 +628,8 @@ void randgen (double *result)
 *******************************************************************************/
 
 void freq_distrib(int nclass, double stt, double clint, int nvals, int kdt, float y[],
-                 bool absolute_distances, int nsize[],
-                 int *numa, int *numo, double val[], int *ngroups)
+                  bool absolute_distances, int nsize[],
+                  int *numa, int *numo, double val[], int *ngroups)
 {
     *numo = 0;
     *numa = 0;
@@ -3185,7 +3185,7 @@ Loop_1410:
                   freq_distrib(nclass, stt, clint, nvals, kdt, y, false, nsize,
                                &numa, &numo, val, &ngroups);
               } else {
-                  freq_distrib(nclass, stt, clint, nvals, kdt, r, false, nsize,
+                  freq_distrib(nclass, stt, clint, nvals, kdt, r, true, nsize,
                                &numa, &numo, val, &ngroups);
               }
 
