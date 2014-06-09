@@ -47,7 +47,6 @@
         params.f[0] = 15;
         params.f[1] = 0.1;
         params.f[2] = 5;
-        params.f[3] = 250;
         params.step[0] = 6;
         params.step[1] = 0.1;
         params.step[2] = 5;
