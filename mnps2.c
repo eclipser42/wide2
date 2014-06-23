@@ -1,7 +1,7 @@
 /*******************************************************************************
 *     PROGRAM WildlifeDensity
 *
-*     (File mnps2.c, Version 1.1)
+*     (File mnps2.c, Version 2.0b4)
 *
 *     This program is designed to return population density estimates
 *     from 'distance' data collected using either line transect or fixed
@@ -2565,7 +2565,7 @@ Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
         rlsum = 0.0;
         rdifsq = 0.0;
         numgra = 0;
-        t001 = 3.1093 + 23.4777/pow(nvals, 1.33);
+        t001 = 3.33256 + 33.0731/pow(nvals, 1.39337);
 
         if (iry < 2) {
 
@@ -2609,20 +2609,24 @@ Outer_45: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 	else if (iry==2) {
 
 /*
-*    This option is used if only perp. data are supplied.  The half-
-*    normal distribution is first square root transformed, the
-*    distance at the final step.
+*   The following option is used only if recalculated perp. data have been
+*   supplied to the program (iry == 2).  It involves normalising their 
+*   distribution by square root transformation, estumating the standard
+*   deviation of the half-normal distribution, with Bessel's correction,
+*   multiplying it by the 0.001 value of Student's t, then back-transforming
+*   by squaring.  The first step is to sum the absolute perpendicular distance
+*   values in Loop_43, then calculate the Bessel-corrected mean of these
+*   distances, and finally estimate the maximum detection distance by squaring 
+*   the result.
 */
 
 Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
-	    float tmp = sqrt(r[ih]+1);
-            rdifsq = (tmp*tmp)/(nvals-1);
-            rlsum += rdifsq;
+            rlsum += abs(r[ih]);
           }						//  END DO Loop_43
 
-          rlsd = sqrt(0.36338*rlsum);
+          rlsd = sqrt(rlsum/(nvals-1));
           rlf4 = rlsd*t001;
-          f[3] = rlf4 * rlf4 - 1;
+          f[3] = rlf4 * rlf4;
 
         }
 
