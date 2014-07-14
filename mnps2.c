@@ -614,18 +614,20 @@ void randgen (double *result)
 
 
 /*******************************************************************************
-*
-*	FREQ_DISTRIB     Calculate frequencies of each class
-*
-*       Inputs: NCLASS, STT, CLINT, NVALS, KDT - as described above
-*               Y  - distance to observed groups, whether radial or perpendicular,
-*                    original or resampled
-*               ABSOLUTE_DISTANCES  - if true, consider negative distances as positive
-*               NSIZE  - size of the observed groups, original or resampled
-*
-*       Outputs: NUMA, NUMO, VAL, NGROUPS - as described above
-*
-*******************************************************************************/
+ *
+ *	FREQ_DISTRIB     Calculate frequencies of each class
+ *
+ *       Inputs: NCLASS, STT, CLINT, NVALS, KDT - as described above
+ *               Y  - distance to observed groups, whether radial or perpendicular,
+ *                    original or resampled
+ *               ABSOLUTE_DISTANCES  - if true, consider negative distances as positive
+ *                                     and consider zero distances to be in the first class
+ *               NSIZE  - size of the observed groups, original or resampled
+ *
+ *       Outputs: NUMA, VAL, NGROUPS - as described above
+ *                NUMO  - counted if ABSOLUTE_DISTANCES is false
+ *
+ *******************************************************************************/
 
 void freq_distrib(int nclass, double stt, double clint, int nvals, int kdt, float y[],
                   bool absolute_distances, int nsize[],
@@ -634,44 +636,49 @@ void freq_distrib(int nclass, double stt, double clint, int nvals, int kdt, floa
     *numo = 0;
     *numa = 0;
     *ngroups = 0;
-    double frst = stt;
-
     for (int ic=0; ic < nclass; ic++) {			//  DO ic=1,nclass
-
         val[ic]=0;
-/*
- *      Numbers ahead (NUMA), overtaking (NUMO) and groups are totalled.
- *      Numbers in each class, VAL[IC], are also accumulated for the groups
- *      included in the data set.
- */
-        for (int irb=0; irb < nvals; irb++) {	//  DO irb=1,nvals
-
-            float group_distance = y[irb];
-            if (absolute_distances) {
-             /*
-              * When data from the two sides of a transect line are pooled,
-              * absolute values of Y() are used.
-              */
-                group_distance = fabs(y[irb]);
-            }
-
-            if ((kdt > 1) && (group_distance > kdt)) {
-                // group distance is beyond maximum detection distance
-                continue;
-            }
-            else if ((group_distance > frst) &&  (group_distance <= (frst+clint))) {
-                *numa += nsize[irb];
-                (*ngroups)++;
-                val[ic] += nsize[irb];
-            }
-            else if ((ic == 0) && (group_distance == 0.)) {
-                *numo += nsize[irb];
-                (*ngroups)++;
-            }
-        }					//  END DO irb
-
-        frst += clint;
     }
+
+    double max_distance = (nclass * clint) + stt;
+    
+    /*
+     *      Numbers ahead (NUMA), overtaking (NUMO) and groups are totalled.
+     *      Numbers in each class, VAL[IC], are also accumulated for the groups
+     *      included in the data set.
+     */
+    for (int irb=0; irb < nvals; irb++) {	//  DO irb=1,nvals
+
+        float group_distance = y[irb];
+        if (absolute_distances) {
+            /*
+             * When data from the two sides of a transect line are pooled,
+             * absolute values of Y() are used.
+             */
+            group_distance = fabs(y[irb]);
+        }
+        
+        if ((kdt > 1) && (group_distance > kdt)) {
+            // group distance is beyond maximum detection distance
+        }
+        else if (group_distance < stt) {
+            // group distance is before the first class (only possible without absolute_distances)
+        }
+        else if (group_distance >= max_distance) {
+            // group distance is beyond the final class
+        }
+        else if (!absolute_distances && (group_distance == 0.)) {
+            *numo += nsize[irb];
+            (*ngroups)++;
+        }
+        else {
+            // class IC includes groups at clint x IC, excludes groups at clint x (IC+1)
+            int ic = (group_distance - stt) / clint;
+            *numa += nsize[irb];
+            (*ngroups)++;
+            val[ic] += nsize[irb];
+        }
+    }					//  END DO irb
 }
 
 
@@ -3186,10 +3193,10 @@ Loop_1410:
 		  
           if (bootstrap == 0) {
               if (iry > 0) {
-                  freq_distrib(nclass, stt, clint, nvals, kdt, y, false, nsize,
+                  freq_distrib(nclass, stt, clint, nvals, kdt, y, true, nsize,
                                &numa, &numo, val, &ngroups);
               } else {
-                  freq_distrib(nclass, stt, clint, nvals, kdt, r, true, nsize,
+                  freq_distrib(nclass, stt, clint, nvals, kdt, r, false, nsize,
                                &numa, &numo, val, &ngroups);
               }
 
