@@ -1203,7 +1203,7 @@ double deg2rad(double deg) {
         }
     } else {
         for (int i = 0; i < params.nvals; i++) {
-            if (params.r[i] > 0) {
+            if (params.r[i] != 0) {
                 params.numa += params.nsize[i];
             } else {
                 params.numo += params.nsize[i];
