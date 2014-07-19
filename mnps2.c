@@ -2460,12 +2460,9 @@ void calculate_density (calc_params *params
       nvals = params->nvals;
       clint = params->clint;
       stt = params->stt;
-      //numa = params->numa;
-      //numo = params->numo;
       dist = params->dist;
       thh = params->thh;
       ltmin = params->ltmin;
-      //ltmax = params->ltmax;
       ifx = params->ifx;
       iry = params->iry;
       ns = params->ns;

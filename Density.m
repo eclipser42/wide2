@@ -869,9 +869,9 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.stt]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.numa]) return NO;
+	if (![scanner scanInt:nil]) return NO; // was numa
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.numo]) return NO;
+	if (![scanner scanInt:nil]) return NO; // was numo
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.dist]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -879,7 +879,7 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.ltmin]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.ltmax]) return NO;
+	if (![scanner scanDouble:nil]) return NO; // was ltmax
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanInt:&params.ifx]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -960,9 +960,9 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.stt]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.numa]) return NO;
+	if (![scanner scanInt:nil]) return NO; // was numa
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:&params.numo]) return NO;
+	if (![scanner scanInt:nil]) return NO; // was numo
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.dist]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -970,7 +970,7 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.ltmin]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.ltmax]) return NO;
+	if (![scanner scanDouble:nil]) return NO; // was ltmax
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanInt:&params.ifx]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -1170,10 +1170,9 @@ double deg2rad(double deg) {
     [[self undoManager] setActionName:@"Trim empty observations"];
     [self didChangeValueForKey:@"nvals"];
 
-    // Compute THH and LTMAX
+    // Compute THH
     int elevationCount = 0;
     double sumOfSquaredElevations = 0;
-    params.ltmax = 0;
     params.nvals = [observations count];
     for (int i = 0; i < params.nvals; i++) {
         Observation *observation = [observations objectAtIndex:i];
@@ -1189,30 +1188,11 @@ double deg2rad(double deg) {
             double elevation = horizontalDistance * tan(deg2rad(elevationAngle));
             sumOfSquaredElevations += elevation * elevation;
         }
-        if (params.r[i] > params.ltmax) {
-            params.ltmax = params.r[i];
-        }
     }
     if (elevationsAreSupplied && elevationCount) {
         double thh = sqrt(sumOfSquaredElevations / elevationCount);
         NSLog(@"Overriding THH %g with %g", params.thh, thh);
         params.thh = thh;
-    }
-    
-    // Compute NUMA and NUMO
-    params.numa = params.numo = 0;
-    if (params.ifx) {
-        for (int i = 0; i < params.nvals; i++) {
-            params.numa += params.nsize[i];
-        }
-    } else {
-        for (int i = 0; i < params.nvals; i++) {
-            if (params.r[i] != 0) {
-                params.numa += params.nsize[i];
-            } else {
-                params.numo += params.nsize[i];
-            }
-        }
     }
     
     NSFileManager *fileMgr = [NSFileManager defaultManager];
