@@ -64,6 +64,9 @@
 - (void)dealloc
 {
     [header release];
+    for (int i = 0; i < [observations count]; ++i) {
+        [self stopObservingObservation:[observations objectAtIndex:i]];
+    }
 	[observations release];
     [completeMsg release];
 
@@ -157,6 +160,7 @@
         [observation setElevation:elevations[i]];
         [self startObservingObservation:observation];
         [observations addObject:observation];
+        [observation release];
     }
 
     NSFileManager *fileMgr = [NSFileManager defaultManager];

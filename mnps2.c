@@ -2460,12 +2460,12 @@ void calculate_density (calc_params *params
       nvals = params->nvals;
       clint = params->clint;
       stt = params->stt;
-      numa = params->numa;
-      numo = params->numo;
+      //numa = params->numa;
+      //numo = params->numo;
       dist = params->dist;
       thh = params->thh;
       ltmin = params->ltmin;
-      ltmax = params->ltmax;
+      //ltmax = params->ltmax;
       ifx = params->ifx;
       iry = params->iry;
       ns = params->ns;
@@ -2563,14 +2563,12 @@ Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 */
 
       if (f[3] == 0) {
-        float rltot, rlmean, rlsum, rlsd, rlf4, rdifsq;
+        float rltot, rlsum, rlsd, rlf4;
         double t001;
 
         dmaxIsPreset = false;
         rltot = 0.0;
-        rlmean = 0.0;
         rlsum = 0.0;
-        rdifsq = 0.0;
         numgra = 0;
         t001 = 3.33256 + 33.0731/pow(nvals, 1.39337);
 
@@ -2590,7 +2588,7 @@ Loop_40:  for (ih=0; ih < nvals; ih++) {	//  DO ih=1,nvals
             }
           }					//  END DO Loop_40
 
-          rlmean = rltot/numgra;
+          float rlmean = rltot/numgra;
 
 /*
 *     A standard error of the logarithmic r (RLSD) is now calculated,
@@ -2601,7 +2599,7 @@ Loop_40:  for (ih=0; ih < nvals; ih++) {	//  DO ih=1,nvals
 Outer_45: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
             if (r[ih] > 0) {
 	      float tmp = log(r[ih]+1) - rlmean;
-              rdifsq = (tmp*tmp)/(numgra-1);
+              float rdifsq = (tmp*tmp)/(numgra-1);
               rlsum += rdifsq;
             }
           }						//  END DO Outer_45
@@ -2734,14 +2732,7 @@ Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 
       estdmax = f[3];
 
-/*
-*     The original values of NUMA and NUMO are retained (as NUMOIN
-*     and NUMAIN) so they can be printed in the output.
-*/
 Line_90:
-      numoin = numo;
-      numain = numa;
-
       fprintf(output_results," Total time spent =%7.1f min.\n", durn);
       fprintf(output_results," Overall population movement rate =%4.1f m/min.\n", rate);
 
@@ -2808,6 +2799,119 @@ Inner_96:
       }
 
 /*
+*     Case_150 treats the situation where calculations are to be based
+*     on perpendicular distances (y) from the transect line, and the
+*     data supplied are either radial distances and angles, indicated
+*     by IRY=1, or pre-calculated perpendicular distances, indicated
+*     by IRY=2.  If IRY=2, distances entered as r(in) are reassigned
+*     as y(in) values.  If IRY=1, perpendicular distances are
+*     calculated from distances and lateral angles using trigonometry.
+*     With both situations, any angle data supplied as negative numbers
+*     (e.g. those to the left of a transect line) are converted to
+*     positive and pooled with the remainder.
+*     If calculations are to be based on radial detection distances,
+*     and radial distances only are supplied (IFX=0), no changes are
+*     made (either by calculation or reassignment).
+*     If a radial distance value of precisely zero (r==0) was supplied
+*     to the program in the Observations, then each such value will be
+*     recognized as an ÔovertakeÕ at a later point in the program.
+*/
+
+Case_150:
+      switch(iry) {
+
+	case 2:
+/*
+*     If perp. distance data were entered as r values (IRY=2), they
+*     are renamed as y values at this stage, unless r=0
+*     when they are 'overtakes' and omitted.  Negative y values
+*     submitted to the program (as negative r value) are
+*     converted to positive and pooled with the rest.
+*/
+
+Loop_190:	for (in=0; in < nvals; in++) {		//  DO in=1,nvals
+		  y[in] = fabs(r[in]);
+		}					//  END DO Loop_190
+		break;
+
+
+	case 1:
+
+/*
+*     For IRY=1, perpendicular distances are calculated from radial
+*     distances and lateral observing angles.
+*/
+
+Loop_150:	for (in=0; in < nvals; in++) {		// DO in=1, nvals
+		  y[in] = fabs(r[in]*sin((angle[in]*3.14159265)/180.))+0.001;
+		}					// END DO Loop_150
+		break;
+
+
+	default:
+/*
+*     If IFX=0, no reassignment is needed.
+*/
+		break;
+
+      } /* switch */
+
+/*
+*     NCLASS is the number of distance classes in the selected range.
+*     0.49 is added to avoid counting errors due to 'chopping'.
+*/
+
+    nclass = ((f[3]-stt)/clint)+0.49;
+    if (nclass > 80) nclass=80;
+
+/*
+*     The program now computes the first distribution of the numbers
+*     detected within each class interval, based on the detection
+*     distances (R[IN]), the numbers in each group (NSIZE[IN]) and
+*     the class interval (CLINT) preset in the input.
+*
+*     In subsequent runs through Loop 1410, bootstrapping applies
+*     (JBSTP=1) and a bootstrapped distribution is used instead.
+*
+*     The number detected within each class (VAL[IC]), is the sum of the
+*     numbers in each class in which the R[IN] or Y[IN] values fall.
+*     Calculating the various VAL[IC] values first requires
+*     finding which R[IN] or Y[IN] values fall within the interval
+*     concerned, then adding all the NSIZE[IN] values which fall
+*     within that class.  This will be done for each class interval
+*     in turn, beginning with the calculation of VAL[0] for the
+*     nearest class to r=0 or STT or y=0 or STT.  If a minimum value in the
+*     range (STT) has been specified, or a maximum value for r or y of KDT
+*     (>1), the program also computes the number of data clusters (NOTIN)
+*     below STT and above KDT and subtracts it from NVALS to give the
+*     correct magnitude of NVALS for use in later calculations.
+*/
+
+    if (iry > 0) {
+        freq_distrib(nclass, stt, clint, nvals, kdt, y, true, nsize,
+                     &numa, &numo, val, &ngroups);
+    } else {
+        freq_distrib(nclass, stt, clint, nvals, kdt, r, false, nsize,
+                     &numa, &numo, val, &ngroups);
+    }
+
+/*
+*     The original values of NUMA and NUMO are retained (as NUMOIN
+*     and NUMAIN) so they can be printed in the output.
+*/
+    numoin = numo;
+    numain = numa;
+
+/*
+ *     The frequency distribution of the original data is now saved,
+ *     as VALT[IG].
+ */
+
+    for (ig=0; ig < nclass; ig++) {		//  DO ig=1,nclass
+        valt[ig] = val[ig];
+    }
+
+/*
 *     Unless the number of iterations has been set at 1 and bottom option 3 has not
 *     been selected, the Line_100 sequence computes revised initial estimates of the 
 *	  parameters ‘a’‘c’ and ‘D’, together with initial step sizes for them, 
@@ -2817,9 +2921,9 @@ Inner_96:
 *     are set at zero.
 *
 */
-          
-      Line_100:
-          if  ((maxjb > 1) && (ishow == 0))      {
+
+Line_100:
+    if  ((maxjb > 1) && (ishow == 0))      {
               /* True if either or both of the initial step sizes are zero, so also
                * true if all three initial step sizes are zero */
               bool stepSizeIsZero = ((step[0] == 0) || (step[1] == 0));
@@ -2895,7 +2999,7 @@ Inner_96:
                   }
               }
 
-            }
+    }
 
 /*
 *              Line_100 ends
@@ -2927,64 +3031,6 @@ Inner_96:
          f[2]=(2.*ps*pd*rate*durn*f[2])/1.e4;
          step[2]=(2.*ps*pd*rate*durn*step[2])/1.e4;
       }
-
-/*
-*     Case_150 treats the situation where calculations are to be based
-*     on perpendicular distances (y) from the transect line, and the
-*     data supplied are either radial distances and angles, indicated
-*     by IRY=1, or pre-calculated perpendicular distances, indicated
-*     by IRY=2.  If IRY=2, distances entered as r(in) are reassigned
-*     as y(in) values.  If IRY=1, perpendicular distances are
-*     calculated from distances and lateral angles using trigonometry.
-*     With both situations, any angle data supplied as negative numbers
-*     (e.g. those to the left of a transect line) are converted to
-*     positive and pooled with the remainder.
-*     If calculations are to be based on radial detection distances,
-*     and radial distances only are supplied (IFX=0), no changes are
-*     made (either by calculation or reassignment).
-*     If a radial distance value of precisely zero (r==0) was supplied
-*     to the program in the Observations, then each such value will be
-*     recognized as an ÔovertakeÕ at a later point in the program.
-*/
-
-Case_150:
-      switch(iry) {
-
-	case 2:
-/*
-*     If perp. distance data were entered as r values (IRY=2), they
-*     are renamed as y values at this stage, unless r=0
-*     when they are 'overtakes' and omitted.  Negative y values
-*     submitted to the program (as negative r value) are
-*     converted to positive and pooled with the rest.
-*/
-
-Loop_190:	for (in=0; in < nvals; in++) {		//  DO in=1,nvals
-		  y[in] = fabs(r[in]);
-		}					//  END DO Loop_190
-		break;
-
-
-	case 1:
-
-/*
-*     For IRY=1, perpendicular distances are calculated from radial
-*     distances and lateral observing angles.
-*/
-
-Loop_150:	for (in=0; in < nvals; in++) {		// DO in=1, nvals
-		  y[in] = fabs(r[in]*sin((angle[in]*3.14159265)/180.))+0.001;
-		}					// END DO Loop_150
-		break;
-
-
-	default:
-/*
-*     If IFX=0, no reassignment is needed.
-*/
-		break;
-
-      } /* switch */
 
 /*
 *     The initial values of 'a', 'b', 'D2L', and 'dmax' are retained
@@ -3077,14 +3123,6 @@ Loop_210:
       dcoeff = 0;
 
 /*
-*     NCLASS is the number of distance classes in the selected range.
-*     0.49 is added to avoid counting errors due to 'chopping'.
-*/
-	
-      nclass = ((f[3]-stt)/clint)+0.49;
-      if (nclass > 80) nclass=80;
-
-/*
 *     If all STEP sizes have been set at zero, and MAXJB has not been
 *     set at 1, then computation goes to Label 1470, calculates the
 *     set of values resulting from the values of a, b, D2L and dmax
@@ -3168,48 +3206,8 @@ Loop_1410:
 		  
 	mtest = 0;
 
-/*
-*     The program now computes the first distribution of the numbers
-*     detected within each class interval, based on the detection
-*     distances (R[IN]), the numbers in each group (NSIZE[IN]) and
-*     the class interval (CLINT) preset in the input.
-*
-*     In subsequent runs through Loop 1410, bootstrapping applies
-*     (JBSTP=1) and a bootstrapped distribution is used instead.
-*
-*     The number detected within each class (VAL[IC]), is the sum of the
-*     numbers in each class in which the R[IN] or Y[IN] values fall.
-*     Calculating the various VAL[IC] values first requires
-*     finding which R[IN] or Y[IN] values fall within the interval
-*     concerned, then adding all the NSIZE[IN] values which fall
-*     within that class.  This will be done for each class interval
-*     in turn, beginning with the calculation of VAL[0] for the
-*     nearest class to r=0 or STT or y=0 or STT.  If a minimum value in the
-*     range (STT) has been specified, or a maximum value for r or y of KDT
-*     (>1), the program also computes the number of data clusters (NOTIN)
-*     below STT and above KDT and subtracts it from NVALS to give the
-*     correct magnitude of NVALS for use in later calculations.
-*/
-		  
           if (bootstrap == 0) {
-              if (iry > 0) {
-                  freq_distrib(nclass, stt, clint, nvals, kdt, y, true, nsize,
-                               &numa, &numo, val, &ngroups);
-              } else {
-                  freq_distrib(nclass, stt, clint, nvals, kdt, r, false, nsize,
-                               &numa, &numo, val, &ngroups);
-              }
 
-/*
-*     The frequency distribution of the original data is now saved,
-*     as VALT[IG].
-*/
-
-Loop_470:
-              for (ig=0; ig < nclass; ig++) {		//  DO ig=1,nclass
-                  valt[ig] = val[ig];
-              }					//  END DO Loop_470
-              
               if ((maxjb != 1) && (nap <= 0)) goto Line_1320;
 
           } else {
