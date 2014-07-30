@@ -2401,9 +2401,9 @@ void calculate_density (calc_params *params
 	
       int nsize[MAX_OBSERVATIONS], nbsz[MAX_OBSERVATIONS];
       int bootstrap;
-      int i, ia, ie, iflag, ifx, ig, ih, imax;
-      int imin, imv, in, iprint, irow, iry, iseed, ishow;
-      int j, jprint, jv, k, kdt, km, kprint, loop, max;
+      int i, ia, ie, iflag, ifx, ig, ih;
+      int imv, in, iprint, irow, iry, iseed, ishow;
+      int j, jprint, jv, k, kdt, km, kprint, max;
       int maxjb, mfail, msfail, mtest, nap, neval, ngroups;
       int nloop, nop, np1, ns, numa, numest, numo, nclass;
       int numoin, numain, nvals, numgra;
@@ -2411,7 +2411,7 @@ void calculate_density (calc_params *params
       double a, approx, b, c, cf1dif, cf1sum, cf2dif, cf2sum;
       double cf3dif, cf3sum, clint, coeffnt1, coeffnt2;
       double coeffnt3, dcoeff, dendif, dist, dsum, s;
-      double estden, estj, fnk, func, hmax, hmean, hmin;
+      double estden, estj, fnk, func, hmean;
       double hstar, hstd, hstst, durn, ltmin, ltmax, obsw;
       double pd, ps, rate, savemn, scf1, scf2, scf3;
       double sden, sns, stopc, stt, test, tcoeff1, tcoeff2;
@@ -3114,7 +3114,6 @@ Loop_210:
 *
 */
       nap = 0;
-      loop = 0;
       iflag = 0;
       kprint = 0;
       dcoeff = 0;
@@ -3194,7 +3193,7 @@ Loop_370:
 *  =============================================================*/
 
 Loop_1410:
-      for (bootstrap=0; bootstrap < maxjb; bootstrap++) {	//  DO bootstrap=1, maxjb
+    for (bootstrap = 0; bootstrap < maxjb; bootstrap++) {	//  DO bootstrap=1, maxjb
 	params->bootstrap = bootstrap;
 
 /*
@@ -3306,24 +3305,26 @@ Loop_730:
 *     of the current simplex.
 *
 */
-Line_740:
-	loop++;
-	imax = 0;
-	imin = 0;
-	hmax = h[0];
-	hmin = h[0];
+        bool continue_search = true;
+        while (continue_search) {
 
+            for (int loop = 0; loop < nloop; ++loop) {
 
-Loop_750:
+                int hmax_index = 0;
+                int hmin_index = 0;
+                double hmax = h[0];
+                double hmin = h[0];
+
+/* Loop_750: */
 	for (i=1; i < np1; i++) {	//  DO i=2,np1
 
-	  if (h[i] > h[imax]) {
-	    imax = i;
+	  if (h[i] > h[hmax_index]) {
+	    hmax_index = i;
 	    hmax = h[i];
 	  }
 
-	  if (h[i] < h[imin]) {
-	    imin = i;
+	  if (h[i] < h[hmin_index]) {
+	    hmin_index = i;
 	    hmin = h[i];
 	  }
 
@@ -3334,15 +3335,15 @@ Loop_750:
 *     now found.
 */
 
-Loop_790:
+/* Loop_790: */
 	for (i=0; i < nop; i++) {	//  DO i=1,nop
 	  pbar[i]=0.0;
 	}				//  END DO Loop_790
 
 
-Loop_800:
+/* Loop_800: */
 	for (i=0; i < np1; i++) {		//  DO i=1,np1
-	  if (i != imax) {
+	  if (i != hmax_index) {
 Loop_810:   for (j=0; j < nop; j++) {	//  DO j=1,nop
 	      pbar[j] += g[i][j]/(nap);
 	    }				//  END DO Loop_810
@@ -3354,9 +3355,9 @@ Loop_810:   for (j=0; j < nop; j++) {	//  DO j=1,nop
 *     evaluates the function at PSTAR (to give HSTAR).
 */
 
-Loop_820:
+/* Loop_820: */
 	for (i=0; i < nop; i++) {		//  DO i=1,nop
-	  pstar[i] = a * (pbar[i]-g[imax][i]) + pbar[i];
+	  pstar[i] = a * (pbar[i]-g[hmax_index][i]) + pbar[i];
 	}					//  END DO Loop_820
 
 	hstar = 0.0;
@@ -3384,15 +3385,15 @@ Loop_820:
 	  DUMP_SS(hstar,pstar)
 	}
 
-	if (hstar >= hmin) goto Loop_900;
-
+                bool take_pstar = false;
+                if (hstar < hmin) {
 /*
 *     If HSTAR is less than HMIN, PBAR is reflected through PSTAR
 *     (to give PSTST) and the function is evaluated there (to
 *     give HSTST).
 */
 
-Loop_830:
+/* Loop_830: */
 	for (i=0; i < nop; i++) {		//  DO i=1,nop
 	  pstst[i] = c * (pstar[i]-pbar[i]) + pstar[i];
 	}					//  END DO Loop_830
@@ -3414,8 +3415,10 @@ Loop_830:
 	  DUMP_SS(hstst,pstst)
 	}
 
-Line_870:
-	if (hstst >= hmin) goto Loop_1030;
+/* Line_870: */
+                    if (hstst >= hmin) {
+                        take_pstar = true;
+                    } else {
 
 /*
 *     If HSTST is less than HMIN, the maximum point of the current
@@ -3423,26 +3426,39 @@ Line_870:
 *     then a test is performed.
 */
 
-Loop_880:
+/* Loop_880: */
 	for (i=0; i < nop; i++) {		//  DO i=1,nop
-	  g[imax][i] = pstst[i];
+	  g[hmax_index][i] = pstst[i];
 	}					//  END DO Loop_880
 
-        h[imax] = hstst;
-        goto Line_1050;
-
+                        h[hmax_index] = hstst;
+                        continue;
+                    }
+                    
+                } else {
 /*
 *
 *     If HSTAR is not less than HMIN, the program tests is HSTAR
 *     is greater than the function value at all vertices other
 *     than the maximum one.
 */
-Loop_900:
+/* Loop_900: */
 	for (i=0; i < np1; i++) {		//  DO i=1,np1
-	  if (i != imax) {
-	    if (hstar < h[i]) goto Loop_1030;
-	  }
-	}					//  END DO Loop_900
+                    if (i != hmax_index && hstar < h[i]) {
+                        take_pstar = true;
+                        break;
+                    }
+    }					//  END DO Loop_900
+                }
+
+                if (take_pstar) {
+/* Loop_1030: */
+                    for (i=0; i < nop; i++) {		//  DO i=1,nop
+                        g[hmax_index][i] = pstar[i];
+                    }					//  END DO Loop_1030
+                    h[hmax_index] = hstar;
+                    continue;
+                }
 
 /*
 *     If it is less than at least one of these vertices, the
@@ -3460,15 +3476,15 @@ Loop_900:
 
 	if (hstar <= hmax) {
 	  for (i=0; i < nop; i++) {		//  DO i=1,nop
-	    g[imax][i] = pstar[i];
+	    g[hmax_index][i] = pstar[i];
 	  }					//  END DO
 	  hmax = hstar;
-	  h[imax] = hstar;
+	  h[hmax_index] = hstar;
 	}
 
-Loop_930:
+/* Loop_930: */
 	for (i=0; i < nop; i++) {		//  DO i=1,nop
-	  pstst[i] = b*g[imax][i] + (1.0-b)*pbar[i];
+	  pstst[i] = b*g[hmax_index][i] + (1.0-b)*pbar[i];
 	}					//  END DO Loop_930
 
         givef (pstst, &hstst, &dcoeff, val, clint, /* pd, */ stt,
@@ -3482,7 +3498,7 @@ Loop_930:
 	  DUMP_SS(hstst,pstst)
 	}
 
-Line_970:
+/* Line_970: */
 
 /*
 *     If HSTST is not greater than HMAX, the maximum point is replaced by
@@ -3491,10 +3507,10 @@ Line_970:
 
 	if (hstst <= hmax) {
 	  for (i=0; i < nop; i++) {		//  DO i=1,nop
-	    g[imax][i] = pstst[i];
+	    g[hmax_index][i] = pstst[i];
 	  }					//  END DO
-	  h[imax] = hstst;
-	  goto Line_1050;
+	  h[hmax_index] = hstst;
+	  continue;
 	}
 /*
 *     If HSTST is greater than HMAX, each point in the current
@@ -3504,10 +3520,10 @@ Line_970:
 *     vertex and the test performed.
 */
 
-Loop_990:
+/* Loop_990: */
 	for (i=0; i < np1; i++) {		//  DO i=1,np1,1
 	  for (j=0; j < nop; j++) {	//  DO j=1,nop,1
-	    g[i][j] = (g[i][j]+g[imin][j])/2.0;
+	    g[i][j] = (g[i][j]+g[hmin_index][j])/2.0;
 	  }				//  END DO
 	}					//  END DO Loop_990
 
@@ -3518,7 +3534,7 @@ Loop_990:
 *     error?).
 */
 
-Loop_1020:
+/* Loop_1020: */
 	for (i=0; i < np1; i++) {		//  DO i=1,np1,1
 	  for (j=0; j < nop; j++) {	//  DO j=1,nop,1
 	    f[j] = g[i][j];
@@ -3536,22 +3552,10 @@ Loop_1020:
           }
 	}					//  END DO Loop_1020
 
-        goto Line_1050;
-
-
-Loop_1030:
-	for (i=0; i < nop; i++) {		//  DO i=1,nop
-	  g[imax][i] = pstar[i];
-	}					//  END DO Loop_1030
-        h[imax] = hstar;
-
 /*
-*     If LOOP=NLOOP, tests for convergence begin.  Otherwise
-*     computation goes back to the beginning of the basic loop.
+* End of the basic loop
 */
-
-Line_1050:
-	if (loop != nloop) goto Line_740;
+            }
 
 /*
 *   Tests for Convergence -
@@ -3648,13 +3652,12 @@ Loop_1080:
 
 /*
 *     If the standard deviation calculated above is not less than
-*     the criterion set (STOPC), IFLAG and LOOP are set to zero
-*     and the basic loop begins again.
+*     the criterion set (STOPC) and IFLAG are set to zero and the
+*     basic loop begins again.
 */
 	  if (hstd >= stopc) {
 	  iflag = 0;
-	  loop = 0;
-	  goto Line_740;
+	  continue;
 	}
 
 	if ((iprint == 1) && (jprint == 1)) {
@@ -3681,27 +3684,26 @@ Line_1210:
 	if (iflag <= 0) {
 	  iflag = 1;
 	  savemn = hmean;
-	  loop = 0;
-	  goto Line_740;
+	  continue;
 	}
 
 /*
 *     If IFLAG=1, the program tests if the change in the mean is
 *     less than the stopping criterion.  If it is, the process is
-*     said to have converged.  If not, IFLAG and LOOP are both set
-*     at zero and computation reverts to the start of the
-*     basic loop.  STOPC and TEST values tested empirically.
+*     said to have converged.  If not, IFLAG is set at zero and
+*     computation reverts to the start of the basic loop.  STOPC
+*     and TEST values tested empirically.
 */
 
 	if (hmean != 0) {
 	  test = savemn / hmean;
 	  if ((test <= 0.9999995) || (test >= 1.0000005)) {
 	    iflag = 0;
-	    loop = 0;
-	    goto Line_740;
+	    continue;
 	  }
 	}
-
+            continue_search = false;
+        }
 /*
 *     If JPRINT=1 the program prints out the results of each successful
 *     convergence on a minimum.
@@ -3798,13 +3800,12 @@ Line_1375:
 /*
 *     Loop 1410 now ends, returning calculations to the start until the
 *     maximum preset number of bootstraps (MAXJB) value is reached.
-*     LOOP is reset to zero to enable a new series of iterations in the
-*     basic loop to begin again, as are G[I][J] values.
+*     G[I][J] values are reset to zero to enable a new series of
+*     iterations in the basic loop to begin again.
 *
 */
 
 Line_1380:
-	loop = 0;
 	iflag = 0;
 	kprint = 0;
 
