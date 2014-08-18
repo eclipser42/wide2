@@ -342,7 +342,9 @@
 {
     // Note this is a model change that doesn't register to undo itself: all callers must regsiter
     // undo & redo of calls to setIry:
+    [controller willChangeValueForKey:@"f3Enabled"];
     params.iry = iry;
+    [controller didChangeValueForKey:@"f3Enabled"];
     [controller updateTableColumns];
 }
 

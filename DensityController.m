@@ -14,6 +14,8 @@
         triggerChangeNotificationsForDependentKey:@"detectionUnit"];
     [self setKeys:[NSArray arrayWithObjects:@"censusType", @"detectionUnit", nil]
         triggerChangeNotificationsForDependentKey:@"detectionUnitString"];
+    [self setKeys:[NSArray arrayWithObjects:@"censusType", @"xyz", nil]
+        triggerChangeNotificationsForDependentKey:@"f3Enabled"];
 }
 
 - (id)init
@@ -218,6 +220,11 @@
     if (minimumObscuringDistance < 999) {
         [document setLtmin:minimumObscuringDistance];
     }
+}
+
+- (BOOL)f3Enabled
+{
+    return ([document iry] < 2);
 }
 
 -(void)updateTableColumns
