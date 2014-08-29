@@ -2916,7 +2916,6 @@ Loop_150:	for (in=0; in < nvals; in++) {		// DO in=1, nvals
 *	  number of evaluations (MAXJB) is set above 1 and the initial step
 *	  size for either or both of f[0] or f[1] is set at zero or all step sizes
 *     are set at zero.
-*
 */
 
 Line_100:
@@ -2951,51 +2950,28 @@ Line_100:
 *     conspicuousness being preset in the case of smaller samples (<250).
 *
 */		
-              if  ( nvals >= 250 )  {
-                  if ( (step[0] == 0.0) && (step[1] == 0.0) )   {
-                      step[0] = 0.3*f[0] ;
-                      step[1] = f[1] ;
-                      step[2] = (0.5*f[2]) ;
-                  }
-                  else if ( (step[0] == 0.0) && (step[1] > 0) )  {
+              if ( step[0] == 0.0 )   {
+                  if  ( (nvals >= 250) && (step[1] > 0) )  {
+                      step[0] = (0.3*f[0]) ;
+                  } else {  // nvals < 250
                       step[0] = 0.0 ;
-                      step[1] = f[1] ;
-                      step[2] = (0.5*f[2]) ;
                   }
-                  else if ( (step[1] == 0.0) && (step[0] > 0) ) {
-                      step[0] = (0.3*f[0]) ;
-                      step[1] = 0.0 ;
-                      step[2] = (0.5*f[2]) ;
-                  }
-                  else if ( (step[0] > 0.0) && (step[1] > 0) ) {
-                      step[0] = (0.3*f[0]) ;
-                      step[1] = f[1] ;
-                      step[2] = (0.5*f[2]) ;          
-                  }
+                  step[1] = f[1] ;
+                  step[2] = (0.5*f[2]) ;
               }
-              else {  // nvals < 250
-                  if ( (step[0] == 0.0) && (step[1] == 0.0) )   {
+              else if ( step[0] > 0.0 ) {
+                  if  ( (nvals < 250) && (step[1] > 0) )  {
                       step[0] = 0.0 ;
-                      step[1] = f[1] ;
-                      step[2] = 0.5*f[2] ;
-                  }
-                  else if ( (step[0] == 0.0) && (step[1] > 0) )  {
-                      step[0] = 0.0 ;
-                      step[1] = f[1] ;
-                      step[2] = (0.5*f[2]) ;
-                  }
-                  else if ( (step[1] == 0) && (step[0] > 0) ) {
+                  } else {  // nvals >= 250
                       step[0] = (0.3*f[0]) ;
-                      step[1] = 0.0 ;
-                      step[2] = (0.5*f[2]) ;
                   }
-                  else if ( (step[0] > 0.0) && (step[1] > 0) ) {
-                      step[0] = 0.0 ;
+                  if  ( step[1] > 0 )  {
                       step[1] = f[1] ;
-                      step[2] = (0.5*f[2]) ;          
+                  } else {
+                      step[1] = 0.0 ;
                   }
+                  step[2] = (0.5*f[2]) ;          
               }
-
     }
 
 /*
