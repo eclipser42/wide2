@@ -2923,14 +2923,13 @@ Loop_150:	for (in=0; in < nvals; in++) {		// DO in=1, nvals
 */
 
 Line_100:
-    if  ((maxjb > 1) && (ishow == 0))      {
-              /* True if either or both of the initial step sizes are zero, so also
-               * true if all three initial step sizes are zero */
-              bool stepSizeIsZero = ((step[0] == 0) || (step[1] == 0));
-              if ((nvals < 250) || stepSizeIsZero) {
+    if  (maxjb > 1) {
+        if (!params->manual_options || ((nvals < 250) && ((fabs(step[0]) < approx) || !ishow))) {
                   f[0] = pow((2.618*estdmax) + 24.833, 0.333) ;
+        }
+        if (!params->manual_options || ((nvals < 250) && ((fabs(step[1]) < approx) || !ishow))) {
                   f[1] = 34.4294*pow(estdmax, -1.35094) ;
-              }
+        }
 
 /*
 *     Computation of an initial values for f[2] and step[2] depends on whether
@@ -2949,32 +2948,22 @@ Line_100:
 
 
 /*
-*
 *	  Revised initial step sizes are now set for the other parameters. initial
 *     conspicuousness being preset in the case of smaller samples (<250).
-*
 */		
-              if ( step[0] == 0.0 )   {
-                  if  ( (nvals >= 250) && (step[1] > 0) )  {
-                      step[0] = (0.3*f[0]) ;
-                  } else {  // nvals < 250
+        if (!params->manual_options || ((nvals < 250) && ((fabs(step[0]) < approx) || !ishow))) {
                       step[0] = 0.0 ;
-                  }
+        }
+        if (!params->manual_options || ((nvals < 250) && ((fabs(step[1]) < approx) || !ishow))) {
+                      step[1] = 0.0 ;
+        }
+        if (!params->manual_options || ((nvals < 250) && ((fabs(step[2]) < approx) || !ishow))) {
+                      step[2] = 0.0 ;
+        }
+        if (!params->manual_options && (nvals >= 250)) {
+                  step[0] = (0.3*f[0]) ;
                   step[1] = f[1] ;
                   step[2] = (0.5*f[2]) ;
-              }
-              else if ( step[0] > 0.0 ) {
-                  if  ( (nvals < 250) && (step[1] > 0) )  {
-                      step[0] = 0.0 ;
-                  } else {  // nvals >= 250
-                      step[0] = (0.3*f[0]) ;
-                  }
-                  if  ( step[1] > 0 )  {
-                      step[1] = f[1] ;
-                  } else {
-                      step[1] = 0.0 ;
-                  }
-                  step[2] = (0.5*f[2]) ;          
               }
     }
 
