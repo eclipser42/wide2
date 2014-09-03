@@ -764,15 +764,21 @@ void givef (double f[NUM_SHAPE_PARAMS],
 	    bool iqsf,
             calc_results *results)
 {
+    if ((kprint > 0) && (ishow > 0)) {
+        if (iry > 0) {
+            fprintf(output_results, "\n Columns in order: P(r), Q(r), pdf, E{N(r)}, E{N(y)}\n\n");
+        } else {
+            fprintf(output_results, "\n\n Columns, in order: P(r), Q(r), pdf, E{N(r)}, E{N(y)}\n\n");
+        }
+    }
 
 /*
 *     Double precision for all real numbers is set, together with
 *     common values, dimensions and symbols for key variables.
 *
 */
-      int iermax,jj,jl,jrlow;
+      int iermax, jl,jrlow;
       int l10,l20;
-      int md;
 
       double aprexi,auc,cint,d2l,dd,dds,ddsm,dh,dif;
       double difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed;
@@ -1043,14 +1049,13 @@ Line_260:
 *     with observed values, now begins .....
 */
 	Loop_1180:
-      for (jj=0; jj < l10; jj++) {			//  DO jj=1,l10
+      for (int md = l10 - 1; md >= 0; --md) {	// md = (nclass-1), (nclass-2),..., 0
 
 /*
-*     MD is the hth class in the series, calculated in the reverse
-*     order to JJ (going from MD=L10 downwards) because computations
-*     begin at RMAX and continue at progressively decreasing r values.
+*     MD is the hth class in the series, calculated from L10
+*     downwards, because computations begin around RMAX and continue
+*     at progressively decreasing r values.
 */
-	md = nclass-jj-1;	// md = (nclass-1), (nclass-2),..., 0
 
 /*
 *     OBSD is the observed value for the hth arc, as supplied
@@ -1552,11 +1557,11 @@ Line_900:
 *     is bypassed and a record of this non-computation retained
 *     as the temporary variable MSFAIL.  This is done only when the
 *     program has converged on a minimum (MTEST=1) and in the final
-*     pass through Loop 1180 (JJ=L10).
+*     pass through Loop 1180.
 */
 	if (d2l > 0) {
 	    *s += (expdv/d2l);
-	} else if ((mtest == 1) && (jj == (l10-1))) {		// JMB: jj test changed to 'l10-1', was 'l10'
+	} else if ((mtest == 1) && (md == 0)) {
 	    (*msfail)++;
     }
 
@@ -1581,10 +1586,6 @@ Line_900:
 	    if (expdy < 0.0) expdy = 0.0;
 
 	    if (ishow > 0) {
-		if (jj == 0) {		// jj test changed to '0' for first time through loop, was '1'
-			
-		    fprintf(output_results, "\n Columns in order: P(r), Q(r), pdf, E{N(r)}, E{N(y)}\n\n");
-		}
 		fprintf(output_results, "  y=%8.1f     Calc.N(y)=%9.2f     Obsd.N(y)=%9.1f\n", yy,expdy,obsd);
 	    }
             results->midpoints[md] = yy;
@@ -1596,10 +1597,6 @@ Line_900:
 	    expdr = expdv;
 	    if (expdr < 0.0) expdr = 0.0;
 	    if (ishow > 0) {
-		if (jj == 0) {		// JMB: jj test changed to '0', was '1'
-
-		    fprintf(output_results, "\n\n Columns, in order: P(r), Q(r), pdf, E{N(r)}, E{N(y)}\n\n");
-		}
 		fprintf(output_results, "  r=%8.1f     Calc.N(r)=%9.2f     Obsd.N(r)=%9.1f\n", rr,expdr,obsd);
 	    }
             results->midpoints[md] = rr;
@@ -2640,15 +2637,22 @@ Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 *     entered as more than 80 times the class interval, CLINT is
 *     reset at (F[3]-STT or KDT-STT)/80 to avoid computation problems.
 */
-      if ((kdt <= 1) && (f[3] > (80*clint))) {
+
+    if (kdt <= 1) {
+        if (f[3] > (80*clint)) {
         	clint = (f[3]-stt)/80;
-
-      } else if ((kdt>1) && (kdt<=f[3]) && ((kdt-stt)>(80*clint))) {
-            clint = (kdt-stt)/80;
-
-      } else if ((kdt>1) && (kdt>f[3]) && (f[3]>(80*clint))) {
-            clint = (f[3]-stt)/80;
       }
+    } else {
+        if (kdt <= f[3]) {
+            if ((kdt-stt) > (80*clint)) {
+                clint = (kdt-stt)/80;
+            }
+        } else {
+            if (f[3] > (80*clint)) {
+                clint = (f[3]-stt)/80;
+            }
+      }
+    }
 
 /*
 *     The header line now begins the program output.
@@ -4187,14 +4191,15 @@ Line_1920:
 /*
 * And finally, write a file which tabulates observed and calculated frequencies.
 */
-    if (kdt > 1) {
-        // Possibly NCLASS should take this value when KDT >= 2, but as of v2.0
-        // intervals are computed all the way down to F(3)-STT
-        if ((kdt-stt) > 0 && clint > 0) {
-            params->results.num_intervals = ((kdt-stt) / clint);
+    double tr = clint*nclass + stt;
+    if (f[3] > thh) {
+        double model_limit = sqrt(f[3]*f[3] - thh*thh);
+        if (kdt > 1) {
+            model_limit = fmin(kdt, model_limit);
         }
-    } else {
-        params->results.num_intervals = nclass;
+        if (tr > model_limit) {
+            nclass = (model_limit - stt + clint) / clint;
+        }
     }
 
       if (kprint > 0) {
@@ -4210,7 +4215,7 @@ Line_1920:
 
               fprintf(output_graph, "      Midpt.   Calculated     Observed   \n");
 
-              for (int jv=0; jv < params->results.num_intervals; jv++) {
+              for (int jv = 0; jv < nclass; ++jv) {
                   fprintf(output_graph,
                           "     %7.1f      %7.2f       %6.1f    \n",
                           params->results.midpoints[jv],
@@ -4222,6 +4227,7 @@ Line_1920:
 
       }  /* end (kprint > 0) */
 
+      params->results.num_intervals = nclass;
       params->results.estden = estden;
       params->results.sden = sden;
       params->complete = 1;
