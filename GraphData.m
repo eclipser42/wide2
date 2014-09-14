@@ -22,20 +22,43 @@
 
 @implementation GraphData
 
+- (GraphData *)init
+{
+    self = [super init];
+    if (self) {
+        distanceAxisLabel = @"Detection Distance (m or km)";
+        densityUnitString = @"indivs/area";
+        distance = [[NSMutableArray alloc] init];
+        model = [[NSMutableArray alloc] init];
+        observed = [[NSMutableArray alloc] init];
+    }
+    return self;
+}
+
 - (id)initForURL:(NSURL *)url withContents:(calc_results *)results
 {
-    [super init];
-    [self setFileName:[url path]];
-    internalResults = YES;
-    densityEstimate = results->estden;
-    standardError = results->sden;
-    distance = [[NSMutableArray alloc] init];
-    model = [[NSMutableArray alloc] init];
-    observed = [[NSMutableArray alloc] init];
-    for (int i = 0; i < results->num_intervals; ++i) {
-        [distance addObject:[NSNumber numberWithDouble:results->midpoints[i]]];
-        [model addObject:[NSNumber numberWithDouble:results->calcn[i]]];
-        [observed addObject:[NSNumber numberWithDouble:results->obsdn[i]]];
+    self = [self init];
+    if (self) {
+        [self setFileName:[url path]];
+        internalResults = YES;
+        densityEstimate = results->estden;
+        standardError = results->sden;
+        if (results->km == 0) {
+            densityUnitString = @"indivs/ha";
+        } else {
+            densityUnitString = @"indivs/km2";
+        }
+        if (results->km <= 1) {
+            distanceAxisLabel = @"Detection Distance (m)";
+        } else {
+            distanceAxisLabel = @"Detection Distance (km)";
+        }
+
+        for (int i = 0; i < results->num_intervals; ++i) {
+            [distance addObject:[NSNumber numberWithDouble:results->midpoints[i]]];
+            [model addObject:[NSNumber numberWithDouble:results->calcn[i]]];
+            [observed addObject:[NSNumber numberWithDouble:results->obsdn[i]]];
+        }
     }
     return self;
 }
@@ -65,9 +88,9 @@
     [string getParagraphStart:&paraStart end:&paraEnd
                   contentsEnd:&contentsEnd forRange:NSMakeRange(paraEnd, 0)];
     // and parse remaining lines
-    distance = [[NSMutableArray alloc] init];
-    model = [[NSMutableArray alloc] init];
-    observed = [[NSMutableArray alloc] init];
+    [distance removeAllObjects];
+    [model removeAllObjects];
+    [observed removeAllObjects];
     while (paraEnd < length) {
         [string getParagraphStart:&paraStart end:&paraEnd
                       contentsEnd:&contentsEnd forRange:NSMakeRange(paraEnd, 0)];
@@ -104,7 +127,7 @@
     [axes setProperty: [NSNumber numberWithInt: 1] forKey: GRAxesDrawLegend];
 
     // Add axis labels
-    [axes setProperty: @"Detection Distance (m)" forKey: GRAxesXTitle];
+    [axes setProperty: distanceAxisLabel forKey: GRAxesXTitle];
     [axes setProperty: @"Individuals Detected" forKey: GRAxesYTitle];
 
     // Add the first dataset

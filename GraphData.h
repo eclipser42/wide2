@@ -12,6 +12,8 @@
     bool internalResults;
     double densityEstimate;
     double standardError;
+    NSString * densityUnitString;
+    NSString * distanceAxisLabel;
 	NSMutableArray * distance;
 	NSMutableArray * model;
 	NSMutableArray * observed;

@@ -4228,6 +4228,7 @@ Line_1920:
       }  /* end (kprint > 0) */
 
       params->results.num_intervals = nclass;
+      params->results.km = km;
       params->results.estden = estden;
       params->results.sden = sden;
       params->complete = 1;

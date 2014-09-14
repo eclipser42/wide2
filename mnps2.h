@@ -11,7 +11,7 @@
 
 typedef struct {
     double midpoints[MAX_INTERVALS], calcn[MAX_INTERVALS], obsdn[MAX_INTERVALS];
-    int num_intervals;
+    int num_intervals, km;
     double estden, sden;
 } calc_results;
 
