@@ -107,13 +107,13 @@
 /**
  * Parse input with the observation data in rows, separated by either commas or spaces
  **/
-- (BOOL)parseInputRows:(NSString *)input withCommas:(BOOL)requireCommas;
+- (BOOL)parseInputRows:(NSString *)input withCommas:(BOOL)requireCommas imv:(int *)imv;
 
 /**
  * Parse input with the observation data in columns
  **/
-- (BOOL)parseInputColumns:(NSString *)input;
-- (BOOL)parseInputOldColumns:(NSString *)input;
+- (BOOL)parseInputColumns:(NSString *)input imv:(int *)imv;
+- (BOOL)parseInputOldColumns:(NSString *)input imv:(int *)imv;
 
 - (void)endEditingSavingCurrentResponder;
 - (NSString *)resultsFileName;

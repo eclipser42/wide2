@@ -138,19 +138,23 @@
     contents = [contents initWithData:data encoding:NSUTF8StringEncoding];
 
     elevationsAreSupplied = NO;
-    if ([self parseInputColumns:contents]) {
+    int imv;
+    if ([self parseInputColumns:contents imv:&imv]) {
         NSLog(@"Parsed column-arranged data");
-    } else if ([self parseInputOldColumns:contents]) {
+    } else if ([self parseInputOldColumns:contents imv:&imv]) {
         NSLog(@"Parsed old column-arranged data");
-    } else if ([self parseInputRows:contents withCommas:YES]) {
+    } else if ([self parseInputRows:contents withCommas:YES imv:&imv]) {
         NSLog(@"Parsed comma-separated data");
-    } else if ([self parseInputRows:contents withCommas:NO]) {
+    } else if ([self parseInputRows:contents withCommas:NO imv:&imv]) {
         NSLog(@"Parsed space-separated data");
     } else {
         NSLog(@"Parsing failed");
         return NO;
     }
 
+    for (int i = 0; i < [observations count]; ++i) {
+        [self stopObservingObservation:[observations objectAtIndex:i]];
+    }
     [observations removeAllObjects];
     for (int i = 0; i < params.nvals; ++i) {
         Observation *observation = [[Observation alloc] init];
@@ -161,6 +165,12 @@
         [self startObservingObservation:observation];
         [observations addObject:observation];
         [observation release];
+    }
+    // If possible, interpret IMV value as manualOptions but in older datasets, deduce manualOptions
+    if (imv >= 1024) {
+        manualOptions = ((imv & 2048) != 0);
+    } else {
+        manualOptions = ((params.step[0] != 0) || (params.step[1] != 0) || (params.step[2] != 0));
     }
 
     NSFileManager *fileMgr = [NSFileManager defaultManager];
@@ -739,7 +749,7 @@
 
 #pragma mark Implementation
 
-- (BOOL)parseInputColumns:(NSString *)input
+- (BOOL)parseInputColumns:(NSString *)input imv:(int *)imv
 {
     // Approximate newlineCharacterSet on Tiger
     NSCharacterSet *newlineCharacterSet;
@@ -847,10 +857,9 @@
 	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
 	if (![scanner scanInt:&params.ishow]) return YES;
 
-	if (![scanner scanDouble:&params.step[NUM_SHAPE_PARAMS - 1]]) return YES;
+	if (![scanner scanInt:imv]) return YES;
 	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
-    // if there's another value then that last was a leftover imv value
-	if (![scanner scanDouble:&params.step[NUM_SHAPE_PARAMS - 1]]) return YES;
+	if (![scanner scanDouble:nil]) return YES;
 	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
     // and if there's a final value then that last was a leftover r3s value
     if (![scanner scanDouble:&params.step[NUM_SHAPE_PARAMS - 1]]) return YES;
@@ -858,7 +867,7 @@
     return YES;
 }
 
-- (BOOL)parseInputOldColumns:(NSString *)input
+- (BOOL)parseInputOldColumns:(NSString *)input imv:(int *)imv
 {
 	NSScanner* scanner = [NSScanner scannerWithString:input];
 
@@ -891,7 +900,7 @@
 
     if (![scanner scanInt:&params.km]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanInt:nil]) return NO; // was imv
+	if (![scanner scanInt:imv]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanInt:&params.kdt]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -944,7 +953,7 @@
     return (i >= 1);
 }
 
-- (BOOL)parseInputRows:(NSString *)input withCommas:(BOOL)requireCommas
+- (BOOL)parseInputRows:(NSString *)input withCommas:(BOOL)requireCommas imv:(int *)imv
 {
 	NSScanner* scanner = [NSScanner scannerWithString:input];
 
@@ -1196,6 +1205,7 @@ double deg2rad(double deg) {
         NSLog(@"Overriding THH %g with %g", params.thh, thh);
         params.thh = thh;
     }
+    params.manual_options = manualOptions;
     
     NSFileManager *fileMgr = [NSFileManager defaultManager];
     do {
