@@ -1,7 +1,7 @@
 /*******************************************************************************
 *     PROGRAM WildlifeDensity
 *
-*     (File mnps2.c, Version 1.1)
+*     (File mnps2.c, Version 2.0b4)
 *
 *     This program is designed to return population density estimates
 *     from 'distance' data collected using either line transect or fixed
@@ -614,18 +614,20 @@ void randgen (double *result)
 
 
 /*******************************************************************************
-*
-*	FREQ_DISTRIB     Calculate frequencies of each class
-*
-*       Inputs: NCLASS, STT, CLINT, NVALS, KDT - as described above
-*               Y  - distance to observed groups, whether radial or perpendicular,
-*                    original or resampled
-*               ABSOLUTE_DISTANCES  - if true, consider negative distances as positive
-*               NSIZE  - size of the observed groups, original or resampled
-*
-*       Outputs: NUMA, NUMO, VAL, NGROUPS - as described above
-*
-*******************************************************************************/
+ *
+ *	FREQ_DISTRIB     Calculate frequencies of each class
+ *
+ *       Inputs: NCLASS, STT, CLINT, NVALS, KDT - as described above
+ *               Y  - distance to observed groups, whether radial or perpendicular,
+ *                    original or resampled
+ *               ABSOLUTE_DISTANCES  - if true, consider negative distances as positive
+ *                                     and consider zero distances to be in the first class
+ *               NSIZE  - size of the observed groups, original or resampled
+ *
+ *       Outputs: NUMA, VAL, NGROUPS - as described above
+ *                NUMO  - counted if ABSOLUTE_DISTANCES is false
+ *
+ *******************************************************************************/
 
 void freq_distrib(int nclass, double stt, double clint, int nvals, int kdt, float y[],
                   bool absolute_distances, int nsize[],
@@ -634,44 +636,49 @@ void freq_distrib(int nclass, double stt, double clint, int nvals, int kdt, floa
     *numo = 0;
     *numa = 0;
     *ngroups = 0;
-    double frst = stt;
-
     for (int ic=0; ic < nclass; ic++) {			//  DO ic=1,nclass
-
         val[ic]=0;
-/*
- *      Numbers ahead (NUMA), overtaking (NUMO) and groups are totalled.
- *      Numbers in each class, VAL[IC], are also accumulated for the groups
- *      included in the data set.
- */
-        for (int irb=0; irb < nvals; irb++) {	//  DO irb=1,nvals
-
-            float group_distance = y[irb];
-            if (absolute_distances) {
-             /*
-              * When data from the two sides of a transect line are pooled,
-              * absolute values of Y() are used.
-              */
-                group_distance = fabs(y[irb]);
-            }
-
-            if ((kdt > 1) && (group_distance > kdt)) {
-                // group distance is beyond maximum detection distance
-                continue;
-            }
-            else if ((group_distance > frst) &&  (group_distance <= (frst+clint))) {
-                *numa += nsize[irb];
-                (*ngroups)++;
-                val[ic] += nsize[irb];
-            }
-            else if ((ic == 0) && (group_distance == 0.)) {
-                *numo += nsize[irb];
-                (*ngroups)++;
-            }
-        }					//  END DO irb
-
-        frst += clint;
     }
+
+    double max_distance = (nclass * clint) + stt;
+    
+    /*
+     *      Numbers ahead (NUMA), overtaking (NUMO) and groups are totalled.
+     *      Numbers in each class, VAL[IC], are also accumulated for the groups
+     *      included in the data set.
+     */
+    for (int irb=0; irb < nvals; irb++) {	//  DO irb=1,nvals
+
+        float group_distance = y[irb];
+        if (absolute_distances) {
+            /*
+             * When data from the two sides of a transect line are pooled,
+             * absolute values of Y() are used.
+             */
+            group_distance = fabs(y[irb]);
+        }
+        
+        if ((kdt > 1) && (group_distance > kdt)) {
+            // group distance is beyond maximum detection distance
+        }
+        else if (group_distance < stt) {
+            // group distance is before the first class (only possible without absolute_distances)
+        }
+        else if (group_distance >= max_distance) {
+            // group distance is beyond the final class
+        }
+        else if (!absolute_distances && (group_distance == 0.)) {
+            *numo += nsize[irb];
+            (*ngroups)++;
+        }
+        else {
+            // class IC includes groups at clint x IC, excludes groups at clint x (IC+1)
+            int ic = (group_distance - stt) / clint;
+            *numa += nsize[irb];
+            (*ngroups)++;
+            val[ic] += nsize[irb];
+        }
+    }					//  END DO irb
 }
 
 
@@ -757,15 +764,21 @@ void givef (double f[NUM_SHAPE_PARAMS],
 	    bool iqsf,
             calc_results *results)
 {
+    if ((kprint > 0) && (ishow > 0)) {
+        if (iry > 0) {
+            fprintf(output_results, "\n Columns in order: P(r), Q(r), pdf, E{N(r)}, E{N(y)}\n\n");
+        } else {
+            fprintf(output_results, "\n\n Columns, in order: P(r), Q(r), pdf, E{N(r)}, E{N(y)}\n\n");
+        }
+    }
 
 /*
 *     Double precision for all real numbers is set, together with
 *     common values, dimensions and symbols for key variables.
 *
 */
-      int iermax,jj,jl,jrlow;
+      int iermax, jl,jrlow;
       int l10,l20;
-      int md;
 
       double aprexi,auc,cint,d2l,dd,dds,ddsm,dh,dif;
       double difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed;
@@ -1036,14 +1049,13 @@ Line_260:
 *     with observed values, now begins .....
 */
 	Loop_1180:
-      for (jj=0; jj < l10; jj++) {			//  DO jj=1,l10
+      for (int md = l10 - 1; md >= 0; --md) {	// md = (nclass-1), (nclass-2),..., 0
 
 /*
-*     MD is the hth class in the series, calculated in the reverse
-*     order to JJ (going from MD=L10 downwards) because computations
-*     begin at RMAX and continue at progressively decreasing r values.
+*     MD is the hth class in the series, calculated from L10
+*     downwards, because computations begin around RMAX and continue
+*     at progressively decreasing r values.
 */
-	md = nclass-jj-1;	// md = (nclass-1), (nclass-2),..., 0
 
 /*
 *     OBSD is the observed value for the hth arc, as supplied
@@ -1545,11 +1557,11 @@ Line_900:
 *     is bypassed and a record of this non-computation retained
 *     as the temporary variable MSFAIL.  This is done only when the
 *     program has converged on a minimum (MTEST=1) and in the final
-*     pass through Loop 1180 (JJ=L10).
+*     pass through Loop 1180.
 */
 	if (d2l > 0) {
 	    *s += (expdv/d2l);
-	} else if ((mtest == 1) && (jj == (l10-1))) {		// JMB: jj test changed to 'l10-1', was 'l10'
+	} else if ((mtest == 1) && (md == 0)) {
 	    (*msfail)++;
     }
 
@@ -1574,10 +1586,6 @@ Line_900:
 	    if (expdy < 0.0) expdy = 0.0;
 
 	    if (ishow > 0) {
-		if (jj == 0) {		// jj test changed to '0' for first time through loop, was '1'
-			
-		    fprintf(output_results, "\n Columns in order: P(r), Q(r), pdf, E{N(r)}, E{N(y)}\n\n");
-		}
 		fprintf(output_results, "  y=%8.1f     Calc.N(y)=%9.2f     Obsd.N(y)=%9.1f\n", yy,expdy,obsd);
 	    }
             results->midpoints[md] = yy;
@@ -1589,10 +1597,6 @@ Line_900:
 	    expdr = expdv;
 	    if (expdr < 0.0) expdr = 0.0;
 	    if (ishow > 0) {
-		if (jj == 0) {		// JMB: jj test changed to '0', was '1'
-
-		    fprintf(output_results, "\n\n Columns, in order: P(r), Q(r), pdf, E{N(r)}, E{N(y)}\n\n");
-		}
 		fprintf(output_results, "  r=%8.1f     Calc.N(r)=%9.2f     Obsd.N(r)=%9.1f\n", rr,expdr,obsd);
 	    }
             results->midpoints[md] = rr;
@@ -2394,9 +2398,9 @@ void calculate_density (calc_params *params
 	
       int nsize[MAX_OBSERVATIONS], nbsz[MAX_OBSERVATIONS];
       int bootstrap;
-      int i, ia, ie, iflag, ifx, ig, ih, imax;
-      int imin, imv, in, iprint, irow, iry, iseed, ishow;
-      int j, jprint, jv, k, kdt, km, kprint, loop, max;
+      int i, ia, ie, iflag, ifx, ig, ih;
+      int imv, in, iprint, irow, iry, iseed, ishow;
+      int j, jprint, jv, k, kdt, km, kprint, max;
       int maxjb, mfail, msfail, mtest, nap, neval, ngroups;
       int nloop, nop, np1, ns, numa, numest, numo, nclass;
       int numoin, numain, nvals, numgra;
@@ -2404,7 +2408,7 @@ void calculate_density (calc_params *params
       double a, approx, b, c, cf1dif, cf1sum, cf2dif, cf2sum;
       double cf3dif, cf3sum, clint, coeffnt1, coeffnt2;
       double coeffnt3, dcoeff, dendif, dist, dsum, s;
-      double estden, estj, fnk, func, hmax, hmean, hmin;
+      double estden, estj, fnk, func, hmean;
       double hstar, hstd, hstst, durn, ltmin, ltmax, obsw;
       double pd, ps, rate, savemn, scf1, scf2, scf3;
       double sden, sns, stopc, stt, test, tcoeff1, tcoeff2;
@@ -2453,12 +2457,9 @@ void calculate_density (calc_params *params
       nvals = params->nvals;
       clint = params->clint;
       stt = params->stt;
-      numa = params->numa;
-      numo = params->numo;
       dist = params->dist;
       thh = params->thh;
       ltmin = params->ltmin;
-      ltmax = params->ltmax;
       ifx = params->ifx;
       iry = params->iry;
       ns = params->ns;
@@ -2556,16 +2557,14 @@ Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 */
 
       if (f[3] == 0) {
-        float rltot, rlmean, rlsum, rlsd, rlf4, rdifsq;
+        float rltot, rlsum, rlsd, rlf4;
         double t001;
 
         dmaxIsPreset = false;
         rltot = 0.0;
-        rlmean = 0.0;
         rlsum = 0.0;
-        rdifsq = 0.0;
         numgra = 0;
-        t001 = 3.1093 + 23.4777/pow(nvals, 1.33);
+        t001 = 3.33256 + 33.0731/pow(nvals, 1.39337);
 
         if (iry < 2) {
 
@@ -2583,7 +2582,7 @@ Loop_40:  for (ih=0; ih < nvals; ih++) {	//  DO ih=1,nvals
             }
           }					//  END DO Loop_40
 
-          rlmean = rltot/numgra;
+          float rlmean = rltot/numgra;
 
 /*
 *     A standard error of the logarithmic r (RLSD) is now calculated,
@@ -2594,7 +2593,7 @@ Loop_40:  for (ih=0; ih < nvals; ih++) {	//  DO ih=1,nvals
 Outer_45: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
             if (r[ih] > 0) {
 	      float tmp = log(r[ih]+1) - rlmean;
-              rdifsq = (tmp*tmp)/(numgra-1);
+              float rdifsq = (tmp*tmp)/(numgra-1);
               rlsum += rdifsq;
             }
           }						//  END DO Outer_45
@@ -2609,20 +2608,24 @@ Outer_45: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 	else if (iry==2) {
 
 /*
-*    This option is used if only perp. data are supplied.  The half-
-*    normal distribution is first square root transformed, the
-*    distance at the final step.
+*   The following option is used only if recalculated perp. data have been
+*   supplied to the program (iry == 2).  It involves normalising their 
+*   distribution by square root transformation, estumating the standard
+*   deviation of the half-normal distribution, with Bessel's correction,
+*   multiplying it by the 0.001 value of Student's t, then back-transforming
+*   by squaring.  The first step is to sum the absolute perpendicular distance
+*   values in Loop_43, then calculate the Bessel-corrected mean of these
+*   distances, and finally estimate the maximum detection distance by squaring 
+*   the result.
 */
 
 Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
-	    float tmp = sqrt(r[ih]+1);
-            rdifsq = (tmp*tmp)/(nvals-1);
-            rlsum += rdifsq;
+            rlsum += abs(r[ih]);
           }						//  END DO Loop_43
 
-          rlsd = sqrt(0.36338*rlsum);
+          rlsd = sqrt(rlsum/(nvals-1));
           rlf4 = rlsd*t001;
-          f[3] = rlf4 * rlf4 - 1;
+          f[3] = rlf4 * rlf4;
 
         }
 
@@ -2634,15 +2637,22 @@ Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 *     entered as more than 80 times the class interval, CLINT is
 *     reset at (F[3]-STT or KDT-STT)/80 to avoid computation problems.
 */
-      if ((kdt <= 1) && (f[3] > (80*clint))) {
+
+    if (kdt <= 1) {
+        if (f[3] > (80*clint)) {
         	clint = (f[3]-stt)/80;
-
-      } else if ((kdt>1) && (kdt<=f[3]) && ((kdt-stt)>(80*clint))) {
-            clint = (kdt-stt)/80;
-
-      } else if ((kdt>1) && (kdt>f[3]) && (f[3]>(80*clint))) {
-            clint = (f[3]-stt)/80;
       }
+    } else {
+        if (kdt <= f[3]) {
+            if ((kdt-stt) > (80*clint)) {
+                clint = (kdt-stt)/80;
+            }
+        } else {
+            if (f[3] > (80*clint)) {
+                clint = (f[3]-stt)/80;
+            }
+      }
+    }
 
 /*
 *     The header line now begins the program output.
@@ -2723,14 +2733,7 @@ Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 
       estdmax = f[3];
 
-/*
-*     The original values of NUMA and NUMO are retained (as NUMOIN
-*     and NUMAIN) so they can be printed in the output.
-*/
 Line_90:
-      numoin = numo;
-      numain = numa;
-
       fprintf(output_results," Total time spent =%7.1f min.\n", durn);
       fprintf(output_results," Overall population movement rate =%4.1f m/min.\n", rate);
 
@@ -2797,127 +2800,6 @@ Inner_96:
       }
 
 /*
-*     Unless the number of iterations has been set at 1 and bottom option 3 has not
-*     been selected, the Line_100 sequence computes revised initial estimates of the 
-*	  parameters ‘a’‘c’ and ‘D’, together with initial step sizes for them, 
-*     f[2] using a detectability coefficient estimate (ests), whenever the
-*	  number of evaluations (MAXJB) is set above 1 and the initial step
-*	  size for either or both of f[0] or f[1] is set at zero or all step sizes
-*     are set at zero.
-*
-*/
-          
-      Line_100:
-          if  ((maxjb > 1) && (ishow == 0))      {
-              /* True if either or both of the initial step sizes are zero, so also
-               * true if all three initial step sizes are zero */
-              bool stepSizeIsZero = ((step[0] == 0) || (step[1] == 0));
-              if ((nvals < 250) || stepSizeIsZero) {
-                  f[0] = pow((2.618*estdmax) + 24.833, 0.333) ;
-                  f[1] = 34.4294*pow(estdmax, -1.35094) ;
-              }
-
-/*
-*     Computation of an initial values for f[2] and step[2] depends on whether
-*	  line transect data (ifx=0) or fixed point (ifx=1) data are provided.  
-*
-*/
-              double ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ;
-              if (ifx == 0)	{
-                  f[2] = (1.e4*(numain + numoin)) / (ns*dist*estj*pd*ests);
-                  step[2] = 0.5*f[2];
-              }
-              else if (ifx == 1)   {
-                  f[2] = (1.e4*(numain + numoin)) / (2*rate*durn*ps*pd*ests);
-                  step[2] = 0.5*f[2];
-              }
-
-
-/*
-*
-*	  Revised initial step sizes are now set for the other parameters. initial
-*     conspicuousness being preset in the case of smaller samples (<250).
-*
-*/		
-              if  ( nvals >= 250 )  {
-                  if ( (step[0] == 0.0) && (step[1] == 0.0) )   {
-                      step[0] = 0.3*f[0] ;
-                      step[1] = f[1] ;
-                      step[2] = (0.5*f[2]) ;
-                  }
-                  else if ( (step[0] == 0.0) && (step[1] > 0) )  {
-                      step[0] = 0.0 ;
-                      step[1] = f[1] ;
-                      step[2] = (0.5*f[2]) ;
-                  }
-                  else if ( (step[1] == 0.0) && (step[0] > 0) ) {
-                      step[0] = (0.3*f[0]) ;
-                      step[1] = 0.0 ;
-                      step[2] = (0.5*f[2]) ;
-                  }
-                  else if ( (step[0] > 0.0) && (step[1] > 0) ) {
-                      step[0] = (0.3*f[0]) ;
-                      step[1] = f[1] ;
-                      step[2] = (0.5*f[2]) ;          
-                  }
-              }
-              else {  // nvals < 250
-                  if ( (step[0] == 0.0) && (step[1] == 0.0) )   {
-                      step[0] = 0.0 ;
-                      step[1] = f[1] ;
-                      step[2] = 0.5*f[2] ;
-                  }
-                  else if ( (step[0] == 0.0) && (step[1] > 0) )  {
-                      step[0] = 0.0 ;
-                      step[1] = f[1] ;
-                      step[2] = (0.5*f[2]) ;
-                  }
-                  else if ( (step[1] == 0) && (step[0] > 0) ) {
-                      step[0] = (0.3*f[0]) ;
-                      step[1] = 0.0 ;
-                      step[2] = (0.5*f[2]) ;
-                  }
-                  else if ( (step[0] > 0.0) && (step[1] > 0) ) {
-                      step[0] = 0.0 ;
-                      step[1] = f[1] ;
-                      step[2] = (0.5*f[2]) ;          
-                  }
-              }
-
-            }
-
-/*
-*              Line_100 ends
-*
-*
-*     For line transect data, the movement-corrected overall distance travelled (LJ) is
-*     now calculated, overriding the DIST value submitted originally.
-*     DURN and RATE are both set at 0 to avoid later computation problems.
-*     
-*/
-            if (ifx == 0)       {
-                dist *= estj;
-                durn = 0;
-                rate = 0;
-            }
-
-/*
-*     F[2] is now raised in value to approximate D2LJ*Ns*Pd in the case
-*     of line transect data, or D2ut*Ps*Pd for fixed point data, in
-*     order to prepare for comparisons with observed values within
-*     subroutine GIVEF.
-*/
-      sns = ns;
-
-      if (ifx == 0) {
-         f[2] = (sns*dist*pd*f[2])/1.e4;
-         step[2] = (sns*dist*pd*step[2])/1.e4;
-      } else {
-         f[2]=(2.*ps*pd*rate*durn*f[2])/1.e4;
-         step[2]=(2.*ps*pd*rate*durn*step[2])/1.e4;
-      }
-
-/*
 *     Case_150 treats the situation where calculations are to be based
 *     on perpendicular distances (y) from the transect line, and the
 *     data supplied are either radial distances and angles, indicated
@@ -2974,6 +2856,158 @@ Loop_150:	for (in=0; in < nvals; in++) {		// DO in=1, nvals
 		break;
 
       } /* switch */
+
+/*
+*     NCLASS is the number of distance classes in the selected range.
+*     0.49 is added to avoid counting errors due to 'chopping'.
+*/
+
+    nclass = ((f[3]-stt)/clint)+0.49;
+    if (nclass > 80) nclass=80;
+
+/*
+*     The program now computes the first distribution of the numbers
+*     detected within each class interval, based on the detection
+*     distances (R[IN]), the numbers in each group (NSIZE[IN]) and
+*     the class interval (CLINT) preset in the input.
+*
+*     In subsequent runs through Loop 1410, bootstrapping applies
+*     (JBSTP=1) and a bootstrapped distribution is used instead.
+*
+*     The number detected within each class (VAL[IC]), is the sum of the
+*     numbers in each class in which the R[IN] or Y[IN] values fall.
+*     Calculating the various VAL[IC] values first requires
+*     finding which R[IN] or Y[IN] values fall within the interval
+*     concerned, then adding all the NSIZE[IN] values which fall
+*     within that class.  This will be done for each class interval
+*     in turn, beginning with the calculation of VAL[0] for the
+*     nearest class to r=0 or STT or y=0 or STT.  If a minimum value in the
+*     range (STT) has been specified, or a maximum value for r or y of KDT
+*     (>1), the program also computes the number of data clusters (NOTIN)
+*     below STT and above KDT and subtracts it from NVALS to give the
+*     correct magnitude of NVALS for use in later calculations.
+*/
+
+    if (iry > 0) {
+        freq_distrib(nclass, stt, clint, nvals, kdt, y, true, nsize,
+                     &numa, &numo, val, &ngroups);
+    } else {
+        freq_distrib(nclass, stt, clint, nvals, kdt, r, false, nsize,
+                     &numa, &numo, val, &ngroups);
+    }
+
+/*
+*     The original values of NUMA and NUMO are retained (as NUMOIN
+*     and NUMAIN) so they can be printed in the output.
+*/
+    numoin = numo;
+    numain = numa;
+
+/*
+ *     The frequency distribution of the original data is now saved,
+ *     as VALT[IG].
+ */
+
+    for (ig=0; ig < nclass; ig++) {		//  DO ig=1,nclass
+        valt[ig] = val[ig];
+    }
+
+/*
+*     Unless the number of iterations has been set at 1 and bottom option 3 has not
+*     been selected, the Line_100 sequence computes revised initial estimates of the 
+*	  parameters ‘a’‘c’ and ‘D’, together with initial step sizes for them, 
+*     f[2] using a detectability coefficient estimate (ests), whenever the
+*	  number of evaluations (MAXJB) is set above 1 and the initial step
+*	  size for either or both of f[0] or f[1] is set at zero or all step sizes
+*     are set at zero.
+*/
+
+Line_100:
+    if  ((maxjb > 1) && (ishow == 0))      {
+              /* True if either or both of the initial step sizes are zero, so also
+               * true if all three initial step sizes are zero */
+              bool stepSizeIsZero = ((step[0] == 0) || (step[1] == 0));
+              if ((nvals < 250) || stepSizeIsZero) {
+                  f[0] = pow((2.618*estdmax) + 24.833, 0.333) ;
+                  f[1] = 34.4294*pow(estdmax, -1.35094) ;
+              }
+
+/*
+*     Computation of an initial values for f[2] and step[2] depends on whether
+*	  line transect data (ifx=0) or fixed point (ifx=1) data are provided.  
+*
+*/
+              double ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ;
+              if (ifx == 0)	{
+                  f[2] = (1.e4*(numain + numoin)) / (ns*dist*estj*pd*ests);
+                  step[2] = 0.5*f[2];
+              }
+              else if (ifx == 1)   {
+                  f[2] = (1.e4*(numain + numoin)) / (2*rate*durn*ps*pd*ests);
+                  step[2] = 0.5*f[2];
+              }
+
+
+/*
+*
+*	  Revised initial step sizes are now set for the other parameters. initial
+*     conspicuousness being preset in the case of smaller samples (<250).
+*
+*/		
+              if ( step[0] == 0.0 )   {
+                  if  ( (nvals >= 250) && (step[1] > 0) )  {
+                      step[0] = (0.3*f[0]) ;
+                  } else {  // nvals < 250
+                      step[0] = 0.0 ;
+                  }
+                  step[1] = f[1] ;
+                  step[2] = (0.5*f[2]) ;
+              }
+              else if ( step[0] > 0.0 ) {
+                  if  ( (nvals < 250) && (step[1] > 0) )  {
+                      step[0] = 0.0 ;
+                  } else {  // nvals >= 250
+                      step[0] = (0.3*f[0]) ;
+                  }
+                  if  ( step[1] > 0 )  {
+                      step[1] = f[1] ;
+                  } else {
+                      step[1] = 0.0 ;
+                  }
+                  step[2] = (0.5*f[2]) ;          
+              }
+    }
+
+/*
+*              Line_100 ends
+*
+*
+*     For line transect data, the movement-corrected overall distance travelled (LJ) is
+*     now calculated, overriding the DIST value submitted originally.
+*     DURN and RATE are both set at 0 to avoid later computation problems.
+*     
+*/
+            if (ifx == 0)       {
+                dist *= estj;
+                durn = 0;
+                rate = 0;
+            }
+
+/*
+*     F[2] is now raised in value to approximate D2LJ*Ns*Pd in the case
+*     of line transect data, or D2ut*Ps*Pd for fixed point data, in
+*     order to prepare for comparisons with observed values within
+*     subroutine GIVEF.
+*/
+      sns = ns;
+
+      if (ifx == 0) {
+         f[2] = (sns*dist*pd*f[2])/1.e4;
+         step[2] = (sns*dist*pd*step[2])/1.e4;
+      } else {
+         f[2]=(2.*ps*pd*rate*durn*f[2])/1.e4;
+         step[2]=(2.*ps*pd*rate*durn*step[2])/1.e4;
+      }
 
 /*
 *     The initial values of 'a', 'b', 'D2L', and 'dmax' are retained
@@ -3060,18 +3094,9 @@ Loop_210:
 *
 */
       nap = 0;
-      loop = 0;
       iflag = 0;
       kprint = 0;
       dcoeff = 0;
-
-/*
-*     NCLASS is the number of distance classes in the selected range.
-*     0.49 is added to avoid counting errors due to 'chopping'.
-*/
-	
-      nclass = ((f[3]-stt)/clint)+0.49;
-      if (nclass > 80) nclass=80;
 
 /*
 *     If all STEP sizes have been set at zero, and MAXJB has not been
@@ -3148,7 +3173,7 @@ Loop_370:
 *  =============================================================*/
 
 Loop_1410:
-      for (bootstrap=0; bootstrap < maxjb; bootstrap++) {	//  DO bootstrap=1, maxjb
+    for (bootstrap = 0; bootstrap < maxjb; bootstrap++) {	//  DO bootstrap=1, maxjb
 	params->bootstrap = bootstrap;
 
 /*
@@ -3157,48 +3182,8 @@ Loop_1410:
 		  
 	mtest = 0;
 
-/*
-*     The program now computes the first distribution of the numbers
-*     detected within each class interval, based on the detection
-*     distances (R[IN]), the numbers in each group (NSIZE[IN]) and
-*     the class interval (CLINT) preset in the input.
-*
-*     In subsequent runs through Loop 1410, bootstrapping applies
-*     (JBSTP=1) and a bootstrapped distribution is used instead.
-*
-*     The number detected within each class (VAL[IC]), is the sum of the
-*     numbers in each class in which the R[IN] or Y[IN] values fall.
-*     Calculating the various VAL[IC] values first requires
-*     finding which R[IN] or Y[IN] values fall within the interval
-*     concerned, then adding all the NSIZE[IN] values which fall
-*     within that class.  This will be done for each class interval
-*     in turn, beginning with the calculation of VAL[0] for the
-*     nearest class to r=0 or STT or y=0 or STT.  If a minimum value in the
-*     range (STT) has been specified, or a maximum value for r or y of KDT
-*     (>1), the program also computes the number of data clusters (NOTIN)
-*     below STT and above KDT and subtracts it from NVALS to give the
-*     correct magnitude of NVALS for use in later calculations.
-*/
-		  
           if (bootstrap == 0) {
-              if (iry > 0) {
-                  freq_distrib(nclass, stt, clint, nvals, kdt, y, false, nsize,
-                               &numa, &numo, val, &ngroups);
-              } else {
-                  freq_distrib(nclass, stt, clint, nvals, kdt, r, true, nsize,
-                               &numa, &numo, val, &ngroups);
-              }
 
-/*
-*     The frequency distribution of the original data is now saved,
-*     as VALT[IG].
-*/
-
-Loop_470:
-              for (ig=0; ig < nclass; ig++) {		//  DO ig=1,nclass
-                  valt[ig] = val[ig];
-              }					//  END DO Loop_470
-              
               if ((maxjb != 1) && (nap <= 0)) goto Line_1320;
 
           } else {
@@ -3300,24 +3285,26 @@ Loop_730:
 *     of the current simplex.
 *
 */
-Line_740:
-	loop++;
-	imax = 0;
-	imin = 0;
-	hmax = h[0];
-	hmin = h[0];
+        bool continue_search = true;
+        while (continue_search) {
 
+            for (int loop = 0; loop < nloop; ++loop) {
 
-Loop_750:
+                int hmax_index = 0;
+                int hmin_index = 0;
+                double hmax = h[0];
+                double hmin = h[0];
+
+/* Loop_750: */
 	for (i=1; i < np1; i++) {	//  DO i=2,np1
 
-	  if (h[i] > h[imax]) {
-	    imax = i;
+	  if (h[i] > h[hmax_index]) {
+	    hmax_index = i;
 	    hmax = h[i];
 	  }
 
-	  if (h[i] < h[imin]) {
-	    imin = i;
+	  if (h[i] < h[hmin_index]) {
+	    hmin_index = i;
 	    hmin = h[i];
 	  }
 
@@ -3328,15 +3315,15 @@ Loop_750:
 *     now found.
 */
 
-Loop_790:
+/* Loop_790: */
 	for (i=0; i < nop; i++) {	//  DO i=1,nop
 	  pbar[i]=0.0;
 	}				//  END DO Loop_790
 
 
-Loop_800:
+/* Loop_800: */
 	for (i=0; i < np1; i++) {		//  DO i=1,np1
-	  if (i != imax) {
+	  if (i != hmax_index) {
 Loop_810:   for (j=0; j < nop; j++) {	//  DO j=1,nop
 	      pbar[j] += g[i][j]/(nap);
 	    }				//  END DO Loop_810
@@ -3348,9 +3335,9 @@ Loop_810:   for (j=0; j < nop; j++) {	//  DO j=1,nop
 *     evaluates the function at PSTAR (to give HSTAR).
 */
 
-Loop_820:
+/* Loop_820: */
 	for (i=0; i < nop; i++) {		//  DO i=1,nop
-	  pstar[i] = a * (pbar[i]-g[imax][i]) + pbar[i];
+	  pstar[i] = a * (pbar[i]-g[hmax_index][i]) + pbar[i];
 	}					//  END DO Loop_820
 
 	hstar = 0.0;
@@ -3378,15 +3365,15 @@ Loop_820:
 	  DUMP_SS(hstar,pstar)
 	}
 
-	if (hstar >= hmin) goto Loop_900;
-
+                bool take_pstar = false;
+                if (hstar < hmin) {
 /*
 *     If HSTAR is less than HMIN, PBAR is reflected through PSTAR
 *     (to give PSTST) and the function is evaluated there (to
 *     give HSTST).
 */
 
-Loop_830:
+/* Loop_830: */
 	for (i=0; i < nop; i++) {		//  DO i=1,nop
 	  pstst[i] = c * (pstar[i]-pbar[i]) + pstar[i];
 	}					//  END DO Loop_830
@@ -3408,8 +3395,10 @@ Loop_830:
 	  DUMP_SS(hstst,pstst)
 	}
 
-Line_870:
-	if (hstst >= hmin) goto Loop_1030;
+/* Line_870: */
+                    if (hstst >= hmin) {
+                        take_pstar = true;
+                    } else {
 
 /*
 *     If HSTST is less than HMIN, the maximum point of the current
@@ -3417,26 +3406,39 @@ Line_870:
 *     then a test is performed.
 */
 
-Loop_880:
+/* Loop_880: */
 	for (i=0; i < nop; i++) {		//  DO i=1,nop
-	  g[imax][i] = pstst[i];
+	  g[hmax_index][i] = pstst[i];
 	}					//  END DO Loop_880
 
-        h[imax] = hstst;
-        goto Line_1050;
-
+                        h[hmax_index] = hstst;
+                        continue;
+                    }
+                    
+                } else {
 /*
 *
 *     If HSTAR is not less than HMIN, the program tests is HSTAR
 *     is greater than the function value at all vertices other
 *     than the maximum one.
 */
-Loop_900:
+/* Loop_900: */
 	for (i=0; i < np1; i++) {		//  DO i=1,np1
-	  if (i != imax) {
-	    if (hstar < h[i]) goto Loop_1030;
-	  }
-	}					//  END DO Loop_900
+                    if (i != hmax_index && hstar < h[i]) {
+                        take_pstar = true;
+                        break;
+                    }
+    }					//  END DO Loop_900
+                }
+
+                if (take_pstar) {
+/* Loop_1030: */
+                    for (i=0; i < nop; i++) {		//  DO i=1,nop
+                        g[hmax_index][i] = pstar[i];
+                    }					//  END DO Loop_1030
+                    h[hmax_index] = hstar;
+                    continue;
+                }
 
 /*
 *     If it is less than at least one of these vertices, the
@@ -3454,15 +3456,15 @@ Loop_900:
 
 	if (hstar <= hmax) {
 	  for (i=0; i < nop; i++) {		//  DO i=1,nop
-	    g[imax][i] = pstar[i];
+	    g[hmax_index][i] = pstar[i];
 	  }					//  END DO
 	  hmax = hstar;
-	  h[imax] = hstar;
+	  h[hmax_index] = hstar;
 	}
 
-Loop_930:
+/* Loop_930: */
 	for (i=0; i < nop; i++) {		//  DO i=1,nop
-	  pstst[i] = b*g[imax][i] + (1.0-b)*pbar[i];
+	  pstst[i] = b*g[hmax_index][i] + (1.0-b)*pbar[i];
 	}					//  END DO Loop_930
 
         givef (pstst, &hstst, &dcoeff, val, clint, /* pd, */ stt,
@@ -3476,7 +3478,7 @@ Loop_930:
 	  DUMP_SS(hstst,pstst)
 	}
 
-Line_970:
+/* Line_970: */
 
 /*
 *     If HSTST is not greater than HMAX, the maximum point is replaced by
@@ -3485,10 +3487,10 @@ Line_970:
 
 	if (hstst <= hmax) {
 	  for (i=0; i < nop; i++) {		//  DO i=1,nop
-	    g[imax][i] = pstst[i];
+	    g[hmax_index][i] = pstst[i];
 	  }					//  END DO
-	  h[imax] = hstst;
-	  goto Line_1050;
+	  h[hmax_index] = hstst;
+	  continue;
 	}
 /*
 *     If HSTST is greater than HMAX, each point in the current
@@ -3498,10 +3500,10 @@ Line_970:
 *     vertex and the test performed.
 */
 
-Loop_990:
+/* Loop_990: */
 	for (i=0; i < np1; i++) {		//  DO i=1,np1,1
 	  for (j=0; j < nop; j++) {	//  DO j=1,nop,1
-	    g[i][j] = (g[i][j]+g[imin][j])/2.0;
+	    g[i][j] = (g[i][j]+g[hmin_index][j])/2.0;
 	  }				//  END DO
 	}					//  END DO Loop_990
 
@@ -3512,7 +3514,7 @@ Loop_990:
 *     error?).
 */
 
-Loop_1020:
+/* Loop_1020: */
 	for (i=0; i < np1; i++) {		//  DO i=1,np1,1
 	  for (j=0; j < nop; j++) {	//  DO j=1,nop,1
 	    f[j] = g[i][j];
@@ -3530,22 +3532,10 @@ Loop_1020:
           }
 	}					//  END DO Loop_1020
 
-        goto Line_1050;
-
-
-Loop_1030:
-	for (i=0; i < nop; i++) {		//  DO i=1,nop
-	  g[imax][i] = pstar[i];
-	}					//  END DO Loop_1030
-        h[imax] = hstar;
-
 /*
-*     If LOOP=NLOOP, tests for convergence begin.  Otherwise
-*     computation goes back to the beginning of the basic loop.
+* End of the basic loop
 */
-
-Line_1050:
-	if (loop != nloop) goto Line_740;
+            }
 
 /*
 *   Tests for Convergence -
@@ -3642,13 +3632,12 @@ Loop_1080:
 
 /*
 *     If the standard deviation calculated above is not less than
-*     the criterion set (STOPC), IFLAG and LOOP are set to zero
-*     and the basic loop begins again.
+*     the criterion set (STOPC) and IFLAG are set to zero and the
+*     basic loop begins again.
 */
 	  if (hstd >= stopc) {
 	  iflag = 0;
-	  loop = 0;
-	  goto Line_740;
+	  continue;
 	}
 
 	if ((iprint == 1) && (jprint == 1)) {
@@ -3675,27 +3664,26 @@ Line_1210:
 	if (iflag <= 0) {
 	  iflag = 1;
 	  savemn = hmean;
-	  loop = 0;
-	  goto Line_740;
+	  continue;
 	}
 
 /*
 *     If IFLAG=1, the program tests if the change in the mean is
 *     less than the stopping criterion.  If it is, the process is
-*     said to have converged.  If not, IFLAG and LOOP are both set
-*     at zero and computation reverts to the start of the
-*     basic loop.  STOPC and TEST values tested empirically.
+*     said to have converged.  If not, IFLAG is set at zero and
+*     computation reverts to the start of the basic loop.  STOPC
+*     and TEST values tested empirically.
 */
 
 	if (hmean != 0) {
 	  test = savemn / hmean;
 	  if ((test <= 0.9999995) || (test >= 1.0000005)) {
 	    iflag = 0;
-	    loop = 0;
-	    goto Line_740;
+	    continue;
 	  }
 	}
-
+            continue_search = false;
+        }
 /*
 *     If JPRINT=1 the program prints out the results of each successful
 *     convergence on a minimum.
@@ -3792,13 +3780,12 @@ Line_1375:
 /*
 *     Loop 1410 now ends, returning calculations to the start until the
 *     maximum preset number of bootstraps (MAXJB) value is reached.
-*     LOOP is reset to zero to enable a new series of iterations in the
-*     basic loop to begin again, as are G[I][J] values.
+*     G[I][J] values are reset to zero to enable a new series of
+*     iterations in the basic loop to begin again.
 *
 */
 
 Line_1380:
-	loop = 0;
 	iflag = 0;
 	kprint = 0;
 
@@ -4204,14 +4191,15 @@ Line_1920:
 /*
 * And finally, write a file which tabulates observed and calculated frequencies.
 */
-    if (kdt > 1) {
-        // Possibly NCLASS should take this value when KDT >= 2, but as of v2.0
-        // intervals are computed all the way down to F(3)-STT
-        if ((kdt-stt) > 0 && clint > 0) {
-            params->results.num_intervals = ((kdt-stt) / clint);
+    double tr = clint*nclass + stt;
+    if (f[3] > thh) {
+        double model_limit = sqrt(f[3]*f[3] - thh*thh);
+        if (kdt > 1) {
+            model_limit = fmin(kdt, model_limit);
         }
-    } else {
-        params->results.num_intervals = nclass;
+        if (tr > model_limit) {
+            nclass = (model_limit - stt + clint) / clint;
+        }
     }
 
       if (kprint > 0) {
@@ -4227,7 +4215,7 @@ Line_1920:
 
               fprintf(output_graph, "      Midpt.   Calculated     Observed   \n");
 
-              for (int jv=0; jv < params->results.num_intervals; jv++) {
+              for (int jv = 0; jv < nclass; ++jv) {
                   fprintf(output_graph,
                           "     %7.1f      %7.2f       %6.1f    \n",
                           params->results.midpoints[jv],
@@ -4239,6 +4227,8 @@ Line_1920:
 
       }  /* end (kprint > 0) */
 
+      params->results.num_intervals = nclass;
+      params->results.km = km;
       params->results.estden = estden;
       params->results.sden = sden;
       params->complete = 1;
