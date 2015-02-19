@@ -1,7 +1,7 @@
 /*******************************************************************************
 *     PROGRAM WildlifeDensity
 *
-*     (File mnps2.c, Version 2.0b4)
+*     (File mnps2.c, Version 2.1.1)
 *
 *     This program is designed to return population density estimates
 *     from 'distance' data collected using either line transect or fixed
@@ -1307,30 +1307,32 @@ Case_GVF480:
 /* Line_570: */
 
 		case 1: {
-			dd = sqrt(thh*thh+dnr*dnr);
+            dd = sqrt(thh*thh+dnr*dnr);
 			dds = dd*dd;
 
 /*
-*     Visibility and audibility will be affected by topographical
-*     features in habitats where the ground is not level. The total
-*     probability of visibility at DD (VISDD) will be the product of
-*     the probability VEGDD that the animal is unobscured by
-*     vegetation at distance DD, and the probability TOPDD that it
-*     is unobscured by topography there.  VEGDD will be a function of
-*     d (VISDD=(1-Q)**DD), while TOPDD is approximated by the function
-*     TOPDD=(1-TCOV)**(DD-LTMIN)=(EXP(ln(0.001)/(LTMAX-LTMIN)))**(DD-LTMIN).
-*     and VISDD=VEGDD*TOPDD.  A first step is to calculate TOPDD,
-*     provided that LTMIN is not a very large value or d is
-*     currently less than LTMIN.  [If LTMIN is set at 999 or higher,
-*     topography is assumed not to affect detectability, so TOPDD is set
-*     at 1 and TCOV is zero.  If DD is less than LTMIN, topography is
-*     also assumed not to affect detectability, so TOPDD is again set at
-*     1.]
+*      Visibility will be affected not only by lateral vegetation cover but
+*      by topographical features too in habitats where the ground is not
+*      level. The overall probability of visibility at any distance DD
+*      greater than DTMIN (LTMIN) will then be the product (VISDD) of the
+*      probability VEGDD that it is unobscured by vegetation and the
+*      probability TOPDD that it is also unobscured by topography.  Thus
+*      VISDD = VEGDD*TOPDD.  VEGDD is a function of d (VEGDD=(1-Q)**DD)
+*      and is calculated at Line_630.
+*      A first step in calculating TOPDD is to compute the topographical
+*      cover value TCOV from the minimum obscuring distance LTMIN
+*      supplied to the program.  This is done after Loop_210 in
+*      Subroutine calculate_density.
+*      The second step is to calculate TOPDD, provided that DD lies
+*      between LTMIN and RMAX.  (If it lies outside those limits,
+*      topography will have no effect on visibility, so TCOV is then set
+*      equal to 1.) Otherwise TOPDD = EXP(TCOV*(DD-LTMIN)).
 */
-			if ((ltmin < 999) && (dd >= ltmin)) {
-			    topdd = pow((1-tcov),(dd-ltmin));
-			} else {
+        
+			if ((ltmin = 999) || (dd < ltmin) || (ltmax < ltmin)) {
 			    topdd = 1.0;
+			} else {
+                topdd = exp(tcov*(dd-ltmin));
 			}
 
 /*
@@ -3023,18 +3025,19 @@ Loop_210:
 
 /*
 *
-*     The program now calculates a topographical cover value
+*     The program calculates a topographical cover value
 *     (TCOV).  If the topography is effectively level (LTMIN=999)
 *     or the value of f[3] is less than the LTMIN value supplied,
 *     then TCOV is set at zero and topography has no effect on
-*     computation of the model.  Otherwise, if LTMAX and LTMIN
+*     computation of the model.  Otherwise, if LTMIN
 *     values are supplied, a TCOV value is calculated.
+*     TCOV=ln(0.001)/RMAX-LTMIN) = -6.9078/(RMAX-LTMIN)).
 */
 	
       ltmax = f[3];
 
       if ((ltmin < 999) && (ltmax > ltmin)) {
-         tcov = 1 - (exp(log(1.0/nvals)/(ltmax-ltmin)));
+         tcov = -6.9078/(ltmax - ltmin);
        } else {
          tcov = 0.;
       }
