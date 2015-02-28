@@ -224,7 +224,10 @@
 
 - (BOOL)f3Enabled
 {
-    return ([document iry] < 2);
+    // f3Enabled was a mistaken understanding of how agressively MNPS overwrites the Maximum detection distance
+    // - to be removed the next time we update the NIB. f3 will be computed if it is zero, but otherwise MNPS
+    // will use it as provided.
+    return YES;
 }
 
 -(void)updateTableColumns
