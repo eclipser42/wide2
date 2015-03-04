@@ -21,6 +21,7 @@ typedef struct {
 typedef struct {
     int nvals,ifx,iry,ns,km,kdt;
     int iprint,jprint,ishow,maxjb;
+    bool manual_options;
     double durn,rate,clint,stt,dist,thh,ltmin,vgh,pd,ps,f[NUM_SHAPE_PARAMS];
     double step[NUM_SHAPE_PARAMS], r[MAX_OBSERVATIONS];
     int nsize[MAX_OBSERVATIONS];
