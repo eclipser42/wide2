@@ -2558,7 +2558,7 @@ Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 *
 */
 
-      if (f[3] == 0) {
+      if (!params->manual_options || f[3] == 0) {
         float rltot, rlsum, rlsd, rlf4;
         double t001;
 

@@ -13,6 +13,9 @@
 #import "Foundation/NSFileManager.h"
 #import <unistd.h>
 
+#define kIMV_Present       1024
+#define kIMV_ManualOptions 2048
+
 @implementation Observation
 - (double)distance                        { return distance; }
 - (void)setDistance:(double)newDistance   { distance = newDistance; }
@@ -120,7 +123,8 @@
     [contents appendFormat:@"%c%g, %d, %g, %g, %g, %g, %g%c", 10, params.stt, params.maxjb, params.clint, params.f[0], params.f[1], params.f[2], params.f[3], 10];
     [contents appendFormat:@"%g, %g, %g%c", params.step[0], params.step[1], params.step[2], 10];
     [contents appendFormat:@"%d, %d, %d%c", params.iprint, params.jprint, params.ishow, 10];
-    [contents appendFormat:@"%d, %g, %g%c", 0 /* imv */, 0.0 /* r3s */, params.step[3], 10];
+    int imv = kIMV_Present + (manualOptions ? kIMV_ManualOptions : 0);
+    [contents appendFormat:@"%d, %g, %g%c", imv, 0.0 /* r3s */, params.step[3], 10];
     return [contents dataUsingEncoding:NSUTF8StringEncoding];
 }
 
@@ -167,8 +171,8 @@
         [observation release];
     }
     // If possible, interpret IMV value as manualOptions but in older datasets, deduce manualOptions
-    if (imv >= 1024) {
-        manualOptions = ((imv & 2048) != 0);
+    if (imv >= kIMV_Present) {
+        manualOptions = ((imv & kIMV_ManualOptions) != 0);
     } else {
         manualOptions = ((params.step[0] != 0) || (params.step[1] != 0) || (params.step[2] != 0));
     }
@@ -614,6 +618,12 @@
 {
     [[[self undoManager] prepareWithInvocationTarget:self] setClint:params.clint];
     params.clint = clint;
+}
+
+- (void)setManualOptions:(BOOL)newManualOptions;
+{
+    [[[self undoManager] prepareWithInvocationTarget:self] setManualOptions:manualOptions];
+    manualOptions = newManualOptions;
 }
 
 - (double)f0
