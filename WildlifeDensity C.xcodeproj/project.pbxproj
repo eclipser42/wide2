@@ -46,7 +46,7 @@
 		420B007106C6EED000695CAB /* Density.h */ = {isa = PBXFileReference; fileEncoding = 7; lastKnownFileType = sourcecode.c.h; path = Density.h; sourceTree = "<group>"; };
 		420B007206C6EED000695CAB /* Density.m */ = {isa = PBXFileReference; fileEncoding = 7; lastKnownFileType = sourcecode.c.objc; path = Density.m; sourceTree = "<group>"; };
 		422BF474074B760D00FE654A /* WildlifeDensity Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "WildlifeDensity Icon.icns"; sourceTree = "<group>"; };
-		4231405213979E30000F35F7 /* mnps2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mnps2.c; sourceTree = "<group>"; };
+		4231405213979E30000F35F7 /* mnps2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mnps2.c; sourceTree = "<group>"; tabWidth = 8; };
 		4295D9CA06C73467005558C3 /* mnps2.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = mnps2.h; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* WildlifeDensity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WildlifeDensity.app; sourceTree = BUILT_PRODUCTS_DIR; };

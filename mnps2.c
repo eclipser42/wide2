@@ -2731,12 +2731,12 @@ Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
             f[3] *= 1000;
 	  }
         }
+        fprintf(output_results," Total time spent =%7.1f min.\n", durn);
       }
 
       estdmax = f[3];
 
 Line_90:
-      fprintf(output_results," Total time spent =%7.1f min.\n", durn);
       fprintf(output_results," Overall population movement rate =%4.1f m/min.\n", rate);
 
       if (ltmin < 999) {
