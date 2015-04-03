@@ -72,6 +72,17 @@
     [self didChangeValueForKey:@"maximumClassDistance"];
 }
 
+#pragma mark Key-Value Coding
+
+- (void)setNilValueForKey:(NSString *)key
+{
+    if ([key isEqualToString:@"maximumClassDistance"]) {
+        [self setValue:[NSNumber numberWithInt:2] forKey:key];
+    } else {
+        [self setValue:[NSNumber numberWithInt:0] forKey:key];
+    }
+}
+
 - (int)censusType
 {
     if ([document ifx]) {
@@ -115,6 +126,7 @@
     } else if ([document kdt] == 1) {
         return 1;
     } else {
+        // TODO: [doc kdt] should instead be in (int)maximumClassDistance
         maximumClassDistance = [document kdt];
         return 2;
     }

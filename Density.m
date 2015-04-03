@@ -317,6 +317,18 @@
     }
 }
 
+#pragma mark Key-Value Coding
+
+- (void)setNilValueForKey:(NSString *)key
+{
+    if ([key isEqualToString:@"header"]) {
+        [self setValue:@"" forKey:key];
+    } else {
+        // Integer zero evidently works fine for Double quantities
+        [self setValue:[NSNumber numberWithInt:0] forKey:key];
+    }
+}
+
 #pragma mark Key-Value Observing
 
 // Wrap [NSObject setValue:forKey:] in a name that can be captured by [NSUndoManager forwardInvocation:]
