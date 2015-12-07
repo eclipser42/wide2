@@ -507,7 +507,6 @@
 #include "mnps2.h"
 
 FILE *output_results = NULL;
-FILE *output_graph = NULL;
 
 
 /*
@@ -679,6 +678,368 @@ void freq_distrib(int nclass, double stt, double clint, int nvals, int kdt, floa
             val[ic] += nsize[irb];
         }
     }					//  END DO irb
+}
+
+
+/*******************************************************************************
+ *
+ *       SELECT_SEARCH_PARAMETERS     Calculate parameters to use for the density calculation
+ *
+ *       Inputs: most values from the GUI are considered
+ *
+ *       Outputs: NUMA, VAL, NCLASS, NGROUPS, STT, CLINT, ESTJ - as described above
+ *                NUMO     - counted if ABSOLUTE_DISTANCES is false
+ *                DISTANCE - distance to observed groups, corrected to metres if entered in km
+ *                F, STEP  - start point and step size for the search
+ *
+ *******************************************************************************/
+
+search_params select_search_parameters(calc_params *params, search_params *result)
+{
+    result->f[0] = params->enteredValue[0];
+    result->f[1] = params->enteredValue[1];
+    result->f[2] = params->enteredValue[2];
+    /*
+     *     If no value of the maximum detection distance F[3] has been
+     *     entered (i.e. f[3]=0), and radial detection distances are
+     *     provided in the data, an estimated maximum distance is
+     *     calculated based on the assumption that the logarithm of
+     *     the radial detection distance r is distributed according
+     *     to a normal distribution, with a maximum value at the
+     *     mean + (t.001 x s.d.), which matches observed values from
+     *     large data sets.  This is calculated, then a back-transformation
+     *     undertaken to give an F[3] value.
+     *
+     *     If f[3]=0 and only perpendicular distance data are supplied,
+     *     the logarithms of the calculated perpendicular distances are
+     *     assumed to follow a half-normal distribution (a special case of
+     *     the folded normal distribution with a mean of zero). Its maximum
+     *     value is then estimated as (t.001 x s.d.), where s.d. is the
+     *     standard deviation of the half-normal distribution.  If only
+     *     perpendicular distances are supplied AND a maximum class boundary
+     *     distance has been set which is within the observed distribution,
+     *     f[3] should NOT be set at 0 but given an approximate (maximum)
+     *     value instead.
+     *
+     */
+
+    if (params->enteredValue[3] == 0) {
+        int numgra = 0;
+        float rltot = 0, rlsum = 0;
+        double t001 = 3.33256 + 33.0731/pow(params->nvals, 1.39337);
+
+        if (params->iry < 2) {
+
+            /*
+             *     This option handles all situations with radial data supplied.
+             *     The first step is to calculate a logarithmic detection distance
+             *     total RLTOT, then a logarithmic mean value RLMEAN, using data
+             *     from ahead of the observer only.
+             */
+
+            for (int ih=0; ih < params->nvals; ih++) {
+                if (params->r[ih] > 0) {
+                    rltot += log(params->r[ih]+1);
+                    numgra++;
+                }
+            }
+
+            float rlmean = rltot/numgra;
+
+            /*
+             *     A standard error of the logarithmic r (RLSD) is now calculated,
+             *     followed by the estimated logarithmic maximum distance RLF4,
+             *     which is then backtransformed to give an F[3] value.
+             */
+
+            for (int ih=0; ih < params->nvals; ih++) {
+                if (params->r[ih] > 0) {
+                    float tmp = log(params->r[ih] + 1) - rlmean;
+                    float rdifsq = (tmp * tmp) / (numgra - 1);
+                    rlsum += rdifsq;
+                }
+            }
+
+            float rlsd = sqrt(rlsum);
+            float rlf4 = rlmean + t001*rlsd;
+
+            result->f[3] = exp(rlf4) - 1;
+        }
+
+        else if (params->iry == 2) {
+
+            /*
+             *   The following option is used only if recalculated perp. data have been
+             *   supplied to the program (iry == 2).  It involves normalising their
+             *   distribution by square root transformation, estumating the standard
+             *   deviation of the half-normal distribution, with Bessel's correction,
+             *   multiplying it by the 0.001 value of Student's t, then back-transforming
+             *   by squaring.  The first step is to sum the absolute perpendicular distance
+             *   values in Loop_43, then calculate the Bessel-corrected mean of these
+             *   distances, and finally estimate the maximum detection distance by squaring
+             *   the result.
+             */
+
+            for (int ih=0; ih < params->nvals; ih++) {
+                rlsum += fabs(params->r[ih]);
+            }
+
+            float rlsd = sqrt(rlsum/(params->nvals-1));
+            float rlf4 = rlsd*t001;
+            result->f[3] = rlf4 * rlf4;
+        }
+        
+    }  /* end if (f[3] == 0) */
+
+    else {
+        result->f[3] = params->enteredValue[3];
+    }
+
+    /*
+     *     If a value of either the maximum detection distance F[3]
+     *     or the maximum of the selected interval KDT has been
+     *     entered as more than 80 times the class interval, CLINT is
+     *     reset at (F[3]-STT or KDT-STT)/80 to avoid computation problems.
+     */
+
+    result->clint = params->clint;
+    if (params->kdt <= 1) {
+        if (result->f[3] > (MAX_INTERVALS * params->clint)) {
+            result->clint = (result->f[3] - params->stt) / MAX_INTERVALS;
+        }
+    } else {
+        if (params->kdt <= result->f[3]) {
+            if ((params->kdt - params->stt) > (MAX_INTERVALS * params->clint)) {
+                result->clint = (params->kdt - params->stt) / MAX_INTERVALS;
+            }
+        } else {
+            if (result->f[3] > (MAX_INTERVALS * params->clint)) {
+                result->clint = (result->f[3] - params->stt) / MAX_INTERVALS;
+            }
+        }
+    }
+
+    for (int ih = 0; ih < params->nvals; ih++) {
+        result->distance[ih] = params->r[ih];
+    }
+    if (params->ifx == 0 && params->km > 0) {
+        /* Transect lengths have been expressed in kilometres. Convert to metres */
+
+        // dist *= 1000;
+        if ((params->km == 2) && (result->f[3] > 0)) {
+            result->f[3] *= 1000;
+            /*
+             *     If detection distances were entered in kilometres (km=2),
+             *     then these distances are also converted to metres.
+             */
+
+            for (int ih = 0; ih < params->nvals; ih++) {
+                result->distance[ih] *= 1000;
+            }
+        }
+    }
+    
+    /*
+     *     Case_150 treats the situation where calculations are to be based
+     *     on perpendicular distances (y) from the transect line, and the
+     *     data supplied are either radial distances and angles, indicated
+     *     by IRY=1, or pre-calculated perpendicular distances, indicated
+     *     by IRY=2.  If IRY=2, distances entered as r(in) are reassigned
+     *     as y(in) values.  If IRY=1, perpendicular distances are
+     *     calculated from distances and lateral angles using trigonometry.
+     *     With both situations, any angle data supplied as negative numbers
+     *     (e.g. those to the left of a transect line) are converted to
+     *     positive and pooled with the remainder.
+     *     If calculations are to be based on radial detection distances,
+     *     and radial distances only are supplied (IFX=0), no changes are
+     *     made (either by calculation or reassignment).
+     *     If a radial distance value of precisely zero (r==0) was supplied
+     *     to the program in the Observations, then each such value will be
+     *     recognized as an ‘overtake’ at a later point in the program.
+     */
+    
+Case_150:
+    switch(params->iry) {
+            
+        case 2:
+            /*
+             *     If perp. distance data were entered as r values (IRY=2), they
+             *     are renamed as y values at this stage, unless r=0
+             *     when they are 'overtakes' and omitted.  Negative y values
+             *     submitted to the program (as negative r value) are
+             *     converted to positive and pooled with the rest.
+             */
+Loop_190:
+            for (int in = 0; in < params->nvals; in++) {
+                result->distance[in] = fabsf(result->distance[in]);
+            }
+            break;
+            
+            
+        case 1:
+            /*
+             *     For IRY=1, perpendicular distances are calculated from radial
+             *     distances and lateral observing angles.
+             */
+Loop_150:
+            for (int in = 0; in < params->nvals; in++) {
+                result->distance[in] = fabs(result->distance[in] * sin((params->angle[in] * 3.14159265) / 180.));
+            }
+            break;
+
+
+        default:
+            /*
+             *     If IFX=0, no reassignment is needed.
+             */
+            break;
+            
+    } /* switch */
+    
+    /*
+     *     NCLASS is the number of distance classes in the selected range.
+     *     0.49 is added to avoid counting errors due to 'chopping'.
+     */
+
+    result->nclass = ((result->f[3] - params->stt) / result->clint) + 0.49;
+    if (result->nclass > MAX_INTERVALS)
+        result->nclass = MAX_INTERVALS;
+
+    /*
+     *     The program now computes the first distribution of the numbers
+     *     detected within each class interval, based on the detection
+     *     distances (R[IN]), the numbers in each group (NSIZE[IN]) and
+     *     the class interval (CLINT) preset in the input.
+     *
+     *     In subsequent runs through Loop 1410, bootstrapping applies
+     *     (JBSTP=1) and a bootstrapped distribution is used instead.
+     *
+     *     The number detected within each class (VAL[IC]), is the sum of the
+     *     numbers in each class in which the R[IN] or Y[IN] values fall.
+     *     Calculating the various VAL[IC] values first requires
+     *     finding which R[IN] or Y[IN] values fall within the interval
+     *     concerned, then adding all the NSIZE[IN] values which fall
+     *     within that class.  This will be done for each class interval
+     *     in turn, beginning with the calculation of VAL[0] for the
+     *     nearest class to r=0 or STT or y=0 or STT.  If a minimum value in the
+     *     range (STT) has been specified, or a maximum value for r or y of KDT
+     *     (>1), the program also computes the number of data clusters (NOTIN)
+     *     below STT and above KDT and subtracts it from NVALS to give the
+     *     correct magnitude of NVALS for use in later calculations.
+     */
+    
+    freq_distrib(result->nclass, params->stt, result->clint, params->nvals, params->kdt, result->distance, false,
+                 params->nsize, &result->numa, &result->numo, result->val, &result->ngroups);
+
+    result->step[0] = params->enteredStep[0];
+    result->step[1] = params->enteredStep[1];
+    result->step[2] = params->enteredStep[2];
+
+    /*
+     *     Unless the number of iterations has been set at 1 and bottom option 3 has not
+     *     been selected, the Line_100 sequence computes revised initial estimates of the
+     *     parameters ‘a’‘c’ and ‘D’, together with initial step sizes for them,
+     *     f[2] using a detectability coefficient estimate (ests), whenever the
+     *     number of evaluations (MAXJB) is set above 1 and the initial step
+     *     size for either or both of f[0] or f[1] is set at zero or all step sizes
+     *     are set at zero.
+     */
+    
+Line_100:
+    if  ((params->maxjb > 1) && (params->ishow == 0))      {
+        double estdmax = result->f[3];
+        double ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ;
+
+        /* True if either or both of the initial step sizes are zero, so also
+         * true if all three initial step sizes are zero */
+        bool stepSizeIsZero = ((params->enteredStep[0] == 0) || (params->enteredStep[1] == 0));
+        if ((params->nvals < 250) || stepSizeIsZero) {
+            result->f[0] = pow((2.618 * estdmax) + 24.833, 0.333) ;
+            result->f[1] = 34.4294 * pow(estdmax, -1.35094) ;
+        }
+        
+        /*
+         *     Computation of an initial values for f[2] and step[2] depends on whether
+         *     line transect data (ifx=0) or fixed point (ifx=1) data are provided.
+         *
+         */
+        if (params->ifx == 0) {
+            /*
+             *     The program now calculates the mean overall observer movement
+             *     rate (w) as OBSW=DIST/DURN (DIST in m and DURN in min), provided
+             *     that an DURN value has been entered and the data are from line
+             *     transects (IFX=0).  Also, k is defined as k=u/w (FNK=RATE/OBSW).
+             *     If not, this entire step is bypassed.
+             *
+             * Comment by J.Begg: in FORTRAN, dividing by 0 gives Infinity but this
+             * doesn't seem to be the case in C.  So the logic is extended to include
+             * a test for DURN=0 and set FNK accordingly.  (Note that OBSW is not used
+             * for any purpose other than to calculate FNK.)
+             */
+            double fnk;
+            if (params->durn <= 0) {
+                fnk = 0;
+            }
+            else {
+                double obsw = params->dist/params->durn;
+                fnk = params->rate/obsw;
+            }
+            
+            /*
+             *     Assuming that the actual distance (and not LJ) has been
+             *     entered, the movement correction factor (J) is calculated
+             *     using an approximation.  Different approximations are used
+             *     if k=u/w is less than or greater than 5.
+             */
+            if (fnk == 0) {
+                result->estj = 1;
+            } else if ((fnk > 0) && (fnk <= 1)) {
+                result->estj = 1.000 + (0.00495562*fnk) + (0.0995941*fnk*fnk) + (0.0324447*fnk*fnk*fnk);
+            } else if ((fnk > 1) && (fnk <= 5)) {
+                result->estj = 1.0051 - (0.0212978*fnk) + (0.0002868*fnk*fnk)  + (0.279106*fnk*fnk*fnk)
+                - (0.12982*fnk*fnk*fnk*fnk) + (0.0234994*fnk*fnk*fnk*fnk*fnk) - (0.00153274*fnk*fnk*fnk*fnk*fnk*fnk) ;
+            } else {
+                result->estj = 0.8183*fnk;
+            }
+            result->f[2] = (1.e4 * (result->numa + result->numo)) / (params->ns * params->dist * result->estj * params->pd * ests);
+            result->step[2] = 0.5 * result->f[2];
+        }
+        else if (params->ifx == 1)   {
+            result->f[2] = (1.e4 * (result->numa + result->numo)) / (2 * params->rate * params->durn * params->ps * params->pd * ests);
+            result->step[2] = 0.5 * result->f[2];
+        }
+        
+        
+        /*
+         * Revised initial step sizes are now set for the other parameters, initial
+         * conspicuousness being preset in the case of smaller samples (<250).
+         */
+        if (result->step[0] == 0.0) {
+
+            if  ( (params->nvals >= 250) && (result->step[1] > 0) )  {
+                result->step[0] = (0.3 * result->f[0]) ;
+            } else {  // nvals < 250
+                result->step[0] = 0.0 ;
+            }
+            result->step[1] = result->f[1] ;
+            result->step[2] = (0.5 * result->f[2]) ;
+
+        }
+        else if (result->step[0] > 0.0) {
+
+            if  ( (params->nvals < 250) && (result->step[1] > 0) )  {
+                result->step[0] = 0.0 ;
+            } else {  // nvals >= 250
+                result->step[0] = (0.3 * result->f[0]) ;
+            }
+            if  ( result->step[1] > 0 )  {
+                result->step[1] = result->f[1] ;
+            } else {
+                result->step[1] = 0.0 ;
+            }
+            result->step[2] = (0.5 * result->f[2]) ;
+        }
+    }
 }
 
 
@@ -922,8 +1283,6 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     to the proportion of the direct-line distance potentially
 *     obscured by that ground vegetation.
 */
-/* Line_180: */
-      // if (kdt == 1) goto Line_230;	/* JMB: This test will always be false because of the test at Line_160 */
 /* Line_190: */
 
       if (vgh > 0) {
@@ -1395,7 +1754,7 @@ Line_680:
 	    }
 
 /*
-*     PRR is the product of PRC=g(r) and the arc of width CINT=\u2206r.
+*     PRR is the product of PRC=g(r) and the arc of width CINT=∆r.
 */
 	    prr = prc*cint;
 
@@ -1413,10 +1772,10 @@ Line_710:
 	    if ((dnr >= ermax) && (dnr >= rmax)) prr = 0.0;
 
 /*
-*     E [= \u2206r.g(r).Q(r)] is calculated by multiplying
+*     E [= ∆r.g(r).Q(r)] is calculated by multiplying
 *     together the probability of detection in the arc [PRC=g(r)]
 *     and the probability [Q(r)] that an individual is still
-*     available for detection in that arc. TOTE [=\u2211(\u2206r.g(r).Q(r))] is
+*     available for detection in that arc. TOTE [=∑(∆r.g(r).Q(r))] is
 *     the accumulating probability density function.
 */
 Line_720:
@@ -1427,7 +1786,7 @@ Line_720:
 *     The subroutine now calculates the number of detections (ED)
 *     expected for radial, fixed-point and perpendicular distance data.
 *     For radial data, computation is based on the assumption
-*     that the arc of radius r and width \u2206r sweeps over
+*     that the arc of radius r and width ∆r sweeps over
 *     a series of plots of unit area.  The total number of detections
 *     expected in such a plot will be [plot area] x [apparent density]
 *     x [probability of detection].
@@ -1437,7 +1796,7 @@ Line_720:
 *     CINT units wide at a perpendicular distance y=r from the
 *     transect line.  Because there are one or two such strips, each
 *     L times the area of the individual plot at distance r,
-*     the expected no. = \u2206r x [DxNsxLJ=d2l] x \u2206r x g(r) x Q(r).
+*     the expected no. = ∆r x [DxNsxLJ=d2l] x ∆r x g(r) x Q(r).
 *     NS has already been converted to a floating-point number (SNS).
 */
 	    if ((ifx == 0) && (iry >= 1)) {
@@ -1448,14 +1807,14 @@ Line_720:
 *     area L units long and 2r units wide, within which there are
 *     2r/CINT x L individual plots at radial distance r.  Thus the
 *     expected total number detected  =  [number expected in one
-*     plot]x[number of plots]=[DxNsxLJ=d2l] x r x \u2206r x g(r) x Q(r).
+*     plot]x[number of plots]=[DxNsxLJ=d2l] x r x ∆r x g(r) x Q(r).
 */
 	    } else if ((ifx == 0) && (iry < 1)) {
 		ed = d2l*e*dnrh;
 
 /*
 *     With fixed-point data, the expected total number detected
-*     = [2ut(=D2LxPd)] x Ps x r x \u2206r x g(r) x Q(r).
+*     = [2ut(=D2LxPd)] x Ps x r x ∆r x g(r) x Q(r).
 */
 	    } else {
 		ed = d2l*e*dnrh;
@@ -2397,27 +2756,26 @@ void calculate_density (calc_params *params
 /*
 *     The variables declared below are in rough alphabetical order
 */
-	
+
       int nsize[MAX_OBSERVATIONS], nbsz[MAX_OBSERVATIONS];
       int bootstrap;
       int i, ia, ie, iflag, ifx, ig, ih;
       int imv, in, iprint, irow, iry, iseed, ishow;
-      int j, jprint, jv, k, kdt, km, kprint, max;
+      int j, jprint, jv, kdt, km, kprint, max;
       int maxjb, mfail, msfail, mtest, nap, neval, ngroups;
       int nloop, nop, np1, ns, numa, numest, numo, nclass;
-      int numoin, numain, nvals, numgra;
+      int numoin, numain, nvals;
       bool iqsf;
       double a, approx, b, c, cf1dif, cf1sum, cf2dif, cf2sum;
       double cf3dif, cf3sum, clint, coeffnt1, coeffnt2;
       double coeffnt3, dcoeff, dendif, dist, dsum, s;
-      double estden, estj, fnk, func, hmean;
-      double hstar, hstd, hstst, durn, ltmin, ltmax, obsw;
+      double estden, func, hmean;
+      double hstar, hstd, hstst, durn, ltmin, ltmax;
       double pd, ps, rate, savemn, scf1, scf2, scf3;
       double sden, sns, stopc, stt, test, tcoeff1, tcoeff2;
       double tcoeff3, tcov, tden, thh, vgh, /*dmax, */ t05;
       float estdmax, ttrden, ttrdenmn, tdsum, tdendif, strden, t,tcl1,tcl2,cl1,cl2;
-      float r[MAX_OBSERVATIONS], resamp_dist[MAX_OBSERVATIONS], y[MAX_OBSERVATIONS];
-      float angle[MAX_OBSERVATIONS], trden[5000];
+      float resamp_dist[MAX_OBSERVATIONS], trden[5000];
       double val[80], valt[80];
       double g[21][20], step[NUM_SHAPE_PARAMS], stept[NUM_SHAPE_PARAMS], f[NUM_SHAPE_PARAMS], ft[NUM_SHAPE_PARAMS];
       double h[21], pbar[20], pstar[20], pstst[20];
@@ -2491,14 +2849,17 @@ void calculate_density (calc_params *params
       }
 
 /*
-*  Copy model parameter values and step sizes
+*  Initialize model parameter values and step sizes
 */
-	
+      search_params start = {0};
+      select_search_parameters(params, &start);
+
 Loop_10:
       for (ig=0; ig < nop; ig++) {    		//  DO ig=1,nop
-        f[ig] = params->f[ig];
-        step[ig] = params->step[ig];
+        f[ig] = start.f[ig];
+        step[ig] = start.step[ig];
       }						//  END DO Loop_10
+      clint = start.clint;
 
 /*
 *     Care is required to ensure that the group size data is submitted
@@ -2508,19 +2869,8 @@ Loop_10:
 	
 Loop_20:
       for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
-        r[ih] = params->r[ih];
         nsize[ih] = params->nsize[ih];
       }						//  END DO Loop_20
-
-/*
-*     The same requirement applies to data on observing angles.
-*/
-	
-      if (iry<2) {
-Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
-          angle[ih] = params->angle[ih];
-        }					//  END DO Loop_30
-      }
 
 /*
 *  Create the output file
@@ -2533,128 +2883,6 @@ Loop_30: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 	perror("Could not open outfile");
 	return;
       }
-
-/*
-*     If no value of the maximum detection distance F[3] has been
-*     entered (i.e. f[3]=0), and radial detection distances are
-*     provided in the data, an estimated maximum distance is
-*     calculated based on the assumption that the logarithm of
-*     the radial detection distance r is distributed according
-*     to a normal distribution, with a maximum value at the
-*     mean + (t.001 x s.d.), which matches observed values from
-*     large data sets.  This is calculated, then a back-transformation
-*     undertaken to give an F[3] value.
-*
-*     If f[3]=0 and only perpendicular distance data are supplied,
-*     the logarithms of the calculated perpendicular distances are
-*     assumed to follow a half-normal distribution (a special case of
-*     the folded normal distribution with a mean of zero). Its maximum
-*     value is then estimated as (t.001 x s.d.), where s.d. is the
-*     standard deviation of the half-normal distribution.  If only
-*     perpendicular distances are supplied AND a maximum class boundary
-*     distance has been set which is within the observed distribution,
-*     f[3] should NOT be set at 0 but given an approximate (maximum)
-*     value instead.
-*
-*/
-
-      if (f[3] == 0) {
-        float rltot, rlsum, rlsd, rlf4;
-        double t001;
-
-        dmaxIsPreset = false;
-        rltot = 0.0;
-        rlsum = 0.0;
-        numgra = 0;
-        t001 = 3.33256 + 33.0731/pow(nvals, 1.39337);
-
-        if (iry < 2) {
-
-/*
-*     This option handles all situations with radial data supplied.
-*     The first step is to calculate a logarithmic detection distance
-*     total RLTOT, then a logarithmic mean value RLMEAN, using data
-*     from ahead of the observer only.
-*/
-			
-Loop_40:  for (ih=0; ih < nvals; ih++) {	//  DO ih=1,nvals
-            if (r[ih] > 0) {
-              rltot += log(r[ih]+1);
-              numgra++;
-            }
-          }					//  END DO Loop_40
-
-          float rlmean = rltot/numgra;
-
-/*
-*     A standard error of the logarithmic r (RLSD) is now calculated,
-*     followed by the estimated logarithmic maximum distance RLF4,
-*     which is then backtransformed to give an F[3] value.
-*/
-			
-Outer_45: for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
-            if (r[ih] > 0) {
-	      float tmp = log(r[ih]+1) - rlmean;
-              float rdifsq = (tmp*tmp)/(numgra-1);
-              rlsum += rdifsq;
-            }
-          }						//  END DO Outer_45
-
-          rlsd = sqrt(rlsum);
-          rlf4 = rlmean + t001*rlsd;
-
-          f[3] = exp(rlf4) - 1;
-
-        }
-
-	else if (iry==2) {
-
-/*
-*   The following option is used only if recalculated perp. data have been
-*   supplied to the program (iry == 2).  It involves normalising their 
-*   distribution by square root transformation, estumating the standard
-*   deviation of the half-normal distribution, with Bessel's correction,
-*   multiplying it by the 0.001 value of Student's t, then back-transforming
-*   by squaring.  The first step is to sum the absolute perpendicular distance
-*   values in Loop_43, then calculate the Bessel-corrected mean of these
-*   distances, and finally estimate the maximum detection distance by squaring 
-*   the result.
-*/
-
-Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
-            rlsum += abs(r[ih]);
-          }						//  END DO Loop_43
-
-          rlsd = sqrt(rlsum/(nvals-1));
-          rlf4 = rlsd*t001;
-          f[3] = rlf4 * rlf4;
-
-        }
-
-      }  /* end if (f[3] == 0) */
-
-/*
-*     If a value of either the maximum detection distance F[3]
-*     or the maximum of the selected interval KDT has been
-*     entered as more than 80 times the class interval, CLINT is
-*     reset at (F[3]-STT or KDT-STT)/80 to avoid computation problems.
-*/
-
-    if (kdt <= 1) {
-        if (f[3] > (80*clint)) {
-        	clint = (f[3]-stt)/80;
-      }
-    } else {
-        if (kdt <= f[3]) {
-            if ((kdt-stt) > (80*clint)) {
-                clint = (kdt-stt)/80;
-            }
-        } else {
-            if (f[3] > (80*clint)) {
-                clint = (f[3]-stt)/80;
-            }
-      }
-    }
 
 /*
 *     The header line now begins the program output.
@@ -2727,9 +2955,6 @@ Loop_43:  for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
 	  /* Convert from km to metres */
 
 	  dist *= 1000;
-          if ((km == 2) && (f[3] > 0)) {
-            f[3] *= 1000;
-	  }
         }
         fprintf(output_results," Total time spent =%7.1f min.\n", durn);
       }
@@ -2749,161 +2974,18 @@ Line_90:
       fprintf(output_results, "\nOUTPUT:\n\n");
 
 /*
-*     If detection distances were entered in kilometres (km=2),
-*     then these distances are also converted to metres.
-*/
-	
-      if (km == 2) {
-Inner_96:
-	for (ih=0; ih < nvals; ih++) {		//  DO ih=1,nvals
-          r[ih] *= 1000;
-        }					//  END DO Inner_96
-      }
-
-/*
-*     The program now calculates the mean overall observer movement
-*     rate (w) as OBSW=DIST/DURN (DIST in m and DURN in min), provided
-*     that an DURN value has been entered and the data are from line
-*     transects (IFX=0).  Also, k is defined as k=u/w (FNK=RATE/OBSW).
-*     If not, this entire step is bypassed.
-*
-* Comment by J.Begg: in FORTRAN, dividing by 0 gives Infinity but this
-* doesn't seem to be the case in C.  So the logic is extended to include
-* a test for DURN=0 and set FNK accordingly.  (Note that OBSW is not used
-* for any purpose other than to calculate FNK.)
-*/
-
-      if ((durn >= 0) && (ifx == 0)) {
-	if (durn == 0) {
-	  fnk = 0;
-	}
-	else {
-	  obsw = dist/durn;
-	  fnk = rate/obsw;
-	}
-
-/*
-*     Assuming that the actual distance (and not LJ) has been
-*     entered, the movement correction factor (J) is calculated
-*     using an approximation.  Different approximations are used
-*     if k=u/w is less than or greater than 5.
-*/
-		  
-        if (fnk == 0) {
-           estj = 1;
-        } else if ((fnk > 0) && (fnk <= 1)) {
-           estj = 1.000 + (0.00495562*fnk) + (0.0995941*fnk*fnk) + (0.0324447*fnk*fnk*fnk);
-        } else if ((fnk > 1) && (fnk <= 5)) {
-           estj = 1.0051 - (0.0212978*fnk) + (0.0002868*fnk*fnk)  + (0.279106*fnk*fnk*fnk)
-                   - (0.12982*fnk*fnk*fnk*fnk) + (0.0234994*fnk*fnk*fnk*fnk*fnk) - (0.00153274*fnk*fnk*fnk*fnk*fnk*fnk) ;
-        } else {
-           estj = 0.8183*fnk;
-        }
-      }
-
-/*
-*     Case_150 treats the situation where calculations are to be based
-*     on perpendicular distances (y) from the transect line, and the
-*     data supplied are either radial distances and angles, indicated
-*     by IRY=1, or pre-calculated perpendicular distances, indicated
-*     by IRY=2.  If IRY=2, distances entered as r(in) are reassigned
-*     as y(in) values.  If IRY=1, perpendicular distances are
-*     calculated from distances and lateral angles using trigonometry.
-*     With both situations, any angle data supplied as negative numbers
-*     (e.g. those to the left of a transect line) are converted to
-*     positive and pooled with the remainder.
-*     If calculations are to be based on radial detection distances,
-*     and radial distances only are supplied (IFX=0), no changes are
-*     made (either by calculation or reassignment).
-*     If a radial distance value of precisely zero (r==0) was supplied
-*     to the program in the Observations, then each such value will be
-*     recognized as an ÔovertakeÕ at a later point in the program.
-*/
-
-Case_150:
-      switch(iry) {
-
-	case 2:
-/*
-*     If perp. distance data were entered as r values (IRY=2), they
-*     are renamed as y values at this stage, unless r=0
-*     when they are 'overtakes' and omitted.  Negative y values
-*     submitted to the program (as negative r value) are
-*     converted to positive and pooled with the rest.
-*/
-
-Loop_190:	for (in=0; in < nvals; in++) {		//  DO in=1,nvals
-		  y[in] = fabs(r[in]);
-		}					//  END DO Loop_190
-		break;
-
-
-	case 1:
-
-/*
-*     For IRY=1, perpendicular distances are calculated from radial
-*     distances and lateral observing angles.
-*/
-
-Loop_150:	for (in=0; in < nvals; in++) {		// DO in=1, nvals
-		  y[in] = fabs(r[in]*sin((angle[in]*3.14159265)/180.))+0.001;
-		}					// END DO Loop_150
-		break;
-
-
-	default:
-/*
-*     If IFX=0, no reassignment is needed.
-*/
-		break;
-
-      } /* switch */
-
-/*
 *     NCLASS is the number of distance classes in the selected range.
-*     0.49 is added to avoid counting errors due to 'chopping'.
 */
-
-    nclass = ((f[3]-stt)/clint)+0.49;
-    if (nclass > 80) nclass=80;
-
-/*
-*     The program now computes the first distribution of the numbers
-*     detected within each class interval, based on the detection
-*     distances (R[IN]), the numbers in each group (NSIZE[IN]) and
-*     the class interval (CLINT) preset in the input.
-*
-*     In subsequent runs through Loop 1410, bootstrapping applies
-*     (JBSTP=1) and a bootstrapped distribution is used instead.
-*
-*     The number detected within each class (VAL[IC]), is the sum of the
-*     numbers in each class in which the R[IN] or Y[IN] values fall.
-*     Calculating the various VAL[IC] values first requires
-*     finding which R[IN] or Y[IN] values fall within the interval
-*     concerned, then adding all the NSIZE[IN] values which fall
-*     within that class.  This will be done for each class interval
-*     in turn, beginning with the calculation of VAL[0] for the
-*     nearest class to r=0 or STT or y=0 or STT.  If a minimum value in the
-*     range (STT) has been specified, or a maximum value for r or y of KDT
-*     (>1), the program also computes the number of data clusters (NOTIN)
-*     below STT and above KDT and subtracts it from NVALS to give the
-*     correct magnitude of NVALS for use in later calculations.
-*/
-
-    if (iry > 0) {
-        freq_distrib(nclass, stt, clint, nvals, kdt, y, true, nsize,
-                     &numa, &numo, val, &ngroups);
-    } else {
-        freq_distrib(nclass, stt, clint, nvals, kdt, r, false, nsize,
-                     &numa, &numo, val, &ngroups);
-    }
+    stt = start.stt;
+    nclass = start.nclass;
+    ngroups = start.ngroups;
 
 /*
 *     The original values of NUMA and NUMO are retained (as NUMOIN
 *     and NUMAIN) so they can be printed in the output.
 */
-    numoin = numo;
-    numain = numa;
+    numoin = numo = start.numo;
+    numain = numa = start.numa;
 
 /*
  *     The frequency distribution of the original data is now saved,
@@ -2911,86 +2993,17 @@ Loop_150:	for (in=0; in < nvals; in++) {		// DO in=1, nvals
  */
 
     for (ig=0; ig < nclass; ig++) {		//  DO ig=1,nclass
-        valt[ig] = val[ig];
+        valt[ig] = val[ig] = start.val[ig];
     }
 
 /*
-*     Unless the number of iterations has been set at 1 and bottom option 3 has not
-*     been selected, the Line_100 sequence computes revised initial estimates of the 
-*	  parameters ‘a’‘c’ and ‘D’, together with initial step sizes for them, 
-*     f[2] using a detectability coefficient estimate (ests), whenever the
-*	  number of evaluations (MAXJB) is set above 1 and the initial step
-*	  size for either or both of f[0] or f[1] is set at zero or all step sizes
-*     are set at zero.
-*/
-
-Line_100:
-    if  ((maxjb > 1) && (ishow == 0))      {
-              /* True if either or both of the initial step sizes are zero, so also
-               * true if all three initial step sizes are zero */
-              bool stepSizeIsZero = ((step[0] == 0) || (step[1] == 0));
-              if ((nvals < 250) || stepSizeIsZero) {
-                  f[0] = pow((2.618*estdmax) + 24.833, 0.333) ;
-                  f[1] = 34.4294*pow(estdmax, -1.35094) ;
-              }
-
-/*
-*     Computation of an initial values for f[2] and step[2] depends on whether
-*	  line transect data (ifx=0) or fixed point (ifx=1) data are provided.  
-*
-*/
-              double ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ;
-              if (ifx == 0)	{
-                  f[2] = (1.e4*(numain + numoin)) / (ns*dist*estj*pd*ests);
-                  step[2] = 0.5*f[2];
-              }
-              else if (ifx == 1)   {
-                  f[2] = (1.e4*(numain + numoin)) / (2*rate*durn*ps*pd*ests);
-                  step[2] = 0.5*f[2];
-              }
-
-
-/*
-*
-*	  Revised initial step sizes are now set for the other parameters. initial
-*     conspicuousness being preset in the case of smaller samples (<250).
-*
-*/		
-              if ( step[0] == 0.0 )   {
-                  if  ( (nvals >= 250) && (step[1] > 0) )  {
-                      step[0] = (0.3*f[0]) ;
-                  } else {  // nvals < 250
-                      step[0] = 0.0 ;
-                  }
-                  step[1] = f[1] ;
-                  step[2] = (0.5*f[2]) ;
-              }
-              else if ( step[0] > 0.0 ) {
-                  if  ( (nvals < 250) && (step[1] > 0) )  {
-                      step[0] = 0.0 ;
-                  } else {  // nvals >= 250
-                      step[0] = (0.3*f[0]) ;
-                  }
-                  if  ( step[1] > 0 )  {
-                      step[1] = f[1] ;
-                  } else {
-                      step[1] = 0.0 ;
-                  }
-                  step[2] = (0.5*f[2]) ;          
-              }
-    }
-
-/*
-*              Line_100 ends
-*
-*
 *     For line transect data, the movement-corrected overall distance travelled (LJ) is
 *     now calculated, overriding the DIST value submitted originally.
 *     DURN and RATE are both set at 0 to avoid later computation problems.
 *     
 */
             if (ifx == 0)       {
-                dist *= estj;
+                dist *= start.estj;
                 durn = 0;
                 rate = 0;
             }
@@ -3165,7 +3178,7 @@ Line_370:
 Loop_370:
       for (in=0; in < nvals; in++) {		//  DO in = 1, nvals
 	if (iseed > 150000) iseed /= 100;
-	iseed += (r[in] * nsize[in] * 72493);
+        iseed += (params->r[in] * nsize[in] * 72493);
       }						//  END DO Loop_370
       srandnag(iseed);
 
@@ -3198,11 +3211,7 @@ Loop_1410:
 *     animals detected.  Loop 510 selects these values.
 *
 */
-              if (iry > 0) {
-                  resample (y, nsize, nvals, resamp_dist, nbsz);
-              } else {
-                  resample (r, nsize, nvals, resamp_dist, nbsz);
-              }
+              resample (start.distance, nsize, nvals, resamp_dist, nbsz);
               freq_distrib(nclass, stt, clint, nvals, kdt, resamp_dist, (iry > 0), nbsz,
                            &numa, &numo, val, &ngroups);
           }
@@ -3995,7 +4004,7 @@ Line_1468:
       fprintf(output_results, " Height Difference from Eyelevel = %5.1f m\n", thh);
 
       if (ifx == 0) {
-	fprintf(output_results, " Movement Correction Factor (J) = %6.3f\n", estj);
+        fprintf(output_results, " Movement Correction Factor (J) = %6.3f\n", start.estj);
       }
 
       if (ifx == 0) {
@@ -4206,8 +4215,7 @@ Line_1920:
     }
 
       if (kprint > 0) {
-
-          output_graph = fopen(graphfile, "w");
+          FILE *output_graph = fopen(graphfile, "w");
           if (output_graph == NULL) {
 
               perror("Error opening graph file \'%s\': ");
