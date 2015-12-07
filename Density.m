@@ -1114,9 +1114,9 @@
     NSString *resultsFile = [self resultsFileName];
     if ([[NSFileManager defaultManager] fileExistsAtPath:resultsFile]) {
         LSLaunchURLSpec viewerSpec;
-        OSStatus err = LSFindApplicationForInfo(kLSUnknownCreator, (__bridge CFStringRef)@"com.macromates.textmate", NULL, NULL, &viewerSpec.appURL);
+        OSStatus err = LSFindApplicationForInfo(kLSUnknownCreator, CFSTR("com.macromates.textmate"), NULL, NULL, &viewerSpec.appURL);
         if (err != noErr)
-            err = LSFindApplicationForInfo(kLSUnknownCreator, (__bridge CFStringRef)@"com.barebones.textwrangler", NULL, NULL, &viewerSpec.appURL);
+            err = LSFindApplicationForInfo(kLSUnknownCreator, CFSTR("com.barebones.textwrangler"), NULL, NULL, &viewerSpec.appURL);
         if (err != noErr)
             viewerSpec.appURL = (CFURLRef)[NSURL fileURLWithPath:@"/Applications/TextEdit.app"];
         viewerSpec.itemURLs = (CFArrayRef)[NSArray arrayWithObject:[NSURL fileURLWithPath:resultsFile]];
@@ -1133,7 +1133,7 @@
     NSString *graphFile = [self graphDataFileName];
     if ([[NSFileManager defaultManager] fileExistsAtPath:graphFile]) {
         CFURLRef plotURL;
-        OSStatus err = LSFindApplicationForInfo(kLSUnknownCreator, (__bridge CFStringRef)@"de.micw.plot", NULL, NULL, &plotURL);
+        OSStatus err = LSFindApplicationForInfo(kLSUnknownCreator, CFSTR("de.micw.plot"), NULL, NULL, &plotURL);
         if (err == noErr) {
             CFStringRef plotPath = CFURLCopyFileSystemPath(plotURL, kCFURLPOSIXPathStyle);
             char plotPathC[PATH_MAX + 1];
