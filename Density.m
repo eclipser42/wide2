@@ -1183,6 +1183,7 @@ double deg2rad(double deg) {
             ++i;
         }
     }
+    // somehow this always registers an undo action
     [[self undoManager] setActionName:@"Trim empty observations"];
     [self didChangeValueForKey:@"nvals"];
 

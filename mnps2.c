@@ -781,7 +781,7 @@ void select_search_parameters(calc_params *params, search_params *result)
              */
 
             for (int ih=0; ih < params->nvals; ih++) {
-                rlsum += fabs(params->r[ih]);
+                rlsum += fabsf(params->r[ih]);
             }
 
             float rlsd = sqrt(rlsum/(params->nvals-1));
@@ -935,6 +935,46 @@ Loop_150:
     result->step[1] = params->enteredStep[1];
     result->step[2] = params->enteredStep[2];
 
+    if (params->ifx == 0) {
+        /*
+         *     The program now calculates the mean overall observer movement
+         *     rate (w) as OBSW=DIST/DURN (DIST in m and DURN in min), provided
+         *     that an DURN value has been entered and the data are from line
+         *     transects (IFX=0).  Also, k is defined as k=u/w (FNK=RATE/OBSW).
+         *     If not, this entire step is bypassed.
+         *
+         * Comment by J.Begg: in FORTRAN, dividing by 0 gives Infinity but this
+         * doesn't seem to be the case in C.  So the logic is extended to include
+         * a test for DURN=0 and set FNK accordingly.  (Note that OBSW is not used
+         * for any purpose other than to calculate FNK.)
+         */
+        double fnk;
+        if (params->durn <= 0) {
+            fnk = 0;
+        }
+        else {
+            double obsw = params->dist/params->durn;
+            fnk = params->rate/obsw;
+        }
+        
+        /*
+         *     Assuming that the actual distance (and not LJ) has been
+         *     entered, the movement correction factor (J) is calculated
+         *     using an approximation.  Different approximations are used
+         *     if k=u/w is less than or greater than 5.
+         */
+        if (fnk == 0) {
+            result->estj = 1;
+        } else if ((fnk > 0) && (fnk <= 1)) {
+            result->estj = 1.000 + (0.00495562*fnk) + (0.0995941*fnk*fnk) + (0.0324447*fnk*fnk*fnk);
+        } else if ((fnk > 1) && (fnk <= 5)) {
+            result->estj = 1.0051 - (0.0212978*fnk) + (0.0002868*fnk*fnk)  + (0.279106*fnk*fnk*fnk)
+            - (0.12982*fnk*fnk*fnk*fnk) + (0.0234994*fnk*fnk*fnk*fnk*fnk) - (0.00153274*fnk*fnk*fnk*fnk*fnk*fnk) ;
+        } else {
+            result->estj = 0.8183*fnk;
+        }
+    }
+
     /*
      *     Unless the number of iterations has been set at 1 and bottom option 3 has not
      *     been selected, the Line_100 sequence computes revised initial estimates of the
@@ -964,43 +1004,6 @@ Line_100:
          *
          */
         if (params->ifx == 0) {
-            /*
-             *     The program now calculates the mean overall observer movement
-             *     rate (w) as OBSW=DIST/DURN (DIST in m and DURN in min), provided
-             *     that an DURN value has been entered and the data are from line
-             *     transects (IFX=0).  Also, k is defined as k=u/w (FNK=RATE/OBSW).
-             *     If not, this entire step is bypassed.
-             *
-             * Comment by J.Begg: in FORTRAN, dividing by 0 gives Infinity but this
-             * doesn't seem to be the case in C.  So the logic is extended to include
-             * a test for DURN=0 and set FNK accordingly.  (Note that OBSW is not used
-             * for any purpose other than to calculate FNK.)
-             */
-            double fnk;
-            if (params->durn <= 0) {
-                fnk = 0;
-            }
-            else {
-                double obsw = params->dist/params->durn;
-                fnk = params->rate/obsw;
-            }
-            
-            /*
-             *     Assuming that the actual distance (and not LJ) has been
-             *     entered, the movement correction factor (J) is calculated
-             *     using an approximation.  Different approximations are used
-             *     if k=u/w is less than or greater than 5.
-             */
-            if (fnk == 0) {
-                result->estj = 1;
-            } else if ((fnk > 0) && (fnk <= 1)) {
-                result->estj = 1.000 + (0.00495562*fnk) + (0.0995941*fnk*fnk) + (0.0324447*fnk*fnk*fnk);
-            } else if ((fnk > 1) && (fnk <= 5)) {
-                result->estj = 1.0051 - (0.0212978*fnk) + (0.0002868*fnk*fnk)  + (0.279106*fnk*fnk*fnk)
-                - (0.12982*fnk*fnk*fnk*fnk) + (0.0234994*fnk*fnk*fnk*fnk*fnk) - (0.00153274*fnk*fnk*fnk*fnk*fnk*fnk) ;
-            } else {
-                result->estj = 0.8183*fnk;
-            }
             result->f[2] = (1.e4 * (result->numa + result->numo)) / (params->ns * params->dist * result->estj * params->pd * ests);
             result->step[2] = 0.5 * result->f[2];
         }
@@ -3007,11 +3010,11 @@ Line_90:
       sns = ns;
 
       if (ifx == 0) {
-         f[2] = (sns*dist*pd*f[2])/1.e4;
-         step[2] = (sns*dist*pd*step[2])/1.e4;
+         f[2] *= (sns*dist*pd)/1.e4;
+         step[2] *= (sns*dist*pd)/1.e4;
       } else {
-         f[2]=(2.*ps*pd*rate*durn*f[2])/1.e4;
-         step[2]=(2.*ps*pd*rate*durn*step[2])/1.e4;
+         f[2] *= (2.*ps*pd*rate*durn)/1.e4;
+         step[2] *= (2.*ps*pd*rate*durn)/1.e4;
       }
 
 /*
@@ -3862,8 +3865,9 @@ Loop_1400:
 *     Each is the standard deviation of the parameter estimates.
 *     If NUMEST is 0 or 1, standard error calculation is bypassed.
 */
-	
-      if (numest <= 1) goto Line_1470;
+      double sden = 0, scf1 = 0, scf2 = 0, scf3 = 0;
+
+      if (numest > 1) {
 
       double dsum = 0.0;
       double cf1sum = 0.0;
@@ -3902,10 +3906,9 @@ Loop_1400:
 	}
       }
 
-      double sden = sqrt(dsum/(numest-1));
-      double scf1 = sqrt(cf1sum/(numest-1));
-      double scf2 = sqrt(cf2sum/(numest-1));
-      double scf3 = 0;
+      sden = sqrt(dsum/(numest-1));
+      scf1 = sqrt(cf1sum/(numest-1));
+      scf2 = sqrt(cf2sum/(numest-1));
       if ((numest-msfail-1) > 0) scf3 = sqrt(cf3sum/(numest-msfail-1));
       float strden = sqrt(tdsum/(numest-1));
 
@@ -3926,6 +3929,7 @@ Loop_1400:
       tcl2 = ttrdenmn + t05*strden;
       cl1 = exp(tcl1) - 1.0;
       cl2 = exp(tcl2) - 1.0;
+      }
 
 /*
 *     If all the STEP values supplied have been set at zero, several
@@ -4060,8 +4064,6 @@ Line_1650:
       if (maxjb == 1) {
 
 	fprintf(output_results,   " x Coefficient  (a) x    %10.4f    x (indeterminate)  x      metres      x\n", coeffnt1);
-
-//      goto Line_1710;
       }
       else {
 
