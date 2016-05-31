@@ -1,0 +1,25 @@
+#!/bin/sh -ex
+# buildTag revision [host]
+# Push <revision> to "build-wide" clone on <host>, build Deployment config and dmg
+# Remember that if <revision> is a tag, the tag won't be visible in "build-wide"
+
+if [[ $# < 1 ]]; then
+    echo Usage: buildTag revision [host]
+    exit 1
+fi
+revision=$1
+host=${2-old-fergbook.local}
+clone=wide-build
+
+hg_local push -r $revision ssh://$host/$clone || true # push fails if there's nothing to push
+# build on Xcode 3 into "build/Deployment"
+ssh "$host" cd $clone '&&' hg checkout -r $revision '&&' xcodebuild -project "WildlifeDensity\ C.xcodeproj" -configuration Deployment
+[[ -d build ]] || mkdir build
+rsync -a $host:$clone/build/Deployment build
+codesign -s "Developer ID Application: David Morgan (7KA5E853N6)" build/Deployment/WildlifeDensity.app
+
+# with newer Xcode, "-resultBundlePath" is required to locate the build
+#-resultBundlePath WildlifeDensity$revision
+#rsync -a $host:$clone/WildlifeDensity$revision.app .
+
+hdiutil create -layout NONE -ov -srcdir build/Deployment -format UDBZ WiDe\ $revision.dmg

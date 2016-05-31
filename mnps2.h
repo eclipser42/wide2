@@ -21,13 +21,19 @@ typedef struct {
 typedef struct {
     int nvals,ifx,iry,ns,km,kdt;
     int iprint,jprint,ishow,maxjb;
-    double durn,rate,clint,stt,dist,thh,ltmin,vgh,pd,ps,f[NUM_SHAPE_PARAMS];
-    double step[NUM_SHAPE_PARAMS], r[MAX_OBSERVATIONS];
+    double durn,rate,clint,stt,dist,thh,ltmin,vgh,pd,ps;
+    double enteredValue[NUM_SHAPE_PARAMS], enteredStep[NUM_SHAPE_PARAMS];
     int nsize[MAX_OBSERVATIONS];
-    double angle[MAX_OBSERVATIONS];
+    double r[MAX_OBSERVATIONS], angle[MAX_OBSERVATIONS];
     int complete, bootstrap;
     calc_results results;
 } calc_params;
 
+typedef struct {
+    int numa, numo, ngroups, nclass;
+    float distance[MAX_OBSERVATIONS]; // Corrected to metres if entered in km
+    double clint, stt, estj, val[MAX_INTERVALS], f[NUM_SHAPE_PARAMS], step[NUM_SHAPE_PARAMS];
+} search_params;
+
 extern void calculate_density (calc_params *params,
-                              const char *header, const char *outfile, const char *graphfile);
+                               const char *header, const char *outfile, const char *graphfile);

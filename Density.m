@@ -44,13 +44,13 @@
         params.clint = 20;
         params.maxjb = 500;
         params.pd = 1;
-        params.f[0] = 15;
-        params.f[1] = 0.1;
-        params.f[2] = 5;
-        params.step[0] = 6;
-        params.step[1] = 0.1;
-        params.step[2] = 5;
-        params.step[3] = 0;
+        params.enteredValue[0] = 15;
+        params.enteredValue[1] = 0.1;
+        params.enteredValue[2] = 5;
+        params.enteredStep[0] = 6;
+        params.enteredStep[1] = 0.1;
+        params.enteredStep[2] = 5;
+        params.enteredStep[3] = 0;
         params.iprint = 0;
         params.jprint = 0;
         params.ishow = 0;
@@ -117,10 +117,12 @@
             [contents appendFormat:@"0, 0%c", 10];
         }
     }
-    [contents appendFormat:@"%c%g, %d, %g, %g, %g, %g, %g%c", 10, params.stt, params.maxjb, params.clint, params.f[0], params.f[1], params.f[2], params.f[3], 10];
-    [contents appendFormat:@"%g, %g, %g%c", params.step[0], params.step[1], params.step[2], 10];
+    [contents appendFormat:@"%c%g, %d, %g, %g, %g, %g, %g%c", 10, params.stt, params.maxjb, params.clint,
+                                                              params.enteredValue[0], params.enteredValue[1],
+                                                              params.enteredValue[2], params.enteredValue[3], 10];
+    [contents appendFormat:@"%g, %g, %g%c", params.enteredStep[0], params.enteredStep[1], params.enteredStep[2], 10];
     [contents appendFormat:@"%d, %d, %d%c", params.iprint, params.jprint, params.ishow, 10];
-    [contents appendFormat:@"%d, %g, %g%c", 0 /* imv */, 0.0 /* r3s */, params.step[3], 10];
+    [contents appendFormat:@"%d, %g, %g%c", 0 /* imv */, 0.0 /* r3s */, params.enteredStep[3], 10];
     return [contents dataUsingEncoding:NSUTF8StringEncoding];
 }
 
@@ -300,6 +302,18 @@
             NSRange newSelection = NSMakeRange(insertionPoint, nextInsertion - insertionPoint);
             [observationsController setSelectionIndexes:[NSIndexSet indexSetWithIndexesInRange:newSelection]];
         }
+    }
+}
+
+#pragma mark Key-Value Coding
+
+- (void)setNilValueForKey:(NSString *)key
+{
+    if ([key isEqualToString:@"header"]) {
+        [self setValue:@"" forKey:key];
+    } else {
+        // Integer zero evidently works fine for Double quantities
+        [self setValue:[NSNumber numberWithInt:0] forKey:key];
     }
 }
 
@@ -608,79 +622,79 @@
 
 - (double)f0
 {
-    return params.f[0];
+    return params.enteredValue[0];
 }
 
 - (void)setF0:(double)f0;
 {
-    [[[self undoManager] prepareWithInvocationTarget:self] setF0:params.f[0]];
-    params.f[0] = f0;
+    [[[self undoManager] prepareWithInvocationTarget:self] setF0:params.enteredValue[0]];
+    params.enteredValue[0] = f0;
 }
 
 - (double)f1
 {
-    return params.f[1];
+    return params.enteredValue[1];
 }
 
 - (void)setF1:(double)f1;
 {
-    [[[self undoManager] prepareWithInvocationTarget:self] setF1:params.f[1]];
-    params.f[1] = f1;
+    [[[self undoManager] prepareWithInvocationTarget:self] setF1:params.enteredValue[1]];
+    params.enteredValue[1] = f1;
 }
 
 - (double)f2
 {
-    return params.f[2];
+    return params.enteredValue[2];
 }
 
 - (void)setF2:(double)f2;
 {
-    [[[self undoManager] prepareWithInvocationTarget:self] setF2:params.f[2]];
-    params.f[2] = f2;
+    [[[self undoManager] prepareWithInvocationTarget:self] setF2:params.enteredValue[2]];
+    params.enteredValue[2] = f2;
 }
 
 - (double)f3
 {
-    return params.f[3];
+    return params.enteredValue[3];
 }
 
 - (void)setF3:(double)f3;
 {
-    [[[self undoManager] prepareWithInvocationTarget:self] setF3:params.f[3]];
-    params.f[3] = f3;
+    [[[self undoManager] prepareWithInvocationTarget:self] setF3:params.enteredValue[3]];
+    params.enteredValue[3] = f3;
 }
 
 - (double)step0
 {
-    return params.step[0];
+    return params.enteredStep[0];
 }
 
 - (void)setStep0:(double)step0;
 {
-    [[[self undoManager] prepareWithInvocationTarget:self] setStep0:params.step[0]];
-    params.step[0] = step0;
+    [[[self undoManager] prepareWithInvocationTarget:self] setStep0:params.enteredStep[0]];
+    params.enteredStep[0] = step0;
 }
 
 - (double)step1
 {
-    return params.step[1];
+    return params.enteredStep[1];
 }
 
 - (void)setStep1:(double)step1;
 {
-    [[[self undoManager] prepareWithInvocationTarget:self] setStep1:params.step[1]];
-    params.step[1] = step1;
+    [[[self undoManager] prepareWithInvocationTarget:self] setStep1:params.enteredStep[1]];
+    params.enteredStep[1] = step1;
 }
 
 - (double)step2
 {
-    return params.step[2];
+    return params.enteredStep[2];
 }
 
 - (void)setStep2:(double)step2;
 {
-    [[[self undoManager] prepareWithInvocationTarget:self] setStep2:params.step[2]];
-    params.step[2] = step2;
+    [[[self undoManager] prepareWithInvocationTarget:self] setStep2:params.enteredStep[2]];
+    params.enteredStep[2] = step2;
 }
 
 - (int)iprint
@@ -830,16 +844,16 @@
 	if (![scanner scanDouble:&params.clint]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
     for (int i = 0; i < NUM_SHAPE_PARAMS - 1; i++) {
-		if (![scanner scanDouble:&params.f[i]]) return NO;
+		if (![scanner scanDouble:&params.enteredValue[i]]) return NO;
 		if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	}
-    if (![scanner scanDouble:&params.f[NUM_SHAPE_PARAMS - 1]]) return NO;
+    if (![scanner scanDouble:&params.enteredValue[NUM_SHAPE_PARAMS - 1]]) return NO;
 
-    if (![scanner scanDouble:&params.step[0]]) return NO;
+    if (![scanner scanDouble:&params.enteredStep[0]]) return NO;
     if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-    if (![scanner scanDouble:&params.step[1]]) return NO;
+    if (![scanner scanDouble:&params.enteredStep[1]]) return NO;
     if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-    if (![scanner scanDouble:&params.step[2]]) return NO;
+    if (![scanner scanDouble:&params.enteredStep[2]]) return NO;
 
 	if (![scanner scanInt:&params.iprint]) return YES;
 	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
@@ -847,13 +861,13 @@
 	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
 	if (![scanner scanInt:&params.ishow]) return YES;
 
-	if (![scanner scanDouble:&params.step[NUM_SHAPE_PARAMS - 1]]) return YES;
+	if (![scanner scanDouble:&params.enteredStep[NUM_SHAPE_PARAMS - 1]]) return YES;
 	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
     // if there's another value then that last was a leftover imv value
-	if (![scanner scanDouble:&params.step[NUM_SHAPE_PARAMS - 1]]) return YES;
+	if (![scanner scanDouble:&params.enteredStep[NUM_SHAPE_PARAMS - 1]]) return YES;
 	if (![scanner scanString:@"," intoString:nil]) return YES; /* Skip the comma separator */
     // and if there's a final value then that last was a leftover r3s value
-    if (![scanner scanDouble:&params.step[NUM_SHAPE_PARAMS - 1]]) return YES;
+    if (![scanner scanDouble:&params.enteredStep[NUM_SHAPE_PARAMS - 1]]) return YES;
 
     return YES;
 }
@@ -916,16 +930,16 @@
 	if (![scanner scanDouble:&params.ps]) return NO;
 
     for (int i = 0; i < NUM_SHAPE_PARAMS - 1; i++) {
-		if (![scanner scanDouble:&params.f[i]]) return NO;
+		if (![scanner scanDouble:&params.enteredValue[i]]) return NO;
 		if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	}
-    if (![scanner scanDouble:&params.f[NUM_SHAPE_PARAMS - 1]]) return NO;
+    if (![scanner scanDouble:&params.enteredValue[NUM_SHAPE_PARAMS - 1]]) return NO;
 
 	for (int i = 0; i < NUM_SHAPE_PARAMS - 1; i++) {
-		if (![scanner scanDouble:&params.step[i]]) return NO;
+		if (![scanner scanDouble:&params.enteredStep[i]]) return NO;
 		if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	}
-    if (![scanner scanDouble:&params.step[NUM_SHAPE_PARAMS - 1]]) return NO;
+    if (![scanner scanDouble:&params.enteredStep[NUM_SHAPE_PARAMS - 1]]) return NO;
 
     int i = 0;
     while (YES) {
@@ -1007,11 +1021,11 @@
 	if (![scanner scanDouble:&params.ps]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	for (int i = 0; i < NUM_SHAPE_PARAMS; i++) {
-		if (![scanner scanDouble:&params.f[i]]) return NO;
+		if (![scanner scanDouble:&params.enteredValue[i]]) return NO;
 		if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	}
 	for (int i = 0; i < NUM_SHAPE_PARAMS; i++) {
-		if (![scanner scanDouble:&params.step[i]]) return NO;
+		if (![scanner scanDouble:&params.enteredStep[i]]) return NO;
 		if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	}
 
@@ -1133,9 +1147,9 @@
                     execl(plotPathC,
                           plotPathC,
                           "-m",
-                          [graphMacro UTF8String],
+                          [graphMacro fileSystemRepresentation],
                           "-i",
-                          [graphFile UTF8String],
+                          [graphFile fileSystemRepresentation],
                           NULL);
                     perror("exec Plot.app failed");
                 }
@@ -1169,6 +1183,7 @@ double deg2rad(double deg) {
             ++i;
         }
     }
+    // somehow this always registers an undo action
     [[self undoManager] setActionName:@"Trim empty observations"];
     [self didChangeValueForKey:@"nvals"];
 
@@ -1205,6 +1220,9 @@ double deg2rad(double deg) {
 
     SInt32 systemVersion = 0;
     OSStatus err = Gestalt(gestaltSystemVersion, &systemVersion);
+    // With >= 10.10:
+    //const NSOperatingSystemVersion tiger = {10, 4, 0};
+    //if ([[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:tiger])
     if (systemVersion >= 0x1040) {
         [NSThread detachNewThreadSelector:@selector(calculationThread:) toTarget:self withObject:nil];
     } else {
