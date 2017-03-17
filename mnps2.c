@@ -357,15 +357,15 @@
 *     I, IA, IC, IE, IFLAG, IH, IN, IR, J, JS, JV, K - index
 *          variables used in DO loops within the program.
 *
-*     IMV - a parameter used to determine the method of
-*          calculating probability used in Subroutine GIVEF.
+*     useMedianValues (IMV) - a parameter to select the method
+*          of calculating probability used in Subroutine GIVEF.
 *          It either:
 *
-*            = 0  uses the mean value of P[r] in an interval;
-*            = 1  uses the median value of P[r] in the interval.
+*            = false uses the mean value of P[r] in an interval;
+*            = true  uses the median value of P[r] in the interval.
 *
-*          IMV is also set at 1 within the program if the
-*          coefficient becomes negative or if the data are
+*          useMedianValues is also enabled within the program if
+*          the coefficient becomes negative or if the data are
 *          visual observations. (The two approaches produce
 *          almost identical results.)
 *
@@ -1108,7 +1108,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 	    double thh,
 	    double vgh,
 	    int ifx,
-	    int *imv,
+	    bool *useMedianValues,
 	    int iry,
 	    int ishow,
 	    int kdt,
@@ -1138,7 +1138,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     common values, dimensions and symbols for key variables.
 *
 */
-      int iermax, jl,jrlow;
+      int iermax, jl;
       int l10,l20;
 
       double aprexi,auc,cint,d2l,dd,dds,ddsm,dh,dif;
@@ -1150,6 +1150,8 @@ void givef (double f[NUM_SHAPE_PARAMS],
       double texpd,topdd,topmax,tot,tote,tr,vegdd;
       double vegmax,vh,visdd,vismax,vl,vlowm,wh;
       double vhowh,wl,wm,yh,yl,yy,yyh,yyl,zh,zl;
+
+      bool jrlow;
 
 /*
 *     TOT is the progressive value of the sum of squares of the
@@ -1177,13 +1179,13 @@ void givef (double f[NUM_SHAPE_PARAMS],
       q = f[1];
 
 /*
-*     If Q is negative, the program sets IMV=1 and so uses the
-*     median value of d in an interval as the basis of
+*     If Q is negative, the program sets useMedianValues and so
+*     uses the median value of d in an interval as the basis of
 *     computations, in order to avoid logarithms of negative
 *     values appearing in Approximation 1 below.
 */
 
-        if (q < 0) *imv = 1;
+        if (q < 0) *useMedianValues = true;
 
 /*
 *
@@ -1285,26 +1287,22 @@ void givef (double f[NUM_SHAPE_PARAMS],
 */
 /* Line_190: */
 
-      if (vgh > 0) {
-        dvg = vgh*dmax/thh;
-        if (dmax <= dvg) goto Line_210;
-        vegmax = pow(1.0-q,dvg);
-        vismax = vegmax*topmax;
-        goto Line_220;
-      }
-Line_210:
-      vegmax = pow(1.0-q,dmax);
+        if (vgh > 0) {
+            dvg = vgh*dmax/thh;
+            vegmax = pow(1.0 - q, fmin(dmax, dvg));
+        } else {
+            vegmax = pow(1.0 - q, dmax);
+        }
       vismax = vegmax*topmax;
-Line_220:
       ddsm = dmax*dmax;
       prmax = pa*vismax/ddsm;
 
 /*
-*     For visual data collected where there is cover, IMV is put
-*     =1 to avoid the possibility of negative values being taken
+*     For visual data collected where there is cover, useMedianValues
+*     is set to avoid the possibility of negative values being taken
 *     to logarithms later in the program.
 */
-      *imv = 1;
+        *useMedianValues = true;
     }
 
     else { // The case kdt = 1 follows:
@@ -1387,9 +1385,9 @@ Line_220:
 
 /*
 *     JRLOW - a control variable used to control the printout
-*     of RLOW - is set initially at zero.
+*     of RLOW - is initially cleared.
 */
-      jrlow = 0;
+      jrlow = false;
 
 /*
 *     EXPD is the cumulative expected number within a class; it is
@@ -1465,13 +1463,13 @@ Line_220:
 /*
 *     Two alternative ways of calculating the probability of
 *     detection are provided.  If the method is based on the area
-*     under the probability curve (IMV=0), the area under
-*     the curve from y=DH to y=(infinity) is calculated and
+*     under the probability curve (!useMedianValues), the area
+*     under the curve from y=DH to y=(infinity) is calculated and
 *     expressed as YYH.  If IMV=1, this calculation is bypassed.
 */
 /* Line_360: */
 
-          if (*imv != 1) {
+          if (!*useMedianValues) {
 
 /*
 *     This method of computation uses one of two approximations to
@@ -1540,7 +1538,7 @@ Line_220:
 	   yyh = yh * (1.0-vhowh);
         }
 
-          } // imv != 0
+          } // !useMedianValues
 /*
 *
 *     Loop 870, which calculates the expected number in each
@@ -1589,16 +1587,13 @@ Line_220:
 	    dint = dh-dl;
 
 /*
-*     If IMV has been set at zero, calculation of the probability
+*     If useMedianValues is clear, calculation of the probability
 *     of detection now follows, using the same approximation to the
-*     exponential integral as previously.  If IMV has been set at
-*     1, computation moves to address 570.
+*     exponential integral as previously.  Otherwise computation
+*     continues from Line_570.
 */
 
-Case_GVF480:
-	    switch (*imv) {					// SELECT CASE (imv)
-
-		case 0: {
+            if (!*useMedianValues) {
 			zl = q*dl;
 			if (zl >= 68.0) {
 			    zl = 68.0;
@@ -1656,8 +1651,9 @@ Case_GVF480:
 */
 			pr = auc/dint;
 
-			break;	/* End case imv == 0 */
-	            }
+            }       /* End case !useMedianValues */
+
+            else {  /* Start case useMedianValues */
 
 /*
 *     Where IMV was set at 1, computation of the probability
@@ -1668,7 +1664,6 @@ Case_GVF480:
 */
 /* Line_570: */
 
-		case 1: {
             dd = sqrt(thh*thh+dnr*dnr);
 			dds = dd*dd;
 
@@ -1691,7 +1686,7 @@ Case_GVF480:
 *      equal to 1.) Otherwise TOPDD = EXP(TCOV*(DD-LTMIN)).
 */
         
-			if ((ltmin = 999) || (dd < ltmin) || (ltmax < ltmin)) {
+			if ((ltmin == 999) || (dd < ltmin) || (ltmax < ltmin)) {
 			    topdd = 1.0;
 			} else {
                 topdd = exp(tcov*(dd-ltmin));
@@ -1734,10 +1729,7 @@ Line_640:
 			    pr = pa*visdd/dds;
 			}
 
-			break;	/* End case imv == 1 */
-		    }
-
-	    }						// END SELECT  Case_GVF480
+            }  /* End case useMedianValues */
 
 /*
 *     PRC [g(r)=P(r)-P(rmax)] is the height of the detectability curve at DD,
@@ -1855,7 +1847,7 @@ Line_720:
 *     Similarly, in the case of radial distance data, YYL
 *     becomes YYH (bypassed if IMV=1).
 */
-	    if (*imv != 1) yyh = yyl;
+            if (!*useMedianValues) yyh = yyl;
 
 /*
 *     The DNR value for the next arc is DNR minus the
@@ -1885,14 +1877,14 @@ Line_720:
 *     animal in a thousand - the program is set to print out the
 *     approximate value of rmin where this happens.
 */
-	    if ((qr <= 0.001) && (jrlow <= 0)) {
+	    if ((qr <= 0.001) && (!jrlow)) {
 
 /*
 *     RLOW is the inner boundary of the arc by which 99.9% of the
 *     detections are expected to have been made.
 */
 		rlow = dnrl-cint;
-		jrlow = 1;
+		jrlow = true;
 	    }
 
 /*
@@ -1914,7 +1906,7 @@ Line_720:
 */
 		  
 Line_900:
-        if ((wl > rmax) || ((kdt > 1) && (wl > kdt))) goto Line_1080;
+        if ((wl <= rmax) && ((kdt <= 1) || (wl <= kdt))) {
 
 /*
 *     If D2L has a trial value of zero, calculation of S at this stage
@@ -1927,7 +1919,7 @@ Line_900:
 	    *s += (expdv/d2l);
 	} else if ((mtest == 1) && (md == 0)) {
 	    (*msfail)++;
-    }
+	}
 
 /*
 *     Final values of key internal functions are now output if
@@ -1935,7 +1927,7 @@ Line_900:
 */
 /* Line_930: */
 
-    if (kprint > 0) {
+      if (kprint > 0) {
 
 /*
 *     For output purposes only, EXPDV is redefined as EXPDR in
@@ -1978,13 +1970,13 @@ Line_900:
 	    fprintf(output_results, " %12.6f   %12.6f   %12.6f   %12.6f   %12.6f\n\n", prc,qr,tote,expd,expdv);
 	}
     }
+    }
 
 /*
 *     The difference between each observed (OBSD) and expected
 *     value (EXPDV) for the class is now calculated.
 *
 */
-Line_1080:
 	dif = obsd-expdv;
 
 /*
@@ -2029,7 +2021,7 @@ Line_1080:
 
       if (kprint > 0) {
 
-	if ((jrlow > 0) && (ishow > 0)) {
+	if ((jrlow) && (ishow > 0)) {
 	  fprintf(output_results, "\n 99.9%% r value (rmin) =%7.2f m\n", rlow);
 	}
 
@@ -2101,7 +2093,7 @@ void qsf (double f[NUM_SHAPE_PARAMS],
 	  double tcov,
 	  double thh,
 	  double vgh,
-	  int *imv,
+	  bool *imv,
 	  int ishow,
 	  int *kprint,
 	  double ltmax,
@@ -2755,7 +2747,7 @@ void calculate_density (calc_params *params
       int nsize[MAX_OBSERVATIONS], nbsz[MAX_OBSERVATIONS];
       int bootstrap;
       int i, ia, ie, iflag, ifx, ig, ih;
-      int imv, in, iprint, irow, iry, iseed, ishow;
+      int in, iprint, irow, iry, iseed, ishow;
       int j, jprint, jv, kdt, km, kprint, max;
       int maxjb, mfail, msfail, mtest, nap, neval, ngroups;
       int nloop, nop, np1, ns, numa, numest, numo, nclass;
@@ -2774,7 +2766,7 @@ void calculate_density (calc_params *params
       double h[21], pbar[20], pstar[20], pstst[20];
       double coeff1[5000], coeff2[5000], coeff3[5000];
       double den[5000];
-      bool dmaxIsPreset = true;
+      bool imv, dmaxIsPreset = true;
 
 /*
 *     The program accepts up to 10000 data values, each being the total

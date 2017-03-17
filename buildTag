@@ -1,7 +1,7 @@
 #!/bin/sh -ex
 # buildTag revision [host]
-# Push <revision> to "build-wide" clone on <host>, build Deployment config and dmg
-# Remember that if <revision> is a tag, the tag won't be visible in "build-wide"
+# Push <revision> to "wide-build" clone on <host>, build Deployment config and dmg
+# Remember that if <revision> is a tag, the tag won't be visible in "wide-build"
 
 if [[ $# < 1 ]]; then
     echo Usage: buildTag revision [host]
@@ -22,4 +22,4 @@ codesign -s "Developer ID Application: David Morgan (7KA5E853N6)" build/Deployme
 #-resultBundlePath WildlifeDensity$revision
 #rsync -a $host:$clone/WildlifeDensity$revision.app .
 
-hdiutil create -layout NONE -ov -srcdir build/Deployment -format UDBZ WiDe\ $revision.dmg
+hdiutil create -layout NONE -ov -srcdir build/Deployment -volname WilDen -format UDBZ WiDe\ $revision.dmg

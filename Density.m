@@ -260,7 +260,7 @@
         NSScanner *scanner = [NSScanner scannerWithString:contents];
         while (true) {
             double distance, groupSize, angle = 0, elevation = 0;
-            bool rowIsValid = YES;
+            BOOL rowIsValid = YES;
             Observation *newRow = [[Observation alloc] init];
             
             if ([scanner scanDouble:&distance])
@@ -1175,16 +1175,19 @@ double deg2rad(double deg) {
 
     // Trim any empty observations
     [self willChangeValueForKey:@"nvals"];
+    BOOL didTrimAnyObservations = NO;
     for (int i = 0; i < [observations count]; ) {
         int nsize = [[observations objectAtIndex:i] groupSize];
         if (nsize == 0) {
+            didTrimAnyObservations = YES;
             [self removeObjectFromObservationsAtIndex:i];
         } else {
             ++i;
         }
     }
-    // somehow this always registers an undo action
-    [[self undoManager] setActionName:@"Trim empty observations"];
+    if (didTrimAnyObservations) {
+        [[self undoManager] setActionName:@"Trim empty observations"];
+    }
     [self didChangeValueForKey:@"nvals"];
 
     // Compute THH
