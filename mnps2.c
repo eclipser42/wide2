@@ -1,7 +1,7 @@
 /*******************************************************************************
 *     PROGRAM WildlifeDensity
 *
-*     (File mnps2.c, Version 2.1.1)
+*     (File mnps2.c, Version 2.1.6b1)
 *
 *     This program is designed to return population density estimates
 *     from 'distance' data collected using either line transect or fixed
@@ -781,7 +781,7 @@ void select_search_parameters(calc_params *params, search_params *result)
              */
 
             for (int ih=0; ih < params->nvals; ih++) {
-                rlsum += fabsf(params->r[ih]);
+                rlsum += fabsf((float) params->r[ih]);
             }
 
             float rlsd = sqrt(rlsum/(params->nvals-1));
@@ -803,19 +803,13 @@ void select_search_parameters(calc_params *params, search_params *result)
      */
 
     result->clint = params->clint;
-    if (params->kdt <= 1) {
+    if (params->kdt <= 1 || params->kdt > result->f[3]) {
         if (result->f[3] > (MAX_INTERVALS * params->clint)) {
             result->clint = (result->f[3] - params->stt) / MAX_INTERVALS;
         }
     } else {
-        if (params->kdt <= result->f[3]) {
-            if ((params->kdt - params->stt) > (MAX_INTERVALS * params->clint)) {
-                result->clint = (params->kdt - params->stt) / MAX_INTERVALS;
-            }
-        } else {
-            if (result->f[3] > (MAX_INTERVALS * params->clint)) {
-                result->clint = (result->f[3] - params->stt) / MAX_INTERVALS;
-            }
+        if ((params->kdt - params->stt) > (MAX_INTERVALS * params->clint)) {
+            result->clint = (params->kdt - params->stt) / MAX_INTERVALS;
         }
     }
 
@@ -1044,26 +1038,18 @@ Line_100:
         }
     }
 }
+//      END SUBROUTINE select_search_parameters
 
 
 /*******************************************************************************
 *
-*	GIVEF		Calculate frequencies across classes
+*	RESAMPLE		Calculate frequencies across classes
 *
 *******************************************************************************/
-
-//	SUBROUTINE resample (orig_dist, orig_size, nvals, resamp_dist, resamp_size)
-
 
 void resample (float orig_dist[], int orig_size[], int nvals,
 	       float resamp_dist[], int resamp_size[])
 {
-
-//      INTEGER, INTENT(IN) :: orig_size[MAX_OBSERVATIONS], nvals
-//      INTEGER, INTENT(OUT) :: resamp_size[MAX_OBSERVATIONS]
-//      REAL, INTENT(IN) :: orig_dist[MAX_OBSERVATIONS]
-//      REAL, INTENT(OUT) :: resamp_dist[MAX_OBSERVATIONS]
-
       /* printf("\n");
          printf("Resampling ...\n"); */
       for (int js=0; js < nvals; js++) {	//  DO js=1,nvals
@@ -1079,6 +1065,69 @@ void resample (float orig_dist[], int orig_size[], int nvals,
       }					//  END DO
 }
 //      END SUBROUTINE resample
+
+
+/*******************************************************************************
+*
+*	DETECTION_PROBABILITY		Compute the estimated probability curve
+*                                       for detections
+*
+*       Inputs: Q - The mean vegetation cover proportion (c)
+*               D - Distance to detection under consideration
+*               PA - The square of the conspicuousness coefficient (a)
+*
+*       Outputs: YY - The area under the detectability curve from the current
+*                     D value to infinity
+*
+*******************************************************************************/
+/*
+*     This method of computation uses one of two approximations to
+*     the exponential integral (APREXI).  If bd < 1, Approximation
+*     2 is used; if bd is equal to or greater than 1, Approximation
+*     1 is used.
+*/
+
+double detection_probability(double q, double d, double pa) {
+    double z = q * d;
+    z = fmin(68, fmax(-70, z));
+    double ss = exp(z);
+    double y = pa / (d * ss);
+    double yy;
+
+    if (z <= 0.0) {
+        yy = y; // yy = y * (1 - vow) with vow=0;
+    }
+/*
+ *     The choice of approximation depends on the value of bd.
+ */
+    else if (z < 1.0) {
+    /*
+     *     Approximation 2 is used if bd<1.
+     */
+        double aprexi = -0.577216 + 0.999992*z - 0.249910*z*z + 0.055200*z*z*z
+                        -0.009760*z*z*z*z + 0.0010792*z*z*z*z*z - log(z);
+        yy = y - pa * q * aprexi;
+    }
+    else {
+    /*
+     *     Approximation 1 is used if bd=1 or bd>1.
+     */
+        double v = z*z + 2.334733*z + 0.250621;
+        double w = z*z + 3.330457*z + 1.681534;
+        double vow = v / w;
+        yy = y * (1.0 - vow);
+    }
+
+    return yy;
+}
+//      END SUBROUTINE detection_probability
+
+
+/*******************************************************************************
+*
+*	GIVEF		Calculate frequencies across classes
+*
+*******************************************************************************/
 
 /*
 *     This version of Subroutine GIVEF will handle ground survey
@@ -1141,15 +1190,14 @@ void givef (double f[NUM_SHAPE_PARAMS],
       int iermax, jl;
       int l10,l20;
 
-      double aprexi,auc,cint,d2l,dd,dds,ddsm,dh,dif;
+      double cint,d2l,dd,dds,ddsm,dh,dif;
       double difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed;
-      double corrn,/*dnuma,dnumo,*/ermax,expd,expdr,expdy,expdv;
+      double corrn,ermax,expd,expdr,expdy,expdv;
       double hcint,htot,obsd,p,pa,pad,pam;
       double pr,prc,prr,prmax,q,qdd,qdmax,qr;
-      double rlow,rmax,rr,ssh,ssl,ssmax;
+      double rlow,rmax,rr,ssmax;
       double texpd,topdd,topmax,tot,tote,tr,vegdd;
-      double vegmax,vh,visdd,vismax,vl,vlowm,wh;
-      double vhowh,wl,wm,yh,yl,yy,yyh,yyl,zh,zl;
+      double vegmax,visdd,vismax, wl, yy;
 
       bool jrlow;
 
@@ -1182,10 +1230,10 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     If Q is negative, the program sets useMedianValues and so
 *     uses the median value of d in an interval as the basis of
 *     computations, in order to avoid logarithms of negative
-*     values appearing in Approximation 1 below.
+*     values appearing in Approximation 1 above.
 */
 
-        if (q < 0) *useMedianValues = true;
+    if (q < 0) *useMedianValues = true;
 
 /*
 *
@@ -1229,7 +1277,6 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     the maximum recognition distance [PRMAX=Pr(rmax)] is now
 *     calculated.
 */
-      f[3] = dmax;
 
 /*
 *     PA is the square of the conspicuousness coefficient.
@@ -1339,7 +1386,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     because the first class computed is that furthest
 *     from the observer or from the transect line - TR is initially
 *     set at CLINT*NCLASS + STT, i.e. equal to or just below the
-*     maximum recognition distance.
+*     maximum horizontal recognition distance.
 */
       tr = clint*nclass + stt;
 
@@ -1468,77 +1515,12 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     expressed as YYH.  If IMV=1, this calculation is bypassed.
 */
 /* Line_360: */
+          double yyl = 0, yyh = 0;
 
           if (!*useMedianValues) {
-
-/*
-*     This method of computation uses one of two approximations to
-*     the exponential integral (APREXI).  If bd < 1, Approximation
-*     2 is used; if bd is equal to or greater than 1, Approximation
-*     1 is used.
-*/
-	zh = q*dh;
-
-/*
-*     If ZH is zero, VHOWH (=VH/WH) is set at 0, and a few lines of
-*     calculations are bypassed.
-*/
-              if (zh == 0.0) {
-                  vhowh = 0.0;
-              }
-
-              else {
-/*
-*     To avoid overflow during computations, ZH is set at 68 if
-*     ZH > 68.
-*/
-                  if (zh > 68.0) zh = 68.0;
-
-/*
-*     ZH is set at -70 if ZH < -70.
-*/
-                  else if (zh < (-70.0)) zh = -70.0;
-
-/*
-*     The choice of approximation depends on the value of bd.
-*/
-                  if (zh < 1.0) {
-
-/*
-*     Approximation 2 is used if bd<1.
-*/
-	    aprexi = -0.577216 + 0.999992*zh - 0.249910*zh*zh + 0.055200*zh*zh*zh
-			 - 0.009760*zh*zh*zh*zh + 0.0010792*zh*zh*zh*zh*zh - log(zh);
-                  }
-
-/*
-*     Approximation 1 is used if bd=1 or bd>1.
-*/
-                  else {
-                      vh = zh*zh + 2.334733*zh + 0.250621;
-                      wh = zh*zh + 3.330457*zh + 1.681534;
-                      vhowh = vh/wh;
-                  }
-                  
-              } // zh != 0
-
-/* Line_430: */
-		  ssh = exp(zh);
-		  yh = pa/(dh*ssh);
-
-
-/*
-*     YYH is the area under the detectability curve from
-*     the current DH value to infinity.
-*/
-
-	if ((zh > 0.0) && (zh < 1.0)) {
-	   yyh = yh - pa*q*aprexi;
-        } else {
-	   yyh = yh * (1.0-vhowh);
-        }
-
-          } // !useMedianValues
+              dh = sqrt(thh * thh + tr * tr);
+              yyh = detection_probability(q, dh, pa);
+          }
 /*
 *
 *     Loop 870, which calculates the expected number in each
@@ -1594,54 +1576,13 @@ void givef (double f[NUM_SHAPE_PARAMS],
 */
 
             if (!*useMedianValues) {
-			zl = q*dl;
-			if (zl >= 68.0) {
-			    zl = 68.0;
-			} else if (zl <= (-70.0)) {
-			    zl = -70.0;
-			}
-
-			if (zl == 0.0) {
-			    vlowm = 0.0;
-			}
-/*
-*     The choice of approximation depends on the value of bd.
-*/
-			else if (zl < 1.0) {
-/*
-*     Approximation 2 is used if bd<1.
-*/
-			    aprexi = -0.577216 + 0.999992*zl - 0.249910*zl*zl + 0.055200*zl*zl*zl
-					- 0.009760*zl*zl*zl*zl + 0.0010792*zl*zl*zl*zl*zl - log(zl);
-			}
-			else {
-/*
-*     Approximation 1 is used if bd=1 or bd>1.
-*/
-			    vl = zl*zl + 2.334733*zl + 0.250621;
-			    wm = zl*zl + 3.330457*zl + 1.681534;
-			    vlowm = vl/wm;
-			}
-
-/* Line_540: */
-			ssl = exp(zl);
-			yl = pa/(dl*ssl);
-
-/*
-*     YYL is the area under the detectability curve from
-*     the current DL value to infinity.
-*/
-			if ((zl > 0.0) && (zl < 1.0)) {
-			    yyl = yl - pa*q*aprexi;
-			} else {
-			    yyl = yl*(1.0-vlowm);
-			}
+                  yyl = detection_probability(q, dl, pa);
 
 /*
 *     AUC is the area under the detectability curve between
 *     d=DL and d=DH.
 */
-			auc = fabs(yyh-yyl);
+                  double auc = fabs(yyh-yyl);
 
 /*
 *     The mean corrected probability [PR=P(r)] of detecting an
@@ -1845,9 +1786,9 @@ Line_720:
 
 /*
 *     Similarly, in the case of radial distance data, YYL
-*     becomes YYH (bypassed if IMV=1).
+*     becomes YYH (relevant only without useMedianValues).
 */
-            if (!*useMedianValues) yyh = yyl;
+            yyh = yyl;
 
 /*
 *     The DNR value for the next arc is DNR minus the
