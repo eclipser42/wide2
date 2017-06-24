@@ -1,0 +1,46 @@
+                 Run04096: EMU PUCKAPUNYAL November 2004 - All Open Habitats (OW)
+
+ Class Interval Width =   30.0 m.    Total Distance (xJ) = 78595.800 m.
+
+ Estimated Topographical Cover = .001438
+
+ Number of Parameter Estimations = 250
+
+
+ Calculated values were:
+
+
+
+ ESTIMATED PARAMETER VALUES:
+
+
+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ x                  x                  x                  x                  x
+ x    PARAMETER     x      VALUE       x  STANDARD ERROR  x       UNIT       x
+ x                  x                  x                  x                  x
+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ x                  x                  x                  x                  x
+ x ESTIMATED        x                  x                  x                  x
+ x DENSITY  (D)     x         0.009    x         0.004    x  indivs/hectare  x
+ x                  x                  x                  x                  x
+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ x                  x                  x                  x                  x
+ x CONSPICUOUSNESS  x                  x                  x                  x
+ x COEFFICIENT  (a) x        33.850    x        17.409    x      metres      x
+ x                  x                  x                  x                  x
+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ x                  x                  x                  x                  x
+ x COVER            x                  x                  x                  x
+ x PROPORTION  (c)  x        0.0000    x        0.0000    x                  x
+ x                  x                  x                  x                  x
+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+
+ Detectability Coefficient (S) =  540.97, SE =246.38
+
+
+ 99.9% r value (rmin) = 126.00 m 
+
+ OLS Difference at Minimum =      231.375535
+

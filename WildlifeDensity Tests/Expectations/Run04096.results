@@ -1,0 +1,52 @@
+Run04096: EMU PUCKAPUNYAL November 2004 - All Open Habitats (OW)
+
+INPUT:
+
+ Line transect data, based on radial distances from observer
+ Observations from both sides of transect line
+ Class interval width =   30.0 m.   Total transect length (L) = 78595.800 m.
+ Total time spent =    0.0 min.
+ Overall population movement rate = 0.0 m/min.
+ Topography uneven; approximate minimum obscuring distance = 200.0 m.
+
+OUTPUT:
+
+
+ Number of Groups in Distance Range =   27
+ Number of Individuals Detected Ahead =    64
+ Number Overtaking (distance unmeasured) =    0
+ Height Difference from Eyelevel =   0.0 m
+ Movement Correction Factor (J) =  1.000
+ Adjusted Transect Length (LJ) =   78595.800 m
+ Topographical Cover Value = -0.0031
+ Maximum Detection Distance (preset) =  2400.0 m
+ Number of Parameter Estimations = 250
+
+ Estimated Parameter Values:
+
+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ x                  x                  x                  x                  x
+ x    Parameter     x      Value       x  Standard Error  x       Unit       x
+ x                  x                  x                  x                  x
+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ x                  x                  x                  x                  x
+ x ESTIMATED        x                  x                  x                  x
+ x DENSITY  (D)     x         0.009    x         0.004    x  indivs/hectare  x
+ x                  x                  x                  x                  x
+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ x                  x                  x                  x                  x
+ x Conspicuousness  x                  x                  x                  x
+ x Coefficient  (a) x        30.453    x        12.519    x      metres      x
+ x                  x                  x                  x                  x
+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ x                  x                  x                  x                  x
+ x Cover            x                  x                  x                  x
+ x Proportion   (c) x        0.0009    x        0.0000    x                  x
+ x                  x                  x                  x                  x
+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+ 95% confidence limits for density estimate:     0.001      0.016
+ Detectability Coefficient (S) =   570.79, SE =   225.13
+ Est.Detectability at g(y=0): 1.00
+ Final Difference at Minimum =      237.798305
+
