@@ -13,8 +13,8 @@ OUTPUT:
 
 
  Number of Groups in Distance Range =  183
- Number of Individuals Detected Ahead =   211
- Number Overtaking (distance unmeasured) =    0
+ Number of Individuals Detected Ahead =   210
+ Number Overtaking (distance unmeasured) =    1
  Height Difference from Eyelevel =   1.8 m
  Movement Correction Factor (J) =  1.000
  Adjusted Transect Length (LJ) =    3719.400 m
@@ -36,7 +36,7 @@ OUTPUT:
  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
  x                  x                  x                  x                  x
  x Conspicuousness  x                  x                  x                  x
- x Coefficient  (a) x        11.095    x         3.728    x      metres      x
+ x Coefficient  (a) x        11.096    x         3.728    x      metres      x
  x                  x                  x                  x                  x
  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
  x                  x                  x                  x                  x
@@ -45,8 +45,8 @@ OUTPUT:
  x                  x                  x                  x                  x
  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
- 95% confidence limits for density estimate:     7.803     14.878
+ 95% confidence limits for density estimate:     7.803     14.877
  Detectability Coefficient (S) =    24.12, SE =     5.41
  Est.Detectability at g(y=0): 1.00
- Final Difference at Minimum =      505.202608
+ Final Difference at Minimum =      496.289274
 

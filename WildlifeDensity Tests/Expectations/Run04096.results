@@ -36,7 +36,7 @@ OUTPUT:
  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
  x                  x                  x                  x                  x
  x Conspicuousness  x                  x                  x                  x
- x Coefficient  (a) x        30.453    x        12.519    x      metres      x
+ x Coefficient  (a) x        30.266    x        12.682    x      metres      x
  x                  x                  x                  x                  x
  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
  x                  x                  x                  x                  x
@@ -45,8 +45,8 @@ OUTPUT:
  x                  x                  x                  x                  x
  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
- 95% confidence limits for density estimate:     0.001      0.016
- Detectability Coefficient (S) =   570.79, SE =   225.13
+ 95% confidence limits for density estimate:     0.001      0.017
+ Detectability Coefficient (S) =   567.01, SE =   228.00
  Est.Detectability at g(y=0): 1.00
- Final Difference at Minimum =      237.798305
+ Final Difference at Minimum =      239.200796
 

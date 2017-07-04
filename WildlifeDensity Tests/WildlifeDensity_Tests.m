@@ -52,12 +52,12 @@
     XCTAssertEqual(0, diffExit);
 }
 
-- (void)testExample {
+- (void)testRadial {
     [self oneDataset:@"Run04096"];
+}
+
+- (void)testPerpendicular {
     [self oneDataset:@"Run04038y"];
-    [self oneDataset:@"WildlifeDensity Tests/Datasets/P'pnyl Emu r Tr/Run04096.WDdata"
-          expectingResults:@"WildlifeDensity Tests/Expectations/Run04096.results"
-          andGraphData:@"WildlifeDensity Tests/Expectations/Run04096.graphData"];
 }
 
 - (void)testPerformanceExample {
