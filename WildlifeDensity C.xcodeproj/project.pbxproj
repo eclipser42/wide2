@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		1A3C1B2E1089D4F9008BD5A5 /* DensityHelp.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3C1B2C1089D4F9008BD5A5 /* DensityHelp.m */; };
 		1A3C1B361089D60C008BD5A5 /* WildlifeDensity Manual.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 1A3C1B341089D60C008BD5A5 /* WildlifeDensity Manual.pdf */; };
+		1A86DC431F0BD4560040D614 /* Run05074.WDdata in Resources */ = {isa = PBXBuildFile; fileRef = 1A86DC421F0BD4560040D614 /* Run05074.WDdata */; };
+		1A86DC461F0BD4C00040D614 /* Run05074.graphData in Resources */ = {isa = PBXBuildFile; fileRef = 1A86DC441F0BD4C00040D614 /* Run05074.graphData */; };
+		1A86DC471F0BD4C00040D614 /* Run05074.results in Resources */ = {isa = PBXBuildFile; fileRef = 1A86DC451F0BD4C00040D614 /* Run05074.results */; };
 		1A9534E209F10EC6002E1E3A /* Dataset Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1A9534E109F10EC6002E1E3A /* Dataset Icon.icns */; };
 		1AB250360C19AA18000920F2 /* Graph Results Plot macro in Resources */ = {isa = PBXBuildFile; fileRef = 1AB250350C19AA18000920F2 /* Graph Results Plot macro */; };
 		1AD5A83D1EEC023200E782AA /* WildlifeDensity_Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD5A83C1EEC023200E782AA /* WildlifeDensity_Tests.m */; };
@@ -50,6 +53,9 @@
 		1A3C1B2C1089D4F9008BD5A5 /* DensityHelp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DensityHelp.m; sourceTree = "<group>"; };
 		1A3C1B2D1089D4F9008BD5A5 /* DensityHelp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DensityHelp.h; sourceTree = "<group>"; };
 		1A3C1B351089D60C008BD5A5 /* English */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; name = English; path = "English.lproj/WildlifeDensity Manual.pdf"; sourceTree = "<group>"; };
+		1A86DC421F0BD4560040D614 /* Run05074.WDdata */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Run05074.WDdata; sourceTree = "<group>"; };
+		1A86DC441F0BD4C00040D614 /* Run05074.graphData */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Run05074.graphData; sourceTree = "<group>"; };
+		1A86DC451F0BD4C00040D614 /* Run05074.results */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Run05074.results; sourceTree = "<group>"; };
 		1A9534E109F10EC6002E1E3A /* Dataset Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "Dataset Icon.icns"; sourceTree = "<group>"; };
 		1AB250350C19AA18000920F2 /* Graph Results Plot macro */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Graph Results Plot macro"; sourceTree = "<group>"; };
 		1AD5A83A1EEC023200E782AA /* WildlifeDensity Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "WildlifeDensity Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -138,6 +144,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		1A86DC411F0BD4560040D614 /* Laake's Stakes Perp Tr */ = {
+			isa = PBXGroup;
+			children = (
+				1A86DC421F0BD4560040D614 /* Run05074.WDdata */,
+			);
+			path = "Laake's Stakes Perp Tr";
+			sourceTree = "<group>";
+		};
 		1AD5A83B1EEC023200E782AA /* WildlifeDensity Tests */ = {
 			isa = PBXGroup;
 			children = (
@@ -153,6 +167,7 @@
 		1AD5A8471EEC030F00E782AA /* Datasets */ = {
 			isa = PBXGroup;
 			children = (
+				1A86DC411F0BD4560040D614 /* Laake's Stakes Perp Tr */,
 				1AD5A8481EEC030F00E782AA /* Brshtl Possum Perp Tr */,
 				1AD5A8531EEC030F00E782AA /* P'pnyl Emu r Tr */,
 			);
@@ -178,6 +193,8 @@
 		1AD5A8561EEC030F00E782AA /* Expectations */ = {
 			isa = PBXGroup;
 			children = (
+				1A86DC441F0BD4C00040D614 /* Run05074.graphData */,
+				1A86DC451F0BD4C00040D614 /* Run05074.results */,
 				1AD5A8591EEC030F00E782AA /* Run04038y.graphData */,
 				1AD5A85A1EEC030F00E782AA /* Run04038y.results */,
 				1AD5A85D1EEC030F00E782AA /* Run04096.graphData */,
@@ -349,9 +366,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				1AD5A8721EEC030F00E782AA /* Run04096.results in Resources */,
+				1A86DC461F0BD4C00040D614 /* Run05074.graphData in Resources */,
 				1AD5A86D1EEC030F00E782AA /* Run04038y.graphData in Resources */,
 				1AD5A86A1EEC030F00E782AA /* Run04096.WDdata in Resources */,
+				1A86DC431F0BD4560040D614 /* Run05074.WDdata in Resources */,
 				1AD5A8711EEC030F00E782AA /* Run04096.graphData in Resources */,
+				1A86DC471F0BD4C00040D614 /* Run05074.results in Resources */,
 				1AD5A86E1EEC030F00E782AA /* Run04038y.results in Resources */,
 				1AD5A8611EEC030F00E782AA /* Run04038y.WDdata in Resources */,
 			);
@@ -778,6 +798,7 @@
 				1AD5A8441EEC023200E782AA /* Default */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Default;
 		};
 		4206D929093D5F580056509F /* Build configuration list for PBXNativeTarget "WildlifeDensity" */ = {
 			isa = XCConfigurationList;

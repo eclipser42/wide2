@@ -60,6 +60,10 @@
     [self oneDataset:@"Run04038y"];
 }
 
+- (void)testMean {
+    [self oneDataset:@"Run05074"];
+}
+
 - (void)testPerformanceExample {
     // This is an example of a performance test case.
     [self measureBlock:^{
