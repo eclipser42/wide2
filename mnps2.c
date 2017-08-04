@@ -694,7 +694,7 @@ void freq_distrib(int nclass, double stt, double clint, int nvals, int kdt, floa
  *
  *******************************************************************************/
 
-search_params select_search_parameters(calc_params *params, search_params *result)
+void select_search_parameters(calc_params *params, search_params *result)
 {
     result->f[0] = params->enteredValue[0];
     result->f[1] = params->enteredValue[1];
@@ -781,7 +781,7 @@ search_params select_search_parameters(calc_params *params, search_params *resul
              */
 
             for (int ih=0; ih < params->nvals; ih++) {
-                rlsum += fabs(params->r[ih]);
+                rlsum += fabsf(params->r[ih]);
             }
 
             float rlsd = sqrt(rlsum/(params->nvals-1));
@@ -935,6 +935,46 @@ Loop_150:
     result->step[1] = params->enteredStep[1];
     result->step[2] = params->enteredStep[2];
 
+    if (params->ifx == 0) {
+        /*
+         *     The program now calculates the mean overall observer movement
+         *     rate (w) as OBSW=DIST/DURN (DIST in m and DURN in min), provided
+         *     that an DURN value has been entered and the data are from line
+         *     transects (IFX=0).  Also, k is defined as k=u/w (FNK=RATE/OBSW).
+         *     If not, this entire step is bypassed.
+         *
+         * Comment by J.Begg: in FORTRAN, dividing by 0 gives Infinity but this
+         * doesn't seem to be the case in C.  So the logic is extended to include
+         * a test for DURN=0 and set FNK accordingly.  (Note that OBSW is not used
+         * for any purpose other than to calculate FNK.)
+         */
+        double fnk;
+        if (params->durn <= 0) {
+            fnk = 0;
+        }
+        else {
+            double obsw = params->dist/params->durn;
+            fnk = params->rate/obsw;
+        }
+        
+        /*
+         *     Assuming that the actual distance (and not LJ) has been
+         *     entered, the movement correction factor (J) is calculated
+         *     using an approximation.  Different approximations are used
+         *     if k=u/w is less than or greater than 5.
+         */
+        if (fnk == 0) {
+            result->estj = 1;
+        } else if ((fnk > 0) && (fnk <= 1)) {
+            result->estj = 1.000 + (0.00495562*fnk) + (0.0995941*fnk*fnk) + (0.0324447*fnk*fnk*fnk);
+        } else if ((fnk > 1) && (fnk <= 5)) {
+            result->estj = 1.0051 - (0.0212978*fnk) + (0.0002868*fnk*fnk)  + (0.279106*fnk*fnk*fnk)
+            - (0.12982*fnk*fnk*fnk*fnk) + (0.0234994*fnk*fnk*fnk*fnk*fnk) - (0.00153274*fnk*fnk*fnk*fnk*fnk*fnk) ;
+        } else {
+            result->estj = 0.8183*fnk;
+        }
+    }
+
     /*
      *     Unless the number of iterations has been set at 1 and bottom option 3 has not
      *     been selected, the Line_100 sequence computes revised initial estimates of the
@@ -964,43 +1004,6 @@ Line_100:
          *
          */
         if (params->ifx == 0) {
-            /*
-             *     The program now calculates the mean overall observer movement
-             *     rate (w) as OBSW=DIST/DURN (DIST in m and DURN in min), provided
-             *     that an DURN value has been entered and the data are from line
-             *     transects (IFX=0).  Also, k is defined as k=u/w (FNK=RATE/OBSW).
-             *     If not, this entire step is bypassed.
-             *
-             * Comment by J.Begg: in FORTRAN, dividing by 0 gives Infinity but this
-             * doesn't seem to be the case in C.  So the logic is extended to include
-             * a test for DURN=0 and set FNK accordingly.  (Note that OBSW is not used
-             * for any purpose other than to calculate FNK.)
-             */
-            double fnk;
-            if (params->durn <= 0) {
-                fnk = 0;
-            }
-            else {
-                double obsw = params->dist/params->durn;
-                fnk = params->rate/obsw;
-            }
-            
-            /*
-             *     Assuming that the actual distance (and not LJ) has been
-             *     entered, the movement correction factor (J) is calculated
-             *     using an approximation.  Different approximations are used
-             *     if k=u/w is less than or greater than 5.
-             */
-            if (fnk == 0) {
-                result->estj = 1;
-            } else if ((fnk > 0) && (fnk <= 1)) {
-                result->estj = 1.000 + (0.00495562*fnk) + (0.0995941*fnk*fnk) + (0.0324447*fnk*fnk*fnk);
-            } else if ((fnk > 1) && (fnk <= 5)) {
-                result->estj = 1.0051 - (0.0212978*fnk) + (0.0002868*fnk*fnk)  + (0.279106*fnk*fnk*fnk)
-                - (0.12982*fnk*fnk*fnk*fnk) + (0.0234994*fnk*fnk*fnk*fnk*fnk) - (0.00153274*fnk*fnk*fnk*fnk*fnk*fnk) ;
-            } else {
-                result->estj = 0.8183*fnk;
-            }
             result->f[2] = (1.e4 * (result->numa + result->numo)) / (params->ns * params->dist * result->estj * params->pd * ests);
             result->step[2] = 0.5 * result->f[2];
         }
@@ -1061,22 +1064,19 @@ void resample (float orig_dist[], int orig_size[], int nvals,
 //      REAL, INTENT(IN) :: orig_dist[MAX_OBSERVATIONS]
 //      REAL, INTENT(OUT) :: resamp_dist[MAX_OBSERVATIONS]
 
-      int ix, n;
-      double x;
-
       /* printf("\n");
          printf("Resampling ...\n"); */
       for (int js=0; js < nvals; js++) {	//  DO js=1,nvals
         resamp_size[js] = 0;
       }
-      for (ix=0; ix < nvals; ix++) {	//    DO ix = 1, nvals
+      for (int ix=0; ix < nvals; ix++) {	//    DO ix = 1, nvals
+        double x;
 	randgen(&x);
-	n = x*nvals;
+	int n = x * nvals;
 	resamp_dist[ix] = orig_dist[n];
 	resamp_size[ix] = orig_size[n];
 	/* printf("resamp(%4d) = orig(%4d)\n", ix+1, n+1); */
       }					//  END DO
-      return;
 }
 //      END SUBROUTINE resample
 
@@ -1266,7 +1266,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 */
 /* Line_160: */
 
-      if (kdt == 1) goto Line_230;
+    if (kdt != 1) {
 
 /*
 *     If the calculated cover proportion is less than zero,
@@ -1305,9 +1305,10 @@ Line_220:
 *     to logarithms later in the program.
 */
       *imv = 1;
-      goto Line_260;
+    }
 
-Line_230:
+    else { // The case kdt = 1 follows:
+/* Line_230: */
       qdmax = q*dmax;
 
 /*
@@ -1324,13 +1325,14 @@ Line_230:
       ddsm = dmax*dmax;
       pam = pa/ddsm;
       prmax = pam/ssmax;
+    }
 
 /*
 *
 *     L10, the number of class intervals used for comparisons, is
 *     defined.
 */
-Line_260:
+/* Line_260: */
       l10 = nclass;
       tote = 0.0;
 
@@ -1469,7 +1471,7 @@ Line_260:
 */
 /* Line_360: */
 
-	if (*imv == 1) goto Loop_870;
+          if (*imv != 1) {
 
 /*
 *     This method of computation uses one of two approximations to
@@ -1480,49 +1482,49 @@ Line_260:
 	zh = q*dh;
 
 /*
-*     To avoid overflow during computations, ZH is set at 68 if
-*     ZH > 68.
-*/
-	if (zh > 68.0) {
-	  zh = 68.0;
-	}
-/*
-*     ZH is set at -70 if ZH < -70.
-*/
-	else if (zh < (-70.0)) {
-           zh = -70.0;
-	}
-/*
 *     If ZH is zero, VHOWH (=VH/WH) is set at 0, and a few lines of
 *     calculations are bypassed.
 */
-	else if (zh == 0.0) {
-	   vhowh = 0.0;
-	   goto Line_430;
-        }
+              if (zh == 0.0) {
+                  vhowh = 0.0;
+              }
+
+              else {
+/*
+*     To avoid overflow during computations, ZH is set at 68 if
+*     ZH > 68.
+*/
+                  if (zh > 68.0) zh = 68.0;
+
+/*
+*     ZH is set at -70 if ZH < -70.
+*/
+                  else if (zh < (-70.0)) zh = -70.0;
 
 /*
 *     The choice of approximation depends on the value of bd.
 */
-	if (zh < 1.0) {
+                  if (zh < 1.0) {
 
 /*
 *     Approximation 2 is used if bd<1.
 */
 	    aprexi = -0.577216 + 0.999992*zh - 0.249910*zh*zh + 0.055200*zh*zh*zh
 			 - 0.009760*zh*zh*zh*zh + 0.0010792*zh*zh*zh*zh*zh - log(zh);
-	}
+                  }
+
 /*
 *     Approximation 1 is used if bd=1 or bd>1.
 */
+                  else {
+                      vh = zh*zh + 2.334733*zh + 0.250621;
+                      wh = zh*zh + 3.330457*zh + 1.681534;
+                      vhowh = vh/wh;
+                  }
+                  
+              } // zh != 0
 
-	else {
-	   vh = zh*zh + 2.334733*zh + 0.250621;
-	   wh = zh*zh + 3.330457*zh + 1.681534;
-	   vhowh = vh/wh;
-	}
-
-	Line_430:
+/* Line_430: */
 		  ssh = exp(zh);
 		  yh = pa/(dh*ssh);
 
@@ -1538,6 +1540,7 @@ Line_260:
 	   yyh = yh * (1.0-vhowh);
         }
 
+          } // imv != 0
 /*
 *
 *     Loop 870, which calculates the expected number in each
@@ -1545,7 +1548,7 @@ Line_260:
 *     a progressive total (EXPD and TEXPD), now begins .....
 */
 
-Loop_870:
+/* Loop_870: */
 	dnr = tr-hcint;		// DNR is the central r value in an observing arc.
 	dnrh = tr;		// DNRH is the highest r value in an observing arc.
 
@@ -1970,7 +1973,7 @@ Line_900:
 *      of intermediate variables is output.
 */
 		  
-Line_1050:
+/* Line_1050: */
 	if (ishow == 1) {
 	    fprintf(output_results, " %12.6f   %12.6f   %12.6f   %12.6f   %12.6f\n\n", prc,qr,tote,expd,expdv);
 	}
@@ -2052,8 +2055,6 @@ Line_1300:
       if (kprint == 1) {
 	fprintf(output_results, " Final Difference at Minimum = %15.6f\n\n", *func);
       }
-
-      return;
 }
 //      END SUBROUTINE givef
 
@@ -2144,7 +2145,7 @@ void qsf (double f[NUM_SHAPE_PARAMS],
        int mnpd,  iless1, neval;
        double pstar[20], aval[20], bmat[210], ao/*, dmax*/;
        double temp, ymin, vc[210], var[NUM_SHAPE_PARAMS], vra, sa, sb, sd2l;
-       double sdmax, sd, t05, vrb, vrd2l, vrdmax, den, simp;
+       double sdmax, sd, vrb, vrd2l, vrdmax, den, simp;
        double pmin[20], /* pbar[20], */ pstst[20], t;
        double df, vrs;
        double test, cl1, cl2;
@@ -2733,12 +2734,6 @@ Line_220:
 
       *estden = den;
       *sden = sd;
-
-
-Line_400:
-      /* CONTINUE */
-
-      return;
 }
 
 //      END SUBROUTINE
@@ -2766,15 +2761,13 @@ void calculate_density (calc_params *params
       int nloop, nop, np1, ns, numa, numest, numo, nclass;
       int numoin, numain, nvals;
       bool iqsf;
-      double a, approx, b, c, cf1dif, cf1sum, cf2dif, cf2sum;
-      double cf3dif, cf3sum, clint, coeffnt1, coeffnt2;
-      double coeffnt3, dcoeff, dendif, dist, dsum, s;
+      double a, approx, b, c, clint, dcoeff, dist, s;
       double estden, func, hmean;
       double hstar, hstd, hstst, durn, ltmin, ltmax;
-      double pd, ps, rate, savemn, scf1, scf2, scf3;
-      double sden, sns, stopc, stt, test, tcoeff1, tcoeff2;
-      double tcoeff3, tcov, tden, thh, vgh, /*dmax, */ t05;
-      float estdmax, ttrden, ttrdenmn, tdsum, tdendif, strden, t,tcl1,tcl2,cl1,cl2;
+      double pd, ps, rate, savemn;
+      double sns, stopc, stt, test, tcoeff1, tcoeff2;
+      double tcoeff3, tcov, tden, thh, vgh;
+      float estdmax, ttrden, tcl1,tcl2,cl1,cl2;
       float resamp_dist[MAX_OBSERVATIONS], trden[5000];
       double val[80], valt[80];
       double g[21][20], step[NUM_SHAPE_PARAMS], stept[NUM_SHAPE_PARAMS], f[NUM_SHAPE_PARAMS], ft[NUM_SHAPE_PARAMS];
@@ -3017,11 +3010,11 @@ Line_90:
       sns = ns;
 
       if (ifx == 0) {
-         f[2] = (sns*dist*pd*f[2])/1.e4;
-         step[2] = (sns*dist*pd*step[2])/1.e4;
+         f[2] *= (sns*dist*pd)/1.e4;
+         step[2] *= (sns*dist*pd)/1.e4;
       } else {
-         f[2]=(2.*ps*pd*rate*durn*f[2])/1.e4;
-         step[2]=(2.*ps*pd*rate*durn*step[2])/1.e4;
+         f[2] *= (2.*ps*pd*rate*durn)/1.e4;
+         step[2] *= (2.*ps*pd*rate*durn)/1.e4;
       }
 
 /*
@@ -3694,8 +3687,14 @@ Line_1210:
 	    continue;
 	  }
 	}
+
+/*
+*     None of the continuation criteria have been met. Conclude the
+*     search of this bootstrap.
+*/
             continue_search = false;
         }
+
 /*
 *     If JPRINT=1 the program prints out the results of each successful
 *     convergence on a minimum.
@@ -3850,24 +3849,14 @@ Loop_1400:
 */
 
       estden = tden/numest;
-      coeffnt1 = tcoeff1/numest;
-      coeffnt2 = tcoeff2/numest;
+      double coeffnt1 = tcoeff1/numest;
+      double coeffnt2 = tcoeff2/numest;
+      double coeffnt3 = (numest == msfail) ? tcoeff3 : (tcoeff3/(numest-msfail));
 
 /*
 *     A mean of the transformed values, TTRDENMN, is calculated too.
 */
-
-      ttrdenmn = ttrden/numest;
-
-/*
-*     Should MSFAIL be identical to NUMEST, 1 is added to NUMEST to
-*     prevent division by zero at the next step.
-*/
-      // if (numest == msfail) numest++;
-      // coeffnt3 = tcoeff3/(numest-msfail);
-      // if (numest == (msfail+1)) numest--;
-
-      coeffnt3 = (numest == msfail) ? tcoeff3 : (tcoeff3/(numest-msfail));
+      float ttrdenmn = ttrden/numest;
 
 /*
 *
@@ -3876,71 +3865,59 @@ Loop_1400:
 *     Each is the standard deviation of the parameter estimates.
 *     If NUMEST is 0 or 1, standard error calculation is bypassed.
 */
-	
-      if (numest <= 1) goto Line_1470;
+      double sden = 0, scf1 = 0, scf2 = 0, scf3 = 0;
 
-      dsum = 0.0;
-Loop_1430:
-      for (bootstrap=0; bootstrap < maxjb; bootstrap++) {	//  DO bootstrap=1, maxjb
+      if (numest > 1) {
+
+      double dsum = 0.0;
+      double cf1sum = 0.0;
+      double cf2sum = 0.0;
+      double cf3sum = 0.0;
+      float tdsum = 0.0;
+
+      for (bootstrap=0; bootstrap < maxjb; bootstrap++) {
 	if ((den[bootstrap]) != 0.) {
-	  dendif = den[bootstrap]-estden;
+	  double dendif = den[bootstrap]-estden;
 	  dsum += dendif*dendif;
 	}
-      }								//  END DO Loop_1430
-      sden = sqrt(dsum/(numest-1));
 
-      cf1sum = 0.0;
-Loop_1440:
-      for (bootstrap=0; bootstrap < maxjb; bootstrap++) {	//  DO bootstrap=1, maxjb
-	if (coeff1[bootstrap] != 0.0) {
-	  cf1dif = coeff1[bootstrap]-coeffnt1;
+        if (coeff1[bootstrap] != 0.0) {
+	  double cf1dif = coeff1[bootstrap]-coeffnt1;
 	  cf1sum += cf1dif*cf1dif;
         }
-      }								//  END DO Loop_1440
-      scf1 = sqrt(cf1sum/(numest-1));
 
-      cf2sum=0.0;
-Loop_1450:
-      for (bootstrap=0; bootstrap < maxjb; bootstrap++) {	//  DO bootstrap=1, maxjb
 	if (coeff2[bootstrap] != 0.0) {
-	  cf2dif = coeff2[bootstrap]-coeffnt2;
+	  double cf2dif = coeff2[bootstrap]-coeffnt2;
 	  cf2sum += cf2dif*cf2dif;
 	}
-      }								//  END DO Loop_1450
-      scf2=sqrt(cf2sum/(numest-1));
 
-      cf3sum=0.0;
-Loop_1460:
-      for (bootstrap=0; bootstrap < maxjb; bootstrap++) {	//  DO bootstrap=1, maxjb
 	if (coeff3[bootstrap] != 0.0) {
-	  cf3dif = coeff3[bootstrap]-coeffnt3;
+	  double cf3dif = coeff3[bootstrap]-coeffnt3;
 	  cf3sum += cf3dif*cf3dif;
 	}
-      }								//  END DO Loop_1460
-
-      if ((numest-msfail-1) > 0) scf3 = sqrt(cf3sum/(numest-msfail-1));
 
 /*
 *     A standard deviation of the transformed means, STRDEN, is now
 *     computed.
 */
-
-      tdsum=0.0;
-Loop_1465:
-      for (bootstrap=0; bootstrap < maxjb; bootstrap++) {	//  DO bootstrap = 1, maxjb
 	if (trden[bootstrap] != 0.0) {
-	  tdendif = trden[bootstrap]-ttrdenmn;
+	  float tdendif = trden[bootstrap]-ttrdenmn;
 	  tdsum += tdendif*tdendif;
 	}
-      }								//  END DO Loop_1465
-      strden = sqrt(tdsum/(numest-1));
+      }
+
+      sden = sqrt(dsum/(numest-1));
+      scf1 = sqrt(cf1sum/(numest-1));
+      scf2 = sqrt(cf2sum/(numest-1));
+      if ((numest-msfail-1) > 0) scf3 = sqrt(cf3sum/(numest-msfail-1));
+      float strden = sqrt(tdsum/(numest-1));
 
 /*
 *     The p=0.05(2) distribution of t with sample number is now
 *     approximated by a function t05.
 */
 
-      t05 = 1.97623 + 5.95434/pow(nvals, 1.4);
+      double t05 = 1.97623 + 5.95434/pow(nvals, 1.4);
 
 /*
 *     The 95% lower (CL1) and upper (CL2) confidence limits are now
@@ -3952,6 +3929,7 @@ Loop_1465:
       tcl2 = ttrdenmn + t05*strden;
       cl1 = exp(tcl1) - 1.0;
       cl2 = exp(tcl2) - 1.0;
+      }
 
 /*
 *     If all the STEP values supplied have been set at zero, several
@@ -4086,8 +4064,6 @@ Line_1650:
       if (maxjb == 1) {
 
 	fprintf(output_results,   " x Coefficient  (a) x    %10.4f    x (indeterminate)  x      metres      x\n", coeffnt1);
-
-//      goto Line_1710;
       }
       else {
 
@@ -4243,7 +4219,5 @@ Line_1920:
       params->results.estden = estden;
       params->results.sden = sden;
       params->complete = 1;
-      return;
-
 }
 //      END SUBROUTINE calculate_density
