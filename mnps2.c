@@ -286,11 +286,6 @@
 *          the population, best represented by the root mean
 *          square of the measured vertical height differences.
 *
-*     VGH - the approximate average height of vegetation cover
-*          in the animal's habitat in situations where the observer
-*          is well above the plane of the population and most of
-*          the line of detection is unobstructed.
-*
 *
 *
 *    The names of the temporary variables used within the main subroutine
@@ -1155,7 +1150,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 	    double stt,
 	    double tcov,
 	    double thh,
-	    double vgh,
+	    /* double vgh, */
 	    int ifx,
 	    bool *useMedianValues,
 	    int iry,
@@ -1191,7 +1186,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
       int l10,l20;
 
       double cint,d2l,dd,dds,ddsm,dh,dif;
-      double difsq,dint,dl,dmax,dnr,dnrl,dnrh,dvg,e,ed;
+      double difsq,dint,dl,dmax,dnr,dnrl,dnrh,e,ed;
       double corrn,ermax,expd,expdr,expdy,expdv;
       double hcint,htot,obsd,p,pa,pad,pam;
       double pr,prc,prr,prmax,q,qdd,qdmax,qr;
@@ -1303,16 +1298,6 @@ void givef (double f[NUM_SHAPE_PARAMS],
         topmax = pow(exp(-6.9078/(ltmax-ltmin)),(dmax-ltmin));
       }
 
-/*
-*     For observing situations (e.g. aerial survey) where there is
-*     'ground' cover for only the first part of the direct-line distance
-*     d between animal and observer (indicated by the vegetation height
-*     (VGH) exceeding zero), this cover will obscure some animals.  The
-*     proportion (VISMAX) visible at DMAX will be a function of d
-*     (VISMAX=(1-c)**DMAX). The distance obscured (DVG) will have a
-*     value equal to (cover height) x (distance d)/ (observer-animal
-*     height difference).
-*/
 /* Line_160: */
 
     if (kdt != 1) {
@@ -1334,12 +1319,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 */
 /* Line_190: */
 
-        if (vgh > 0) {
-            dvg = vgh*dmax/thh;
-            vegmax = pow(1.0 - q, fmin(dmax, dvg));
-        } else {
-            vegmax = pow(1.0 - q, dmax);
-        }
+        vegmax = pow(1.0 - q, dmax);
       vismax = vegmax*topmax;
       ddsm = dmax*dmax;
       prmax = pa*vismax/ddsm;
@@ -1633,16 +1613,6 @@ void givef (double f[NUM_SHAPE_PARAMS],
                 topdd = exp(tcov*(dd-ltmin));
 			}
 
-/*
-*     For observing situations where there is 'ground'
-*     cover for only the first part of the direct-line distance
-*     d between animal and observer (indicated by the vegetation
-*     height (VGH) exceeding zero), this cover will obscure
-*     some animals.  The proportion visible at d (VISDD) will
-*     be a function of d (VISDD=(1-Q)**DD). The distance obscured
-*     (DVG) will have a value equal to (cover height) x (distance d)/
-*     (observer-animal height difference).
-*/
 /* Line_600: */
 			if (kdt == 1) {
 			    qdd = q*dd;
@@ -1656,15 +1626,8 @@ void givef (double f[NUM_SHAPE_PARAMS],
 			}
 
 			else {
-/* Line_610: */
-			    double gce = dd;
-
-			    if (vgh > 0) {
-				dvg = vgh*dd/thh;
-				if (dd > dvg) gce = dvg;
-			    }
 Line_630:
-			    vegdd = pow((1.0-q),gce);
+			    vegdd = pow((1.0-q), dd);
 Line_640:
 			    visdd = vegdd*topdd;
 			    pr = pa*visdd/dds;
@@ -2011,14 +1974,6 @@ Line_1300:
 *
 */
 
-//      SUBROUTINE qsf (f, func, approx, dist, durn, rate, step, stopc,
-//     & s, val, clint, stt, tcov, thh, vgh, imv, ishow, kprint, ltmax,
-//     & ltmin, nclass, numa, numo, msfail, mtest, estden, sden, hstst,
-//     & pd, ps, ifx, iprint, iry, kdt, km, nap, neval, nop, ns, nvals,
-//     & np1, g, h, maxjb, jprint, graph_file)
-
-//       DOUBLE PRECISION, INTENT(INOUT), DIMENSION(4) :: f
-
 void qsf (double f[NUM_SHAPE_PARAMS],
 	  double func,
 	  double approx,
@@ -2033,7 +1988,6 @@ void qsf (double f[NUM_SHAPE_PARAMS],
 	  double stt,
 	  double tcov,
 	  double thh,
-	  double vgh,
 	  bool *imv,
 	  int ishow,
 	  int *kprint,
@@ -2141,7 +2095,7 @@ Line_20:
 	  }					//  END DO
 
 	  givef (pstst, &h[i], s, val, clint, /* pd, */ stt, tcov,
-		thh, vgh, ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
+		thh, /* vgh, */ ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
 		ltmax, ltmin, nclass, numa, numo, msfail, maxjb,
 		mtest, true, results);
 
@@ -2166,7 +2120,7 @@ Line_60:
 	}				//  END DO
 
 	givef (pstar, &aval[i], s, val, clint, /* pd, */ stt, tcov,
-	       thh, vgh, ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
+	       thh, /* vgh, */ ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
 	       ltmax, ltmin, nclass, numa, numo, msfail, maxjb,
 	       mtest, true, results);
 
@@ -2200,7 +2154,7 @@ Inner1:
 	    }				//  END DO inner2
 
 	    givef(pstst, hstst, s, val, clint, /* pd, */ stt, tcov,
-		  thh, vgh, ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
+		  thh, /* vgh, */ ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
 		  ltmax, ltmin, nclass, numa, numo, msfail, maxjb,
 		  mtest, true, results);
 
@@ -2699,7 +2653,7 @@ void calculate_density (calc_params *params
       double hstar, hstd, hstst, durn, ltmin, ltmax;
       double pd, ps, rate, savemn;
       double sns, stopc, stt, test, tcoeff1, tcoeff2;
-      double tcoeff3, tcov, tden, thh, vgh;
+      double tcoeff3, tcov, tden, thh;
       float estdmax, ttrden, tcl1,tcl2,cl1,cl2;
       float resamp_dist[MAX_OBSERVATIONS], trden[5000];
       double val[80], valt[80];
@@ -2755,7 +2709,6 @@ void calculate_density (calc_params *params
       jprint = params->jprint;
       ishow = params->ishow;
       maxjb = params->maxjb;
-      vgh = params->vgh;
       durn = params->durn;
       rate = params->rate;
       pd = params->pd;
@@ -3196,7 +3149,7 @@ Loop_730:
 	  h[i] = func;
 
 	  givef (f, &h[i], &s, val, clint, /* pd, */ stt, tcov,
-		 thh, vgh, ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
+		 thh, /* vgh, */ ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
 		 ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
 		 mtest, false, &params->results);
 
@@ -3281,7 +3234,7 @@ Loop_810:   for (j=0; j < nop; j++) {	//  DO j=1,nop
 	hstar = 0.0;
 
 	givef (pstar, &hstar, &dcoeff, val, clint, /* pd, */ stt,
-	       tcov, thh, vgh, ifx, &imv, iry, ishow, kdt, kprint,
+	       tcov, thh, /* vgh, */ ifx, &imv, iry, ishow, kdt, kprint,
 	       /* dmax, */ ltmax, ltmin, nclass, numa, numo,
 	       &msfail, maxjb, mtest, false, &params->results);
 
@@ -3319,7 +3272,7 @@ Loop_810:   for (j=0; j < nop; j++) {	//  DO j=1,nop
         hstst = 0.0;
 
 	givef (pstst, &hstst, &dcoeff, val, clint, /* pd, */ stt,
-	       tcov, thh, vgh, ifx, &imv, iry, ishow, kdt, kprint,
+	       tcov, thh, /* vgh, */ ifx, &imv, iry, ishow, kdt, kprint,
 	       /* dmax, */ ltmax, ltmin, nclass, numa, numo,
 	       &msfail, maxjb, mtest, false, &params->results);
 
@@ -3406,7 +3359,7 @@ Loop_810:   for (j=0; j < nop; j++) {	//  DO j=1,nop
 	}					//  END DO Loop_930
 
         givef (pstst, &hstst, &dcoeff, val, clint, /* pd, */ stt,
-	       tcov, thh, vgh, ifx, &imv, iry, ishow, kdt, kprint,
+	       tcov, thh, /* vgh, */ ifx, &imv, iry, ishow, kdt, kprint,
 	       /* dmax, */ ltmax, ltmin, nclass, numa, numo,
 	       &msfail, maxjb, mtest, false, &params->results);
 
@@ -3460,7 +3413,7 @@ Loop_810:   for (j=0; j < nop; j++) {	//  DO j=1,nop
 	  }                                         //  END DO Loop_1010
 
           givef (f, &h[i], &dcoeff, val, clint, /* pd, */ stt,
-		 tcov, thh, vgh, ifx, &imv, iry, ishow, kdt,
+		 tcov, thh, /* vgh, */ ifx, &imv, iry, ishow, kdt,
 		 kprint, /* dmax, */ ltmax, ltmin, nclass, numa, numo,
 		 &msfail, maxjb, mtest, false, &params->results);
 
@@ -3517,7 +3470,7 @@ Loop_1080:
 	}
 
         givef (f, &func, &dcoeff, val, clint, /* pd, */ stt, tcov,
-	       thh, vgh, ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
+	       thh, /* vgh, */ ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
 	       ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
 	       mtest, false, &params->results);
 
@@ -3660,7 +3613,7 @@ Line_1320:
 *
 */
 	givef (f, &func, &dcoeff, val, clint, /* pd, */ stt, tcov,
-	       thh, vgh, ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
+	       thh, /* vgh, */ ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
 	       ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
 	       mtest, false, &params->results);
 
@@ -3936,7 +3889,7 @@ Line_1468:
 */
 
 	qsf (f, func, approx, dist, durn, rate, step, stopc,
-	     &s, val, clint, stt, tcov, thh, vgh, &imv, ishow, &kprint, ltmax,
+	     &s, val, clint, stt, tcov, thh, /* vgh, */ &imv, ishow, &kprint, ltmax,
 	     ltmin, nclass, numa, numo, &msfail, mtest, &estden, &sden, &hstst,
 	     pd, ps, ifx, iprint, iry, kdt, km, nap, /* neval,*/ nop, ns, /* nvals, */
 	     np1, g, h, maxjb, /* jprint, */ &params->results);
@@ -4103,7 +4056,7 @@ Line_1840:
 
 Line_1920:
       givef (f, &func, &dcoeff, val, clint, /* pd, */ stt, tcov,
-	     thh, vgh, ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
+	     thh, /* vgh, */ ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
 	     ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
 	     mtest, iqsf, &params->results);
 
