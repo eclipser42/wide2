@@ -1,7 +1,7 @@
 /*******************************************************************************
 *     PROGRAM WildlifeDensity
 *
-*     (File mnps2.c, Version 2.1.6b1)
+*     (File mnps2.c, Version 2.1.6b3)
 *
 *     This program is designed to return population density estimates
 *     from 'distance' data collected using either line transect or fixed
@@ -352,18 +352,6 @@
 *     I, IA, IC, IE, IFLAG, IH, IN, IR, J, JS, JV, K - index
 *          variables used in DO loops within the program.
 *
-*     useMedianValues (IMV) - a parameter to select the method
-*          of calculating probability used in Subroutine GIVEF.
-*          It either:
-*
-*            = false uses the mean value of P[r] in an interval;
-*            = true  uses the median value of P[r] in the interval.
-*
-*          useMedianValues is also enabled within the program if
-*          the coefficient becomes negative or if the data are
-*          visual observations. (The two approaches produce
-*          almost identical results.)
-*
 *     LOOP - a parameter used to control the search process.
 *
 *     MAX - the maximum number of function evaluations to be
@@ -478,6 +466,18 @@
 *     TOPDD - the proportion of the population at a given radial
 *          distance that is unobscured by topographical cover (such as
 *          hills and ridges).
+*
+*     useMedianValues (IMV) - a parameter to select the method
+*          of calculating probability used in Subroutine GIVEF.
+*          It either:
+*
+*            = false uses the mean value of P[r] in an interval;
+*            = true  uses the median value of P[r] in the interval.
+*
+*          useMedianValues is enabled within the program if the range of
+*          observations is restricted (KDT > 1) or if the coefficient
+*          becomes negative. (The two approaches produce almost identical
+*          results.)
 *
 *     VALT[] - the initial class totals.
 *
@@ -1083,30 +1083,36 @@ void resample (float orig_dist[], int orig_size[], int nvals,
 */
 
 double detection_probability(double q, double d, double pa) {
-    double z = q * d;
-    z = fmin(68, fmax(-70, z));
+/*
+*     So the logarithm in APREXI doesn't get "too negative", safe_d is
+*     restricited to be at least 0.03.
+*/
+    double safe_d = fmax(d, 0.03);
+    double z = q * safe_d;
+    z = fmin(68, z);
+    if (q < 0 || z < 0) abort();
     double ss = exp(z);
-    double y = pa / (d * ss);
+    double y = pa / (safe_d * ss);
     double yy;
 
     if (z <= 0.0) {
         yy = y; // yy = y * (1 - vow) with vow=0;
     }
 /*
- *     The choice of approximation depends on the value of bd.
- */
+*     The choice of approximation depends on the value of bd.
+*/
     else if (z < 1.0) {
-    /*
-     *     Approximation 2 is used if bd<1.
-     */
+/*
+*     Approximation 2 is used if bd<1.
+*/
         double aprexi = -0.577216 + 0.999992*z - 0.249910*z*z + 0.055200*z*z*z
                         -0.009760*z*z*z*z + 0.0010792*z*z*z*z*z - log(z);
         yy = y - pa * q * aprexi;
     }
     else {
-    /*
-     *     Approximation 1 is used if bd=1 or bd>1.
-     */
+/*
+*     Approximation 1 is used if bd=1 or bd>1.
+*/
         double v = z*z + 2.334733*z + 0.250621;
         double w = z*z + 3.330457*z + 1.681534;
         double vow = v / w;
@@ -1152,7 +1158,6 @@ void givef (double f[NUM_SHAPE_PARAMS],
 	    double thh,
 	    /* double vgh, */
 	    int ifx,
-	    bool *useMedianValues,
 	    int iry,
 	    int ishow,
 	    int kdt,
@@ -1186,15 +1191,14 @@ void givef (double f[NUM_SHAPE_PARAMS],
       int l10,l20;
 
       double cint,d2l,dd,dds,ddsm,dh,dif;
-      double difsq,dint,dl,dmax,dnr,dnrl,dnrh,e,ed;
-      double corrn,ermax,expd,expdr,expdy,expdv;
-      double hcint,htot,obsd,p,pa,pad,pam;
-      double pr,prc,prr,prmax,q,qdd,qdmax,qr;
-      double rlow,rmax,rr,ssmax;
-      double texpd,topdd,topmax,tot,tote,tr,vegdd;
-      double vegmax,visdd,vismax, wl, yy;
+      double difsq,dint,dmax,dnr,dnrl,dnrh,e,ed;
+      double corrn,ermax,expd,expdv;
+      double hcint,htot,obsd,p,pa;
+      double pr,prc,prr,prmax,q,qr;
+      double rlow,rmax;
+      double texpd, tot,tote,tr, wl;
 
-      bool jrlow;
+      bool useMedianValues, jrlow;
 
 /*
 *     TOT is the progressive value of the sum of squares of the
@@ -1222,13 +1226,27 @@ void givef (double f[NUM_SHAPE_PARAMS],
       q = f[1];
 
 /*
+*     Set mean values to be used for the probability distribution unless
+*     the data range is not truncated or if logarithms of negative values
+*     would appear in Approximation 1 above due to a negative value of Q.
+*
+*     The program now sets IMV=1 as a default value, unless the
+*     expected frequency distribution is likely to have a sharp peak,
+*     which may happen if the data are radial, NCLASS has a low
+*     value (say, <20) and the data range is not truncated (KDT is not
+*     greater than 1).
+*/
+
+      useMedianValues = (q < 0) || (kdt > 1);//|| (iry != 0) || (nclass >= 20);
+
+/*
 *     If Q is negative, the program sets useMedianValues and so
 *     uses the median value of d in an interval as the basis of
 *     computations, in order to avoid logarithms of negative
 *     values appearing in Approximation 1 above.
 */
-
-    if (q < 0) *useMedianValues = true;
+    
+    if (q < 0) useMedianValues = true;
 
 /*
 *
@@ -1279,6 +1297,8 @@ void givef (double f[NUM_SHAPE_PARAMS],
 */
       pa = p*p;
 
+    if (kdt != 1) {
+
 /*
 *     Visibility and audibility will be affected by topographical
 *     features in habitats where the ground is not level. The total
@@ -1292,15 +1312,12 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     provided that either LTMIN is not very large or RMAX is currently
 *     less than LTMIN.
 */
+      double topmax;
       if ((ltmin >= 999.) && (rmax <= ltmin)) {
         topmax = 1.0;
       } else {
         topmax = pow(exp(-6.9078/(ltmax-ltmin)),(dmax-ltmin));
       }
-
-/* Line_160: */
-
-    if (kdt != 1) {
 
 /*
 *     If the calculated cover proportion is less than zero,
@@ -1319,36 +1336,23 @@ void givef (double f[NUM_SHAPE_PARAMS],
 */
 /* Line_190: */
 
-        vegmax = pow(1.0 - q, dmax);
-      vismax = vegmax*topmax;
+        double vegmax = pow(1.0 - q, dmax);
+        double vismax = vegmax*topmax;
       ddsm = dmax*dmax;
       prmax = pa*vismax/ddsm;
-
-/*
-*     For visual data collected where there is cover, useMedianValues
-*     is set to avoid the possibility of negative values being taken
-*     to logarithms later in the program.
-*/
-        *useMedianValues = true;
     }
 
     else { // The case kdt = 1 follows:
 /* Line_230: */
-      qdmax = q*dmax;
 
 /*
 *     To prevent overflow during computations, an upper limit of
 *     70 and a lower limit of -68 are set to QDMAX.
 */
-      if (qdmax >= 70.0) {
-	qdmax = 70.0;
-      } else if (qdmax <= (-68.0)) {
-	qdmax = -68.0;
-      }
-
-      ssmax = exp(qdmax);
+        double qdmax = fmin(68, fmax(-70, q * dmax));
+        double ssmax = exp(qdmax);
       ddsm = dmax*dmax;
-      pam = pa/ddsm;
+      double pam = pa/ddsm;
       prmax = pam/ssmax;
     }
 
@@ -1434,7 +1438,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     Loop 1180, which calculates expected values and compares them
 *     with observed values, now begins .....
 */
-	Loop_1180:
+/* Loop_1180: */
       for (int md = l10 - 1; md >= 0; --md) {	// md = (nclass-1), (nclass-2),..., 0
 
 /*
@@ -1476,16 +1480,16 @@ void givef (double f[NUM_SHAPE_PARAMS],
 	wl = tr-clint;
 
 /*
-*     If the entire class lies above both the highest calculated
-*     and highest preset recognition distances, the expected
+*     If the entire class lies above either the highest calculated
+*     or highest preset recognition distances, the expected
 *     value (EXPDV) is set at zero and the calculations in Loop
 *     870 are bypassed.
 */
 
 	if ((wl > rmax) || (wl > ermax)) {
 	  expdv = 0.0;
-          goto Line_900;
         }
+        else {
 
 /*
 *     Two alternative ways of calculating the probability of
@@ -1497,7 +1501,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 /* Line_360: */
           double yyl = 0, yyh = 0;
 
-          if (!*useMedianValues) {
+          if (!useMedianValues) {
               dh = sqrt(thh * thh + tr * tr);
               yyh = detection_probability(q, dh, pa);
           }
@@ -1539,7 +1543,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 */
 /* Line_470: */
 
-	    dl = sqrt(thh*thh+dnrl*dnrl);
+	    double dl = sqrt(thh*thh+dnrl*dnrl);
 
 /*
 *     DINT is the difference between DL and DH, and thus the width
@@ -1555,7 +1559,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     continues from Line_570.
 */
 
-            if (!*useMedianValues) {
+            if (!useMedianValues) {
                   yyl = detection_probability(q, dl, pa);
 
 /*
@@ -1585,9 +1589,16 @@ void givef (double f[NUM_SHAPE_PARAMS],
 */
 /* Line_570: */
 
-            dd = sqrt(thh*thh+dnr*dnr);
-			dds = dd*dd;
+                dds = thh*thh + dnr*dnr;
+                dd = sqrt(dds);
 
+                if (kdt == 1) {
+                    double qdd = fmin(68, fmax(-70, q * dd));
+                    double pad = pa/dds;
+                    pr = pad/exp(qdd);
+                }
+                
+                else {
 /*
 *      Visibility will be affected not only by lateral vegetation cover but
 *      by topographical features too in habitats where the ground is not
@@ -1606,30 +1617,17 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *      topography will have no effect on visibility, so TCOV is then set
 *      equal to 1.) Otherwise TOPDD = EXP(TCOV*(DD-LTMIN)).
 */
-        
-			if ((ltmin == 999) || (dd < ltmin) || (ltmax < ltmin)) {
-			    topdd = 1.0;
-			} else {
-                topdd = exp(tcov*(dd-ltmin));
-			}
+                    double topdd;
+                    if ((ltmin == 999) || (dd < ltmin) || (ltmax < ltmin)) {
+                        topdd = 1.0;
+                    } else {
+                        topdd = exp(tcov*(dd-ltmin));
+                    }
 
-/* Line_600: */
-			if (kdt == 1) {
-			    qdd = q*dd;
-			    if (qdd >= 68.0) {
-				qdd = 68.0;
-			    } else if (qdd <= (-70.0)) {
-				qdd= - 70.0;
-			    }
-			    pad = pa/dds;
-			    pr = pad/exp(qdd);
-			}
-
-			else {
-Line_630:
-			    vegdd = pow((1.0-q), dd);
-Line_640:
-			    visdd = vegdd*topdd;
+/* Line_630: */
+			    double vegdd = pow((1.0-q), dd);
+/* Line_640: */
+			    double visdd = vegdd*topdd;
 			    pr = pa*visdd/dds;
 			}
 
@@ -1804,12 +1802,14 @@ Line_720:
 */
 	expdv = (iry > 0) ? texpd : expd;
 
+        } /* End case wl within rmax & ermax */
+
 /*
 *     Calculated values are printed out once the program has
 *     converged on a minimum, and KPRINT has been set at 1.
 */
 		  
-Line_900:
+/* Line_900: */
         if ((wl <= rmax) && ((kdt <= 1) || (wl <= kdt))) {
 
 /*
@@ -1834,35 +1834,21 @@ Line_900:
       if (kprint > 0) {
 
 /*
-*     For output purposes only, EXPDV is redefined as EXPDR in
-*     the case of radial distance data, and as EXPDY in the case
-*     of perpendicular distance data.  Negative values of EXPDV
-*     are printed as '0.0' in the output because the 'observations'
-*     are unfloat.
+*     For output purposes only, EXPDV is redefined as CALCV.  Negative
+*     values of EXPDV are printed as '0.0' in the output because the
+*     'observations' are unfloat.
 */
-	if (iry > 0) {
-	    yy = tr-(clint/2.0);
-	    expdy = expdv;
-	    if (expdy < 0.0) expdy = 0.0;
-
-	    if (ishow > 0) {
-		fprintf(output_results, "  y=%8.1f     Calc.N(y)=%9.2f     Obsd.N(y)=%9.1f\n", yy,expdy,obsd);
-	    }
-            results->midpoints[md] = yy;
-            results->calcn[md] = expdy;
-            results->obsdn[md] = obsd;
-	}
-	else {  /* iry <= 0 */
-	    rr = tr-(clint/2.0);
-	    expdr = expdv;
-	    if (expdr < 0.0) expdr = 0.0;
-	    if (ishow > 0) {
-		fprintf(output_results, "  r=%8.1f     Calc.N(r)=%9.2f     Obsd.N(r)=%9.1f\n", rr,expdr,obsd);
-	    }
-            results->midpoints[md] = rr;
-            results->calcn[md] = expdr;
-            results->obsdn[md] = obsd;
-	}
+                double midp = tr - (clint/2.0);
+                double calcv = fmax(expdv, 0);
+                results->midpoints[md] = midp;
+                results->calcn[md] = calcv;
+                results->obsdn[md] = obsd;
+                if (ishow > 0) {
+                    char variable = (iry > 0) ? 'r' : 'y';
+                    char* method = useMedianValues ? "median" : "mean  ";
+                    fprintf(output_results, "  %c=%8.1f     Calc.N(%c)=%9.2f [by %s]    Obsd.N(%c)=%9.1f\n",
+                            variable, midp, variable, calcv, method, variable, obsd);
+                }
 
 /*
 *      If the control variable ISHOW has been set at 1, a variety
@@ -1988,7 +1974,6 @@ void qsf (double f[NUM_SHAPE_PARAMS],
 	  double stt,
 	  double tcov,
 	  double thh,
-	  bool *imv,
 	  int ishow,
 	  int *kprint,
 	  double ltmax,
@@ -2095,7 +2080,7 @@ Line_20:
 	  }					//  END DO
 
 	  givef (pstst, &h[i], s, val, clint, /* pd, */ stt, tcov,
-		thh, /* vgh, */ ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
+		thh, /* vgh, */ ifx, /* imv, */ iry, ishow, kdt, *kprint, /* dmax, */
 		ltmax, ltmin, nclass, numa, numo, msfail, maxjb,
 		mtest, true, results);
 
@@ -2120,7 +2105,7 @@ Line_60:
 	}				//  END DO
 
 	givef (pstar, &aval[i], s, val, clint, /* pd, */ stt, tcov,
-	       thh, /* vgh, */ ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
+	       thh, /* vgh, */ ifx, /* imv, */ iry, ishow, kdt, *kprint, /* dmax, */
 	       ltmax, ltmin, nclass, numa, numo, msfail, maxjb,
 	       mtest, true, results);
 
@@ -2154,7 +2139,7 @@ Inner1:
 	    }				//  END DO inner2
 
 	    givef(pstst, hstst, s, val, clint, /* pd, */ stt, tcov,
-		  thh, /* vgh, */ ifx, imv, iry, ishow, kdt, *kprint, /* dmax, */
+		  thh, /* vgh, */ ifx, /* imv, */ iry, ishow, kdt, *kprint, /* dmax, */
 		  ltmax, ltmin, nclass, numa, numo, msfail, maxjb,
 		  mtest, true, results);
 
@@ -2661,7 +2646,7 @@ void calculate_density (calc_params *params
       double h[21], pbar[20], pstar[20], pstst[20];
       double coeff1[5000], coeff2[5000], coeff3[5000];
       double den[5000];
-      bool imv, dmaxIsPreset = true;
+      bool dmaxIsPreset = true;
 
 /*
 *     The program accepts up to 10000 data values, each being the total
@@ -3039,17 +3024,6 @@ Line_370:
       tcoeff3 = 0.0;
 
 /*
-*     The program now sets IMV=1 as a default value, unless the
-*     expected frequency distribution is likely to have a sharp peak,
-*     which may happen if the data are radial, NCLASS has a low
-*     value (say, <20) and the data range is not truncated (KDT is not
-*     greater than 1).  [The possibility that Q is negative is dealt
-*     with in Subroutine GIVEF.]
-*/
-
-      imv = (iry != 0) || (kdt > 1) || (nclass >= 20);
-
-/*
 *     Seed the random number generator
 */
 	
@@ -3149,7 +3123,7 @@ Loop_730:
 	  h[i] = func;
 
 	  givef (f, &h[i], &s, val, clint, /* pd, */ stt, tcov,
-		 thh, /* vgh, */ ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
+		 thh, /* vgh, */ ifx, /* imv, */ iry, ishow, kdt, kprint, /* dmax, */
 		 ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
 		 mtest, false, &params->results);
 
@@ -3234,7 +3208,7 @@ Loop_810:   for (j=0; j < nop; j++) {	//  DO j=1,nop
 	hstar = 0.0;
 
 	givef (pstar, &hstar, &dcoeff, val, clint, /* pd, */ stt,
-	       tcov, thh, /* vgh, */ ifx, &imv, iry, ishow, kdt, kprint,
+	       tcov, thh, /* vgh, */ ifx, /* imv, */ iry, ishow, kdt, kprint,
 	       /* dmax, */ ltmax, ltmin, nclass, numa, numo,
 	       &msfail, maxjb, mtest, false, &params->results);
 
@@ -3272,7 +3246,7 @@ Loop_810:   for (j=0; j < nop; j++) {	//  DO j=1,nop
         hstst = 0.0;
 
 	givef (pstst, &hstst, &dcoeff, val, clint, /* pd, */ stt,
-	       tcov, thh, /* vgh, */ ifx, &imv, iry, ishow, kdt, kprint,
+	       tcov, thh, /* vgh, */ ifx, /* imv, */ iry, ishow, kdt, kprint,
 	       /* dmax, */ ltmax, ltmin, nclass, numa, numo,
 	       &msfail, maxjb, mtest, false, &params->results);
 
@@ -3359,7 +3333,7 @@ Loop_810:   for (j=0; j < nop; j++) {	//  DO j=1,nop
 	}					//  END DO Loop_930
 
         givef (pstst, &hstst, &dcoeff, val, clint, /* pd, */ stt,
-	       tcov, thh, /* vgh, */ ifx, &imv, iry, ishow, kdt, kprint,
+	       tcov, thh, /* vgh, */ ifx, /* imv, */ iry, ishow, kdt, kprint,
 	       /* dmax, */ ltmax, ltmin, nclass, numa, numo,
 	       &msfail, maxjb, mtest, false, &params->results);
 
@@ -3413,7 +3387,7 @@ Loop_810:   for (j=0; j < nop; j++) {	//  DO j=1,nop
 	  }                                         //  END DO Loop_1010
 
           givef (f, &h[i], &dcoeff, val, clint, /* pd, */ stt,
-		 tcov, thh, /* vgh, */ ifx, &imv, iry, ishow, kdt,
+		 tcov, thh, /* vgh, */ ifx, /* imv, */ iry, ishow, kdt,
 		 kprint, /* dmax, */ ltmax, ltmin, nclass, numa, numo,
 		 &msfail, maxjb, mtest, false, &params->results);
 
@@ -3470,7 +3444,7 @@ Loop_1080:
 	}
 
         givef (f, &func, &dcoeff, val, clint, /* pd, */ stt, tcov,
-	       thh, /* vgh, */ ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
+	       thh, /* vgh, */ ifx, /* imv, */ iry, ishow, kdt, kprint, /* dmax, */
 	       ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
 	       mtest, false, &params->results);
 
@@ -3613,7 +3587,7 @@ Line_1320:
 *
 */
 	givef (f, &func, &dcoeff, val, clint, /* pd, */ stt, tcov,
-	       thh, /* vgh, */ ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
+	       thh, /* vgh, */ ifx, /* imv, */ iry, ishow, kdt, kprint, /* dmax, */
 	       ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
 	       mtest, false, &params->results);
 
@@ -3889,7 +3863,7 @@ Line_1468:
 */
 
 	qsf (f, func, approx, dist, durn, rate, step, stopc,
-	     &s, val, clint, stt, tcov, thh, /* vgh, */ &imv, ishow, &kprint, ltmax,
+	     &s, val, clint, stt, tcov, thh, /* vgh, */ /* imv, */ ishow, &kprint, ltmax,
 	     ltmin, nclass, numa, numo, &msfail, mtest, &estden, &sden, &hstst,
 	     pd, ps, ifx, iprint, iry, kdt, km, nap, /* neval,*/ nop, ns, /* nvals, */
 	     np1, g, h, maxjb, /* jprint, */ &params->results);
@@ -4056,7 +4030,7 @@ Line_1840:
 
 Line_1920:
       givef (f, &func, &dcoeff, val, clint, /* pd, */ stt, tcov,
-	     thh, /* vgh, */ ifx, &imv, iry, ishow, kdt, kprint, /* dmax, */
+	     thh, /* vgh, */ ifx, /* imv, */ iry, ishow, kdt, kprint, /* dmax, */
 	     ltmax, ltmin, nclass, numa, numo, &msfail, maxjb,
 	     mtest, iqsf, &params->results);
 
