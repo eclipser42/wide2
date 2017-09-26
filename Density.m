@@ -88,7 +88,7 @@
     NSAssert([aType isEqualToString:@"WildlifeDensity Dataset"], @"Save requested to file of unknown type");
     NSMutableString *contents = [NSMutableString stringWithCapacity:2048];
     [contents appendFormat:@"'%@'%c", header, 10];
-    [contents appendFormat:@"%d, %d, %d, %g, %d, %g, %d, %g, %g%c", params.ifx, params.iry, params.kdt, params.dist, params.km, params.ltmin, params.ns, params.pd, params.vgh, 10];
+    [contents appendFormat:@"%d, %d, %d, %g, %d, %g, %d, %g, %g%c", params.ifx, params.iry, params.kdt, params.dist, params.km, params.ltmin, params.ns, params.pd, 0.0 /* vgh */, 10];
     [contents appendFormat:@"%g, %g, %g, %g%c%c", params.durn, params.rate, params.ps, params.thh, 10, 10];
     for (int i = 0; i < [observations count]; ++i) {
         Observation *observation = [observations objectAtIndex:i];
@@ -427,17 +427,6 @@
 {
     [[[self undoManager] prepareWithInvocationTarget:self] setPd:params.pd];
     params.pd = pd;
-}
-
-- (double)vgh
-{
-    return params.vgh;
-}
-
-- (void)setVgh:(double)vgh;
-{
-    [[[self undoManager] prepareWithInvocationTarget:self] setVgh:params.vgh];
-    params.vgh = vgh;
 }
 
 - (double)durn
@@ -790,7 +779,7 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.pd]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.vgh]) return NO;
+	if (![scanner scanDouble:nil]) return NO; // was vgh
 
 	if (![scanner scanDouble:&params.durn]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -919,7 +908,7 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:nil]) return NO; // was r3s
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.vgh]) return NO;
+	if (![scanner scanDouble:nil]) return NO; // was vgh
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.durn]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
@@ -1010,7 +999,7 @@
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:nil]) return NO; // was r3s
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
-	if (![scanner scanDouble:&params.vgh]) return NO;
+	if (![scanner scanDouble:nil]) return NO; // was vgh
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */
 	if (![scanner scanDouble:&params.durn]) return NO;
 	if (![scanner scanString:@"," intoString:nil]) return NO; /* Skip the comma separator */

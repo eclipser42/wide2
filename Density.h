@@ -57,8 +57,6 @@
 - (void)setNs:(int)ns;
 - (double)pd;
 - (void)setPd:(double)pd;
-- (double)vgh;
-- (void)setVgh:(double)vgh;
 - (double)durn;
 - (void)setDurn:(double)durn;
 - (double)movementRate;
