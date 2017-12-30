@@ -498,6 +498,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include "mnps2.h"
 
@@ -1090,7 +1091,7 @@ double detection_probability(double q, double d, double pa) {
     double safe_d = fmax(d, 0.03);
     double z = q * safe_d;
     z = fmin(68, z);
-    if (q < 0 || z < 0) abort();
+    assert(q >= 0 && z >= 0);
     double ss = exp(z);
     double y = pa / (safe_d * ss);
     double yy;
@@ -1198,7 +1199,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
       double rlow,rmax;
       double texpd, tot,tote,tr, wl;
 
-      bool useMedianValues, jrlow;
+      bool useMedianValues, rlow_found = false;
 
 /*
 *     TOT is the progressive value of the sum of squares of the
@@ -1348,6 +1349,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 /*
 *     To prevent overflow during computations, an upper limit of
 *     70 and a lower limit of -68 are set to QDMAX.
+*  JAJC 19/8/2017: Was [-68, 70] but now [-70, 68] to align with other code
 */
         double qdmax = fmin(68, fmax(-70, q * dmax));
         double ssmax = exp(qdmax);
@@ -1357,7 +1359,6 @@ void givef (double f[NUM_SHAPE_PARAMS],
     }
 
 /*
-*
 *     L10, the number of class intervals used for comparisons, is
 *     defined.
 */
@@ -1382,6 +1383,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     that sweeps forwards ahead of the observer.  L20 is the
 *     number of classes in the inner loop.
 *     0.5 is added to remove errors due to 'chopping'.
+   JAJC 21/8/17: but quotient and lvalue are int, so 0.5 is ignored
 */
       l20 = (800/l10) + 0.5;
 
@@ -1413,12 +1415,6 @@ void givef (double f[NUM_SHAPE_PARAMS],
 /* Line_290: */
 
       qr = 1.0;
-
-/*
-*     JRLOW - a control variable used to control the printout
-*     of RLOW - is initially cleared.
-*/
-      jrlow = false;
 
 /*
 *     EXPD is the cumulative expected number within a class; it is
@@ -1499,7 +1495,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 *     expressed as YYH.  If IMV=1, this calculation is bypassed.
 */
 /* Line_360: */
-          double yyl = 0, yyh = 0;
+          double yyh = 0;
 
           if (!useMedianValues) {
               dh = sqrt(thh * thh + tr * tr);
@@ -1544,6 +1540,7 @@ void givef (double f[NUM_SHAPE_PARAMS],
 /* Line_470: */
 
 	    double dl = sqrt(thh*thh+dnrl*dnrl);
+            assert(dl <= dh);
 
 /*
 *     DINT is the difference between DL and DH, and thus the width
@@ -1560,13 +1557,14 @@ void givef (double f[NUM_SHAPE_PARAMS],
 */
 
             if (!useMedianValues) {
-                  yyl = detection_probability(q, dl, pa);
+                  double yyl = detection_probability(q, dl, pa);
+                  assert(yyl >= yyh);
 
 /*
 *     AUC is the area under the detectability curve between
 *     d=DL and d=DH.
 */
-                  double auc = fabs(yyh-yyl);
+                  double auc = yyl - yyh;
 
 /*
 *     The mean corrected probability [PR=P(r)] of detecting an
@@ -1576,6 +1574,11 @@ void givef (double f[NUM_SHAPE_PARAMS],
 */
 			pr = auc/dint;
 
+/*
+*     YYH is advanced to YYH for the next iteration.
+*/
+                yyh = yyl;
+                
             }       /* End case !useMedianValues */
 
             else {  /* Start case useMedianValues */
@@ -1746,12 +1749,6 @@ Line_720:
 	    dh = dl;
 
 /*
-*     Similarly, in the case of radial distance data, YYL
-*     becomes YYH (relevant only without useMedianValues).
-*/
-            yyh = yyl;
-
-/*
 *     The DNR value for the next arc is DNR minus the
 *     arc width (CINT).
 */
@@ -1770,7 +1767,7 @@ Line_720:
 *     The proportion still present in the next arc will be
 *     the proportion present in the present arc less the
 *     proportion expected to have been detected already.
-*
+   JAJC 23/8/17: this should only be if prr≥0
 */
 	    qr = (1.0-prr)*qr;
 
@@ -1779,14 +1776,14 @@ Line_720:
 *     animal in a thousand - the program is set to print out the
 *     approximate value of rmin where this happens.
 */
-	    if ((qr <= 0.001) && (!jrlow)) {
+	    if ((qr <= 0.001) && (!rlow_found)) {
 
 /*
 *     RLOW is the inner boundary of the arc by which 99.9% of the
 *     detections are expected to have been made.
 */
 		rlow = dnrl-cint;
-		jrlow = true;
+		rlow_found = true;
 	    }
 
 /*
@@ -1911,7 +1908,7 @@ Line_720:
 
       if (kprint > 0) {
 
-	if ((jrlow) && (ishow > 0)) {
+	if ((rlow_found) && (ishow > 0)) {
 	  fprintf(output_results, "\n 99.9%% r value (rmin) =%7.2f m\n", rlow);
 	}
 
@@ -2632,7 +2629,7 @@ void calculate_density (calc_params *params
       int maxjb, mfail, msfail, mtest, nap, neval, ngroups;
       int nloop, nop, np1, ns, numa, numest, numo, nclass;
       int numoin, numain, nvals;
-      bool iqsf;
+      bool iqsf = false;
       double a, approx, b, c, clint, dcoeff, dist, s;
       double estden, func, hmean;
       double hstar, hstd, hstst, durn, ltmin, ltmax;
