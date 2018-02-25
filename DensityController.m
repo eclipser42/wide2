@@ -236,20 +236,8 @@
 
 -(void)updateTableColumns
 {
-    if ([document iry] == 1) {
-        if ([anglesColumn tableView] == nil) {
-            [observationsTable addTableColumn:anglesColumn];
-        }
-    } else {
-        [observationsTable removeTableColumn:anglesColumn];
-    }
-    if ([[document valueForKey:@"elevationsAreSupplied"] boolValue]) {
-        if ([elevationsColumn tableView] == nil) {
-            [observationsTable addTableColumn:elevationsColumn];
-        }
-    } else {
-        [observationsTable removeTableColumn:elevationsColumn];
-    }
+    [anglesColumn setHidden:[document iry] != 1];
+    [elevationsColumn setHidden:![[document valueForKey:@"elevationsAreSupplied"] boolValue]];
 }
 
 - (IBAction)calculate:(id)sender

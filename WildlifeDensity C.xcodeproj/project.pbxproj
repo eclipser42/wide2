@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1A3C1B2E1089D4F9008BD5A5 /* DensityHelp.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3C1B2C1089D4F9008BD5A5 /* DensityHelp.m */; };
 		1A3C1B361089D60C008BD5A5 /* WildlifeDensity Manual.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 1A3C1B341089D60C008BD5A5 /* WildlifeDensity Manual.pdf */; };
+		1A539AEF2042DF92000DF1C6 /* Density.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1A539AED2042DF92000DF1C6 /* Density.xib */; };
 		1A86DC431F0BD4560040D614 /* Run05074.WDdata in Resources */ = {isa = PBXBuildFile; fileRef = 1A86DC421F0BD4560040D614 /* Run05074.WDdata */; };
 		1A86DC461F0BD4C00040D614 /* Run05074.graphData in Resources */ = {isa = PBXBuildFile; fileRef = 1A86DC441F0BD4C00040D614 /* Run05074.graphData */; };
 		1A86DC471F0BD4C00040D614 /* Run05074.results in Resources */ = {isa = PBXBuildFile; fileRef = 1A86DC451F0BD4C00040D614 /* Run05074.results */; };
@@ -22,7 +23,6 @@
 		1AD5A86E1EEC030F00E782AA /* Run04038y.results in Resources */ = {isa = PBXBuildFile; fileRef = 1AD5A85A1EEC030F00E782AA /* Run04038y.results */; };
 		1AD5A8711EEC030F00E782AA /* Run04096.graphData in Resources */ = {isa = PBXBuildFile; fileRef = 1AD5A85D1EEC030F00E782AA /* Run04096.graphData */; };
 		1AD5A8721EEC030F00E782AA /* Run04096.results in Resources */ = {isa = PBXBuildFile; fileRef = 1AD5A85E1EEC030F00E782AA /* Run04096.results */; };
-		420B005106C6E96000695CAB /* Density.nib in Resources */ = {isa = PBXBuildFile; fileRef = 420B004F06C6E96000695CAB /* Density.nib */; };
 		420B005706C6E99600695CAB /* DensityController.m in Sources */ = {isa = PBXBuildFile; fileRef = 420B005506C6E99600695CAB /* DensityController.m */; };
 		420B007406C6EED000695CAB /* Density.m in Sources */ = {isa = PBXBuildFile; fileRef = 420B007206C6EED000695CAB /* Density.m */; };
 		422BF475074B760D00FE654A /* WildlifeDensity Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 422BF474074B760D00FE654A /* WildlifeDensity Icon.icns */; };
@@ -53,6 +53,7 @@
 		1A3C1B2C1089D4F9008BD5A5 /* DensityHelp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DensityHelp.m; sourceTree = "<group>"; };
 		1A3C1B2D1089D4F9008BD5A5 /* DensityHelp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DensityHelp.h; sourceTree = "<group>"; };
 		1A3C1B351089D60C008BD5A5 /* English */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; name = English; path = "English.lproj/WildlifeDensity Manual.pdf"; sourceTree = "<group>"; };
+		1A539AEE2042DF92000DF1C6 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/Density.xib; sourceTree = "<group>"; };
 		1A86DC421F0BD4560040D614 /* Run05074.WDdata */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Run05074.WDdata; sourceTree = "<group>"; };
 		1A86DC441F0BD4C00040D614 /* Run05074.graphData */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Run05074.graphData; sourceTree = "<group>"; };
 		1A86DC451F0BD4C00040D614 /* Run05074.results */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Run05074.results; sourceTree = "<group>"; };
@@ -74,7 +75,6 @@
 		2A37F4C4FDCFA73011CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		2A37F4C5FDCFA73011CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32DBCF750370BD2300C91783 /* WildlifeDensity_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WildlifeDensity_Prefix.pch; sourceTree = "<group>"; };
-		420B005006C6E96000695CAB /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Density.nib; sourceTree = "<group>"; };
 		420B005406C6E99600695CAB /* DensityController.h */ = {isa = PBXFileReference; fileEncoding = 7; lastKnownFileType = sourcecode.c.h; path = DensityController.h; sourceTree = "<group>"; };
 		420B005506C6E99600695CAB /* DensityController.m */ = {isa = PBXFileReference; fileEncoding = 7; lastKnownFileType = sourcecode.c.objc; path = DensityController.m; sourceTree = "<group>"; };
 		420B007106C6EED000695CAB /* Density.h */ = {isa = PBXFileReference; fileEncoding = 7; lastKnownFileType = sourcecode.c.h; path = Density.h; sourceTree = "<group>"; };
@@ -252,7 +252,7 @@
 				1A9534E109F10EC6002E1E3A /* Dataset Icon.icns */,
 				2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */,
 				2A37F4B6FDCFA73011CA2CEA /* MainMenu.nib */,
-				420B004F06C6E96000695CAB /* Density.nib */,
+				1A539AED2042DF92000DF1C6 /* Density.xib */,
 				ACFF017C1609EA65009EDB79 /* GraphData.xib */,
 				8D15AC360486D014006FF6A4 /* Info.plist */,
 				089C165FFE840EACC02AAC07 /* InfoPlist.strings */,
@@ -384,12 +384,12 @@
 				8D15AC2C0486D014006FF6A4 /* Credits.rtf in Resources */,
 				8D15AC2D0486D014006FF6A4 /* MainMenu.nib in Resources */,
 				8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */,
-				420B005106C6E96000695CAB /* Density.nib in Resources */,
 				422BF475074B760D00FE654A /* WildlifeDensity Icon.icns in Resources */,
 				1A9534E209F10EC6002E1E3A /* Dataset Icon.icns in Resources */,
 				1AB250360C19AA18000920F2 /* Graph Results Plot macro in Resources */,
 				1A3C1B361089D60C008BD5A5 /* WildlifeDensity Manual.pdf in Resources */,
 				ACFF017E1609EA65009EDB79 /* GraphData.xib in Resources */,
+				1A539AEF2042DF92000DF1C6 /* Density.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -445,6 +445,14 @@
 			name = "WildlifeDensity Manual.pdf";
 			sourceTree = "<group>";
 		};
+		1A539AED2042DF92000DF1C6 /* Density.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1A539AEE2042DF92000DF1C6 /* English */,
+			);
+			name = Density.xib;
+			sourceTree = "<group>";
+		};
 		2A37F4B6FDCFA73011CA2CEA /* MainMenu.nib */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -459,14 +467,6 @@
 				2A37F4BAFDCFA73011CA2CEA /* English */,
 			);
 			name = Credits.rtf;
-			sourceTree = "<group>";
-		};
-		420B004F06C6E96000695CAB /* Density.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				420B005006C6E96000695CAB /* English */,
-			);
-			name = Density.nib;
 			sourceTree = "<group>";
 		};
 		ACFF017C1609EA65009EDB79 /* GraphData.xib */ = {
