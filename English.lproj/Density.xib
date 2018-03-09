@@ -1572,7 +1572,7 @@ LCAyMDA1AAAAAA</bytes>
                                 </object>
                                 <array class="NSMutableArray" key="NSTableColumns">
                                   <object class="NSTableColumn" id="667193742">
-                                    <double key="NSWidth">108</double>
+                                    <double key="NSWidth">110</double>
                                     <double key="NSMinWidth">40</double>
                                     <double key="NSMaxWidth">1000</double>
                                     <object class="NSTableHeaderCell" key="NSHeaderCell">
@@ -1643,9 +1643,9 @@ LCAyMDA1AAAAAA</bytes>
                                     <reference key="NSTableView" ref="59758585"/>
                                   </object>
                                   <object class="NSTableColumn" id="450735287">
-                                    <double key="NSWidth">106.9755859375</double>
-                                    <double key="NSMinWidth">61.9755859375</double>
-                                    <double key="NSMaxWidth">1000</double>
+                                    <double key="NSWidth">108.9755859375</double>
+                                    <double key="NSMinWidth">90</double>
+                                    <double key="NSMaxWidth">150</double>
                                     <object class="NSTableHeaderCell" key="NSHeaderCell">
                                       <int key="NSCellFlags">75497536</int>
                                       <int key="NSCellFlags2">2048</int>
@@ -1704,7 +1704,7 @@ LCAyMDA1AAAAAA</bytes>
                                     <reference key="NSTableView" ref="59758585"/>
                                   </object>
                                   <object class="NSTableColumn" id="589602731">
-                                    <double key="NSWidth">110</double>
+                                    <double key="NSWidth">109</double>
                                     <double key="NSMinWidth">40</double>
                                     <double key="NSMaxWidth">1000</double>
                                     <object class="NSTableHeaderCell" key="NSHeaderCell">
@@ -1760,7 +1760,7 @@ LCAyMDA1AAAAAA</bytes>
                                     <reference key="NSTableView" ref="59758585"/>
                                   </object>
                                   <object class="NSTableColumn" id="531091032">
-                                    <double key="NSWidth">112</double>
+                                    <double key="NSWidth">109</double>
                                     <double key="NSMinWidth">10</double>
                                     <double key="NSMaxWidth">1000</double>
                                     <object class="NSTableHeaderCell" key="NSHeaderCell">
@@ -1855,7 +1855,7 @@ LCAyMDA1AAAAAA</bytes>
                             <reference key="NSNextKeyView" ref="230632575"/>
                             <reference key="NSTarget" ref="892221538"/>
                             <string key="NSAction">_doScroller:</string>
-                            <double key="NSPercent">0.99788135290145874</double>
+                            <double key="NSPercent">0.96703296703296704</double>
                           </object>
                           <object class="NSScroller" id="966292530">
                             <reference key="NSNextResponder" ref="892221538"/>
@@ -1863,10 +1863,11 @@ LCAyMDA1AAAAAA</bytes>
                             <string key="NSFrame">{{1, -30}, {434, 15}}</string>
                             <reference key="NSSuperview" ref="892221538"/>
                             <reference key="NSNextKeyView" ref="875677654"/>
+                            <bool key="NSEnabled">YES</bool>
                             <int key="NSsFlags">1</int>
                             <reference key="NSTarget" ref="892221538"/>
                             <string key="NSAction">_doScroller:</string>
-                            <double key="NSPercent">0.77361851930618286</double>
+                            <double key="NSPercent">0.99556541019955658</double>
                           </object>
                           <object class="NSClipView" id="193603117">
                             <reference key="NSNextResponder" ref="892221538"/>
@@ -1886,7 +1887,7 @@ LCAyMDA1AAAAAA</bytes>
                         <string key="NSFrame">{{5, 50}, {451, 473}}</string>
                         <reference key="NSSuperview" ref="318281349"/>
                         <reference key="NSNextKeyView" ref="230632575"/>
-                        <int key="NSsFlags">133682</int>
+                        <int key="NSsFlags">133810</int>
                         <reference key="NSVScroller" ref="77854973"/>
                         <reference key="NSHScroller" ref="966292530"/>
                         <reference key="NSContentView" ref="230632575"/>
