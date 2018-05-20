@@ -1,7 +1,7 @@
 /*******************************************************************************
 *     PROGRAM WildlifeDensity
 *
-*     (File mnps2.c, Version 2.1.6b3)
+*     (File mnps2.c, Version 2.1.7b2)
 *
 *     This program is designed to return population density estimates
 *     from 'distance' data collected using either line transect or fixed
@@ -996,7 +996,7 @@ Loop_150:
          *     The lateral cover proportion (‘c’, f[1]) is searched only if the sample size
          *     is large enough.
          */
-        if (params->nvals >= 250 && params->enteredStep[1] > 0.0) {
+        if (params->nvals >= 250) {
             result->step[1] = result->f[1] ;
         }
         else {

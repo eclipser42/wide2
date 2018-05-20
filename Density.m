@@ -740,7 +740,7 @@
     return params.maxjb;
 }
 
-#pragma mark Implementation
+#pragma mark - Implementation
 
 - (BOOL)parseInputColumns:(NSString *)input
 {
