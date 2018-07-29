@@ -3637,7 +3637,7 @@ Line_1380:
 	iflag = 0;
 	kprint = 0;
 
-Loop_1390:
+/* Loop_1390: */
 	for (i=0; i < np1; i++) {		//  DO i=1,np1
 	  for (j=0; j < nop; j++) {	//  DO j=1,nop
 	    g[i][j] = 0.0;
@@ -3649,7 +3649,7 @@ Loop_1390:
 *     Other F and STEP values are reset to their original values.
 */
 
-Loop_1400:
+/* Loop_1400: */
 	for (ie=0; ie < nop; ie++) {		//  DO ie=1,nop
 	  f[ie] = ft[ie];
 	  step[ie] = stept[ie];
