@@ -1,7 +1,7 @@
 /*******************************************************************************
 *     PROGRAM WildlifeDensity
 *
-*     (File mnps2.c, Version 2.1.7b2)
+*     (File mnps2.c, Version 2.2)
 *
 *     This program is designed to return population density estimates
 *     from 'distance' data collected using either line transect or fixed
@@ -762,7 +762,7 @@ void select_search_parameters(calc_params *params, search_params *result)
             result->f[3] = exp(rlf4) - 1;
         }
 
-        else if (params->iry == 2) {
+        else {
 
             /*
              *   The following option is used only if recalculated perp. data have been
@@ -1825,7 +1825,7 @@ Line_720:
                 results->calcn[md] = calcv;
                 results->obsdn[md] = obsd;
                 if (ishow > 0) {
-                    char variable = (iry > 0) ? 'r' : 'y';
+                    char variable = (iry > 0) ? 'y' : 'r';
                     char* method = useMedianValues ? "median" : "mean  ";
                     fprintf(output_results, "  %c=%8.1f     Calc.N(%c)=%9.2f [by %s]    Obsd.N(%c)=%9.1f\n",
                             variable, midp, variable, calcv, method, variable, obsd);
@@ -2619,7 +2619,7 @@ void calculate_density (calc_params *params
       float estdmax, ttrden, tcl1,tcl2,cl1,cl2;
       float resamp_dist[MAX_OBSERVATIONS], trden[5000];
       double val[80], valt[80];
-      double g[21][20], step[NUM_SHAPE_PARAMS], stept[NUM_SHAPE_PARAMS], f[NUM_SHAPE_PARAMS], ft[NUM_SHAPE_PARAMS];
+      double g[21][20], step[NUM_SHAPE_PARAMS], f[NUM_SHAPE_PARAMS], ft[NUM_SHAPE_PARAMS];
       double h[21], pbar[20], pstar[20], pstst[20];
       double coeff1[5000], coeff2[5000], coeff3[5000];
       double den[5000];
@@ -2867,14 +2867,12 @@ Line_90:
 
 /*
 *     The initial values of 'a', 'b', 'D2L', and 'dmax' are retained
-*     as FT and the corresponding steps as STEPT to make possible
-*     reruns of calculations.
+*     as FT to make possible reruns of calculations.
 */
 
 Loop_210:
       for (ia=0; ia < nop; ia++) {	//  DO ia=1,nop
         ft[ia] = f[ia];
-        stept[ia] = step[ia];
       }					//  END DO Loop_210
 
 /*
@@ -3646,13 +3644,12 @@ Line_1380:
 
 /*
 *
-*     Other F and STEP values are reset to their original values.
+*     Other F values are reset to their original values.
 */
 
 /* Loop_1400: */
 	for (ie=0; ie < nop; ie++) {		//  DO ie=1,nop
 	  f[ie] = ft[ie];
-	  step[ie] = stept[ie];
 	}					//  END DO Loop_1400
 
 /* ==============================================================
