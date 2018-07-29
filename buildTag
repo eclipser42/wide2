@@ -22,4 +22,4 @@ codesign -s "Developer ID Application: David Morgan (7KA5E853N6)" build/Deployme
 #-resultBundlePath WildlifeDensity$revision
 #rsync -a $host:$clone/WildlifeDensity$revision.app .
 
-hdiutil create -layout NONE -ov -srcdir build/Deployment -volname WilDen -format UDBZ WiDe\ $revision.dmg
+hdiutil create -layout NONE -ov -srcdir build/Deployment -volname WilDen -format UDBZ -fs HFS+ WiDe\ $revision.dmg

@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A1341AA20B05F06005D3EBB /* Run16070.WDdata in Resources */ = {isa = PBXBuildFile; fileRef = 1A1341A920B05F06005D3EBB /* Run16070.WDdata */; };
+		1A1341AD20B07348005D3EBB /* Run16070-manual a+c.results in Resources */ = {isa = PBXBuildFile; fileRef = 1A1341AB20B07347005D3EBB /* Run16070-manual a+c.results */; };
+		1A1341AE20B07348005D3EBB /* Run16070.graphData in Resources */ = {isa = PBXBuildFile; fileRef = 1A1341AC20B07347005D3EBB /* Run16070.graphData */; };
+		1A1341B020B07738005D3EBB /* Run16070-auto a+c.results in Resources */ = {isa = PBXBuildFile; fileRef = 1A1341AF20B07738005D3EBB /* Run16070-auto a+c.results */; };
 		1A3C1B2E1089D4F9008BD5A5 /* DensityHelp.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3C1B2C1089D4F9008BD5A5 /* DensityHelp.m */; };
 		1A3C1B361089D60C008BD5A5 /* WildlifeDensity Manual.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 1A3C1B341089D60C008BD5A5 /* WildlifeDensity Manual.pdf */; };
 		1A539AEF2042DF92000DF1C6 /* Density.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1A539AED2042DF92000DF1C6 /* Density.xib */; };
@@ -50,6 +54,10 @@
 /* Begin PBXFileReference section */
 		089C1660FE840EACC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		1A1341A920B05F06005D3EBB /* Run16070.WDdata */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Run16070.WDdata; sourceTree = "<group>"; };
+		1A1341AB20B07347005D3EBB /* Run16070-manual a+c.results */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Run16070-manual a+c.results"; sourceTree = "<group>"; };
+		1A1341AC20B07347005D3EBB /* Run16070.graphData */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Run16070.graphData; sourceTree = "<group>"; };
+		1A1341AF20B07738005D3EBB /* Run16070-auto a+c.results */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Run16070-auto a+c.results"; sourceTree = "<group>"; };
 		1A3C1B2C1089D4F9008BD5A5 /* DensityHelp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DensityHelp.m; sourceTree = "<group>"; };
 		1A3C1B2D1089D4F9008BD5A5 /* DensityHelp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DensityHelp.h; sourceTree = "<group>"; };
 		1A3C1B351089D60C008BD5A5 /* English */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; name = English; path = "English.lproj/WildlifeDensity Manual.pdf"; sourceTree = "<group>"; };
@@ -144,6 +152,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		1A1341A820B05F06005D3EBB /* Hlmtd Hnytr Fixed Pt */ = {
+			isa = PBXGroup;
+			children = (
+				1A1341A920B05F06005D3EBB /* Run16070.WDdata */,
+			);
+			path = "Hlmtd Hnytr Fixed Pt";
+			sourceTree = "<group>";
+		};
 		1A86DC411F0BD4560040D614 /* Laake's Stakes Perp Tr */ = {
 			isa = PBXGroup;
 			children = (
@@ -167,6 +183,7 @@
 		1AD5A8471EEC030F00E782AA /* Datasets */ = {
 			isa = PBXGroup;
 			children = (
+				1A1341A820B05F06005D3EBB /* Hlmtd Hnytr Fixed Pt */,
 				1A86DC411F0BD4560040D614 /* Laake's Stakes Perp Tr */,
 				1AD5A8481EEC030F00E782AA /* Brshtl Possum Perp Tr */,
 				1AD5A8531EEC030F00E782AA /* P'pnyl Emu r Tr */,
@@ -193,6 +210,9 @@
 		1AD5A8561EEC030F00E782AA /* Expectations */ = {
 			isa = PBXGroup;
 			children = (
+				1A1341AC20B07347005D3EBB /* Run16070.graphData */,
+				1A1341AF20B07738005D3EBB /* Run16070-auto a+c.results */,
+				1A1341AB20B07347005D3EBB /* Run16070-manual a+c.results */,
 				1A86DC441F0BD4C00040D614 /* Run05074.graphData */,
 				1A86DC451F0BD4C00040D614 /* Run05074.results */,
 				1AD5A8591EEC030F00E782AA /* Run04038y.graphData */,
@@ -365,15 +385,19 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A1341AD20B07348005D3EBB /* Run16070-manual a+c.results in Resources */,
 				1AD5A8721EEC030F00E782AA /* Run04096.results in Resources */,
 				1A86DC461F0BD4C00040D614 /* Run05074.graphData in Resources */,
 				1AD5A86D1EEC030F00E782AA /* Run04038y.graphData in Resources */,
 				1AD5A86A1EEC030F00E782AA /* Run04096.WDdata in Resources */,
 				1A86DC431F0BD4560040D614 /* Run05074.WDdata in Resources */,
 				1AD5A8711EEC030F00E782AA /* Run04096.graphData in Resources */,
+				1A1341AE20B07348005D3EBB /* Run16070.graphData in Resources */,
 				1A86DC471F0BD4C00040D614 /* Run05074.results in Resources */,
 				1AD5A86E1EEC030F00E782AA /* Run04038y.results in Resources */,
 				1AD5A8611EEC030F00E782AA /* Run04038y.WDdata in Resources */,
+				1A1341B020B07738005D3EBB /* Run16070-auto a+c.results in Resources */,
+				1A1341AA20B05F06005D3EBB /* Run16070.WDdata in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -525,7 +549,6 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "WildlifeDensity Tests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "au.edu.unimelb.WildlifeDensity-Tests";
@@ -574,7 +597,6 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "WildlifeDensity Tests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "au.edu.unimelb.WildlifeDensity-Tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -622,7 +644,6 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "WildlifeDensity Tests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "au.edu.unimelb.WildlifeDensity-Tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -718,7 +739,7 @@
 				ENABLE_TESTABILITY = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_VERSION = "";
-				"GCC_VERSION[sdk=macosx10.4][arch=ppc]" = 4.0;
+				"GCC_VERSION[sdk=macosx10.5][arch=ppc]" = 4.0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -748,14 +769,14 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_VERSION = "";
-				"GCC_VERSION[sdk=macosx10.4][arch=ppc]" = 4.0;
+				"GCC_VERSION[sdk=macosx10.5][arch=ppc]" = 4.0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				SDKROOT = macosx;
 			};
 			name = Deployment;
@@ -775,14 +796,14 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
-				"GCC_VERSION[sdk=macosx10.4][arch=ppc]" = 4.0;
+				"GCC_VERSION[sdk=macosx10.5][arch=ppc]" = 4.0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				"MACOSX_DEPLOYMENT_TARGET[arch=ppc]" = 10.3;
+				"MACOSX_DEPLOYMENT_TARGET[arch=ppc]" = 10.5;
 				SDKROOT = macosx;
 			};
 			name = Default;

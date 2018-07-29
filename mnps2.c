@@ -1,7 +1,7 @@
 /*******************************************************************************
 *     PROGRAM WildlifeDensity
 *
-*     (File mnps2.c, Version 2.1.6b3)
+*     (File mnps2.c, Version 2.1.7b2)
 *
 *     This program is designed to return population density estimates
 *     from 'distance' data collected using either line transect or fixed
@@ -969,69 +969,53 @@ Loop_150:
      *     Unless the number of iterations has been set at 1 and bottom option 3 has not
      *     been selected, the Line_100 sequence computes revised initial estimates of the
      *     parameters ‘a’‘c’ and ‘D’, together with initial step sizes for them,
-     *     f[2] using a detectability coefficient estimate (ests), whenever the
-     *     number of evaluations (MAXJB) is set above 1 and the initial step
+     *     using a detectability coefficient estimate (ests), whenever the initial step
      *     size for either or both of f[0] or f[1] is set at zero or all step sizes
      *     are set at zero.
      */
-    
-Line_100:
+
+/* Line_100: */
     if  ((params->maxjb > 1) && (params->ishow == 0))      {
         double estdmax = result->f[3];
-        double ests = 5.84027 + (0.100413*estdmax) - (0.00000583415*estdmax*estdmax) ;
 
         /* True if either or both of the initial step sizes are zero, so also
          * true if all three initial step sizes are zero */
         bool stepSizeIsZero = ((params->enteredStep[0] == 0) || (params->enteredStep[1] == 0));
         if ((params->nvals < 250) || stepSizeIsZero) {
-            result->f[0] = pow((2.618 * estdmax) + 24.833, 0.333) ;
-            result->f[1] = 34.4294 * pow(estdmax, -1.35094) ;
+            result->f[0] = 1.39103 * pow(estdmax, 0.334858);
+            result->f[1] = 5.45005 * pow(estdmax, -0.958841);
         }
-        
+
+        /*
+         *     In these modes the conspicuousness coefficient (‘a’, f[0]) is always searched
+         *     with a preset step size based on estdmax.
+         */
+        result->step[0] = (0.3 * result->f[0]) ;
+
+        /*
+         *     The lateral cover proportion (‘c’, f[1]) is searched only if the sample size
+         *     is large enough.
+         */
+        if (params->nvals >= 250) {
+            result->step[1] = result->f[1] ;
+        }
+        else {
+            result->step[1] = 0.0 ;
+        }
+
         /*
          *     Computation of an initial values for f[2] and step[2] depends on whether
          *     line transect data (ifx=0) or fixed point (ifx=1) data are provided.
          *
          */
+        double ests = 3.83527 + (0.0982708 + 5.76169e-6 * estdmax) * estdmax;
         if (params->ifx == 0) {
             result->f[2] = (1.e4 * (result->numa + result->numo)) / (params->ns * params->dist * result->estj * params->pd * ests);
-            result->step[2] = 0.5 * result->f[2];
         }
-        else if (params->ifx == 1)   {
+        else {
             result->f[2] = (1.e4 * (result->numa + result->numo)) / (2 * params->rate * params->durn * params->ps * params->pd * ests);
-            result->step[2] = 0.5 * result->f[2];
         }
-        
-        
-        /*
-         * Revised initial step sizes are now set for the other parameters, initial
-         * conspicuousness being preset in the case of smaller samples (<250).
-         */
-        if (result->step[0] == 0.0) {
-
-            if  ( (params->nvals >= 250) && (result->step[1] > 0) )  {
-                result->step[0] = (0.3 * result->f[0]) ;
-            } else {  // nvals < 250
-                result->step[0] = 0.0 ;
-            }
-            result->step[1] = result->f[1] ;
-            result->step[2] = (0.5 * result->f[2]) ;
-
-        }
-        else if (result->step[0] > 0.0) {
-
-            if  ( (params->nvals < 250) && (result->step[1] > 0) )  {
-                result->step[0] = 0.0 ;
-            } else {  // nvals >= 250
-                result->step[0] = (0.3 * result->f[0]) ;
-            }
-            if  ( result->step[1] > 0 )  {
-                result->step[1] = result->f[1] ;
-            } else {
-                result->step[1] = 0.0 ;
-            }
-            result->step[2] = (0.5 * result->f[2]) ;
-        }
+        result->step[2] = 0.5 * result->f[2];
     }
 }
 //      END SUBROUTINE select_search_parameters
@@ -2011,10 +1995,10 @@ void qsf (double f[NUM_SHAPE_PARAMS],
        int i, i1, i2, i3, i4, i5, j, j0, j1, k, krun;
        int nless1, in, jk, jless1, l;
        int iplus1, klessi, nu, nl, ij, ndf, jplus1;
-       int mnpd,  iless1, neval;
+       int mnpd = 0, iless1, neval;
        double pstar[20], aval[20], bmat[210], ao/*, dmax*/;
        double temp, ymin, vc[210], var[NUM_SHAPE_PARAMS], vra, sa, sb, sd2l;
-       double sdmax, sd, vrb, vrd2l, vrdmax, den, simp;
+       double sd, vrb, vrd2l, den, simp;
        double pmin[20], /* pbar[20], */ pstst[20], t;
        double df, vrs;
        double test, cl1, cl2;
@@ -2044,7 +2028,7 @@ void qsf (double f[NUM_SHAPE_PARAMS],
 *
 *      SIMP is set to a higher value than the stopping criterion STOPC.
 */
-	
+
       simp = 2*stopc;
 
 /* JMB: The loop at Outer0 runs only once, because the routine either returns or it breaks out of the loop. */
@@ -2482,10 +2466,6 @@ Line_220:
 
       vrd2l = fabs(var[2]*2.0*vrs);
       sd2l = sqrt(vrd2l);
-
-      vrdmax = fabs(var[3]*2.0*vrs);
-      sdmax = sqrt(vrdmax);
-
 
       if ((km == 1) && (ifx == 0)) {
 	sd = (1.0e6*sd2l) / (ns*dist*pd);
@@ -3657,7 +3637,7 @@ Line_1380:
 	iflag = 0;
 	kprint = 0;
 
-Loop_1390:
+/* Loop_1390: */
 	for (i=0; i < np1; i++) {		//  DO i=1,np1
 	  for (j=0; j < nop; j++) {	//  DO j=1,nop
 	    g[i][j] = 0.0;
@@ -3669,7 +3649,7 @@ Loop_1390:
 *     Other F and STEP values are reset to their original values.
 */
 
-Loop_1400:
+/* Loop_1400: */
 	for (ie=0; ie < nop; ie++) {		//  DO ie=1,nop
 	  f[ie] = ft[ie];
 	  step[ie] = stept[ie];
@@ -3790,7 +3770,7 @@ Loop_1400:
 
 /*
 *     If all the STEP values supplied have been set at zero, several
-*     parameters need to be given valuues that will correspond to
+*     parameters need to be given values that will correspond to
 *     those where at least one parameter was estimated.
 */
 
