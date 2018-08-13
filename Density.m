@@ -41,16 +41,11 @@
         params.ns = 2;
         params.thh = 0;
         params.stt = 0;
-        params.clint = 20;
         params.maxjb = 500;
         params.pd = 1;
         params.enteredValue[0] = 15;
         params.enteredValue[1] = 0.1;
         params.enteredValue[2] = 5;
-        params.enteredStep[0] = 6;
-        params.enteredStep[1] = 0.1;
-        params.enteredStep[2] = 5;
-        params.enteredStep[3] = 0;
         params.iprint = 0;
         params.jprint = 0;
         params.ishow = 0;
