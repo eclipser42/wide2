@@ -35,7 +35,6 @@
 	NSMutableArray *observations;
     IBOutlet NSArrayController *observationsController;
     calc_params params;
-    BOOL complete;
     NSString *completeMsg;
     BOOL manualOptions;
 }

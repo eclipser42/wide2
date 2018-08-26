@@ -278,7 +278,7 @@
 *          set at 0.0 by the program.  Where the set is very small
 *          (say, < 30 detections), STEP[0] should also be set at 0.0 .
 *
-*     STT (& FRST) - the detection distance value (r or y) from which
+*     STT - the detection distance value (r or y) from which
 *          class intervals begin (usually zero).
 *
 *     THH - the vertical distance between observer eye level
@@ -798,14 +798,15 @@ void select_search_parameters(calc_params *params, search_params *result)
      *     reset at (F[3]-STT or KDT-STT)/80 to avoid computation problems.
      */
 
+    result->stt = params->kdt > 1 ? params->stt : 0;
     result->clint = params->clint;
     if (params->kdt <= 1 || params->kdt > result->f[3]) {
         if (result->f[3] > (MAX_INTERVALS * params->clint)) {
-            result->clint = (result->f[3] - params->stt) / MAX_INTERVALS;
+            result->clint = (result->f[3] - result->stt) / MAX_INTERVALS;
         }
     } else {
-        if ((params->kdt - params->stt) > (MAX_INTERVALS * params->clint)) {
-            result->clint = (params->kdt - params->stt) / MAX_INTERVALS;
+        if ((params->kdt - result->stt) > (MAX_INTERVALS * params->clint)) {
+            result->clint = (params->kdt - result->stt) / MAX_INTERVALS;
         }
     }
 
@@ -891,7 +892,7 @@ Loop_150:
      *     0.49 is added to avoid counting errors due to 'chopping'.
      */
 
-    result->nclass = ((result->f[3] - params->stt) / result->clint) + 0.49;
+    result->nclass = ((result->f[3] - result->stt) / result->clint) + 0.49;
     if (result->nclass > MAX_INTERVALS)
         result->nclass = MAX_INTERVALS;
 
@@ -918,7 +919,7 @@ Loop_150:
      *     correct magnitude of NVALS for use in later calculations.
      */
     
-    freq_distrib(result->nclass, params->stt, result->clint, params->nvals, params->kdt, result->distance, false,
+    freq_distrib(result->nclass, result->stt, result->clint, params->nvals, params->kdt, result->distance, false,
                  params->nsize, &result->numa, &result->numo, result->val, &result->ngroups);
 
     result->step[0] = params->enteredStep[0];
@@ -2658,7 +2659,6 @@ void calculate_density (calc_params *params
 
       nvals = params->nvals;
       clint = params->clint;
-      stt = params->stt;
       dist = params->dist;
       thh = params->thh;
       ltmin = params->ltmin;
@@ -2765,7 +2765,7 @@ Loop_20:
       }
 
       if (kdt > 1) {
-	fprintf(output_results, " Designated distance range: %5.1f - %5i\n", stt, kdt);
+	fprintf(output_results, " Designated distance range: %5.1f - %5i\n", start.stt, kdt);
       }
 
 /*
