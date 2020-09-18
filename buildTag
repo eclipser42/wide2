@@ -16,7 +16,7 @@ hg_local push -r $revision ssh://$host/$clone || true # push fails if there's no
 ssh -x "$host" cd $clone '&&' hg checkout -r $revision '&&' xcodebuild -project "WildlifeDensity\ C.xcodeproj" -configuration Deployment
 [[ -d build ]] || mkdir build
 rsync -a $host:$clone/build/Deployment build
-codesign -s "Developer ID Application: David Morgan (7KA5E853N6)" build/Deployment/WildlifeDensity.app
+codesign -s "Developer ID Application: James Clough (YCBDS3WHN3)" build/Deployment/WildlifeDensity.app
 
 # with newer Xcode, "-resultBundlePath" is required to locate the build
 #-resultBundlePath WildlifeDensity$revision
