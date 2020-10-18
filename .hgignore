@@ -1,5 +1,0 @@
-# using default PCRE syntax
-^build$
-\.xcuserdatad$
-\.xcworkspace$
-\.dmg$

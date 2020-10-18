@@ -9,11 +9,12 @@ if [[ $# < 1 ]]; then
 fi
 revision=$1
 host=${2-old-fergbook.local}
-clone=wide-build
+clone=/Users/james/wide-build
 
-hg_local push -r $revision ssh://$host/$clone || true # push fails if there's nothing to push
+# needs  ssh $host "cd $clone && git config --add receive.denyCurrentBranch ignore" 
+git push ssh://$host/$clone/.git $revision
 # build on Xcode 3 into "build/Deployment"
-ssh -x "$host" cd $clone '&&' hg checkout -r $revision '&&' xcodebuild -project "WildlifeDensity\ C.xcodeproj" -configuration Deployment
+ssh -x "$host" cd $clone '&&' git checkout $revision '&&' xcodebuild -project "WildlifeDensity\ C.xcodeproj" -configuration Deployment
 [[ -d build ]] || mkdir build
 rsync -a $host:$clone/build/Deployment build
 codesign -s "Developer ID Application: James Clough (YCBDS3WHN3)" build/Deployment/WildlifeDensity.app
