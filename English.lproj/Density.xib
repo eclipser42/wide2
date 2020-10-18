@@ -11,7 +11,7 @@
       <string key="NS.object.0">851</string>
     </object>
     <array class="NSMutableArray" key="IBDocument.EditedObjectIDs">
-      <integer value="94"/>
+      <integer value="105"/>
     </array>
     <array key="IBDocument.PluginDependencies">
       <string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -377,11 +377,11 @@ LCAyMDA1AAAAAA</bytes>
                               <object class="NSMatrix" id="85715176">
                                 <reference key="NSNextResponder" ref="386293306"/>
                                 <int key="NSvFlags">256</int>
-                                <string key="NSFrame">{{12, 56}, {334, 58}}</string>
+                                <string key="NSFrame">{{17, 61}, {334, 48}}</string>
                                 <reference key="NSSuperview" ref="386293306"/>
                                 <reference key="NSNextKeyView" ref="787335794"/>
                                 <bool key="NSEnabled">YES</bool>
-                                <int key="NSNumRows">3</int>
+                                <int key="NSNumRows">2</int>
                                 <int key="NSNumCols">1</int>
                                 <array class="NSMutableArray" key="NSCells">
                                   <object class="NSButtonCell" id="255664257">
@@ -403,7 +403,7 @@ LCAyMDA1AAAAAA</bytes>
                                   <object class="NSButtonCell" id="158474143">
                                     <int key="NSCellFlags">67108864</int>
                                     <int key="NSCellFlags2">0</int>
-                                    <string key="NSContents">auditory data</string>
+                                    <string key="NSContents">visual data, distance range limited</string>
                                     <reference key="NSSupport" ref="1009243213"/>
                                     <reference key="NSControlView" ref="85715176"/>
                                     <int key="NSTag">1</int>
@@ -415,74 +415,9 @@ LCAyMDA1AAAAAA</bytes>
                                     <int key="NSPeriodicDelay">200</int>
                                     <int key="NSPeriodicInterval">25</int>
                                   </object>
-                                  <object class="NSButtonCell" id="368451993">
-                                    <int key="NSCellFlags">67108864</int>
-                                    <int key="NSCellFlags2">0</int>
-                                    <string key="NSContents">visual data, distance range limited</string>
-                                    <reference key="NSSupport" ref="1009243213"/>
-                                    <reference key="NSControlView" ref="85715176"/>
-                                    <int key="NSButtonFlags">1211912448</int>
-                                    <int key="NSButtonFlags2">0</int>
-                                    <object class="NSImage" key="NSNormalImage" id="345619782">
-                                      <int key="NSImageFlags">549453824</int>
-                                      <string key="NSSize">{18, 18}</string>
-                                      <array class="NSMutableArray" key="NSReps">
-                                        <array>
-                                          <integer value="0"/>
-                                          <object class="NSBitmapImageRep">
-                                            <object class="NSData" key="NSTIFFRepresentation">
-                                              <bytes key="NS.bytes">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
-LCAyMDA1AAAAAA</bytes>
-                                            </object>
-                                          </object>
-                                        </array>
-                                      </array>
-                                      <reference key="NSColor" ref="483866616"/>
-                                    </object>
-                                    <reference key="NSAlternateImage" ref="99775201"/>
-                                    <int key="NSPeriodicDelay">400</int>
-                                    <int key="NSPeriodicInterval">75</int>
-                                  </object>
                                 </array>
                                 <string key="NSCellSize">{334, 18}</string>
-                                <string key="NSIntercellSpacing">{4, 2}</string>
+                                <string key="NSIntercellSpacing">{4, 12}</string>
                                 <int key="NSMatrixFlags">1143472128</int>
                                 <string key="NSCellClass">NSActionCell</string>
                                 <object class="NSButtonCell" key="NSProtoCell" id="64079818">
@@ -767,7 +702,59 @@ LCAyMDA1AAAAAA</bytes>
                                   <reference key="NSSupport" ref="1009243213"/>
                                   <int key="NSButtonFlags">1211912448</int>
                                   <int key="NSButtonFlags2">0</int>
-                                  <reference key="NSNormalImage" ref="345619782"/>
+                                  <object class="NSImage" key="NSNormalImage">
+                                    <int key="NSImageFlags">549453824</int>
+                                    <string key="NSSize">{18, 18}</string>
+                                    <array class="NSMutableArray" key="NSReps">
+                                      <array>
+                                        <integer value="0"/>
+                                        <object class="NSBitmapImageRep">
+                                          <object class="NSData" key="NSTIFFRepresentation">
+                                            <bytes key="NS.bytes">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
+LCAyMDA1AAAAAA</bytes>
+                                          </object>
+                                        </object>
+                                      </array>
+                                    </array>
+                                    <reference key="NSColor" ref="483866616"/>
+                                  </object>
                                   <reference key="NSAlternateImage" ref="99775201"/>
                                   <int key="NSPeriodicDelay">400</int>
                                   <int key="NSPeriodicInterval">75</int>
@@ -1162,7 +1149,7 @@ LCAyMDA1AAAAAA</bytes>
                         <int key="NSvFlags">264</int>
                         <string key="NSFrame">{{415, 472}, {47, 17}}</string>
                         <reference key="NSSuperview" ref="518364945"/>
-                        <reference key="NSNextKeyView" ref="444719578"/>
+                        <reference key="NSNextKeyView"/>
                         <bool key="NSEnabled">YES</bool>
                         <object class="NSTextFieldCell" key="NSCell" id="963511227">
                           <int key="NSCellFlags">68157440</int>
@@ -1172,42 +1159,6 @@ LCAyMDA1AAAAAA</bytes>
                           <reference key="NSControlView" ref="343947250"/>
                           <reference key="NSBackgroundColor" ref="491373843"/>
                           <reference key="NSTextColor" ref="738072384"/>
-                        </object>
-                      </object>
-                      <object class="NSTextField" id="444719578">
-                        <reference key="NSNextResponder" ref="518364945"/>
-                        <int key="NSvFlags">264</int>
-                        <string key="NSFrame">{{8, 441}, {238, 17}}</string>
-                        <reference key="NSSuperview" ref="518364945"/>
-                        <reference key="NSNextKeyView" ref="441341692"/>
-                        <bool key="NSEnabled">YES</bool>
-                        <object class="NSTextFieldCell" key="NSCell" id="774315070">
-                          <int key="NSCellFlags">67108864</int>
-                          <int key="NSCellFlags2">272629760</int>
-                          <string key="NSContents">Proportion of observing arc scanned:</string>
-                          <reference key="NSSupport" ref="1009243213"/>
-                          <reference key="NSControlView" ref="444719578"/>
-                          <reference key="NSBackgroundColor" ref="491373843"/>
-                          <reference key="NSTextColor" ref="738072384"/>
-                        </object>
-                      </object>
-                      <object class="NSTextField" id="441341692">
-                        <reference key="NSNextResponder" ref="518364945"/>
-                        <int key="NSvFlags">264</int>
-                        <string key="NSFrame">{{349, 439}, {61, 22}}</string>
-                        <reference key="NSSuperview" ref="518364945"/>
-                        <reference key="NSNextKeyView" ref="226124426"/>
-                        <bool key="NSEnabled">YES</bool>
-                        <object class="NSTextFieldCell" key="NSCell" id="255818690">
-                          <int key="NSCellFlags">-1804599231</int>
-                          <int key="NSCellFlags2">71304192</int>
-                          <string key="NSContents"/>
-                          <reference key="NSSupport" ref="1009243213"/>
-                          <string key="NSPlaceholderString">1</string>
-                          <reference key="NSControlView" ref="441341692"/>
-                          <bool key="NSDrawsBackground">YES</bool>
-                          <reference key="NSBackgroundColor" ref="605410596"/>
-                          <reference key="NSTextColor" ref="982393171"/>
                         </object>
                       </object>
                       <object class="NSMatrix" id="226124426">
@@ -3071,22 +3022,6 @@ YWlsZWQgcmVzdWx0cyBpbiA</string>
         </object>
         <object class="IBConnectionRecord">
           <object class="IBBindingConnection" key="connection">
-            <string key="label">value: selection.ps</string>
-            <reference key="source" ref="441341692"/>
-            <reference key="destination" ref="116303261"/>
-            <object class="NSNibBindingConnector" key="connector">
-              <reference key="NSSource" ref="441341692"/>
-              <reference key="NSDestination" ref="116303261"/>
-              <string key="NSLabel">value: selection.ps</string>
-              <string key="NSBinding">value</string>
-              <string key="NSKeyPath">selection.ps</string>
-              <int key="NSNibBindingConnectorVersion">2</int>
-            </object>
-          </object>
-          <int key="connectionID">243</int>
-        </object>
-        <object class="IBConnectionRecord">
-          <object class="IBBindingConnection" key="connection">
             <string key="label">value: selection.thh</string>
             <reference key="source" ref="539311433"/>
             <reference key="destination" ref="116303261"/>
@@ -4273,8 +4208,6 @@ YWlsZWQgcmVzdWx0cyBpbiA</string>
               <reference ref="745480691"/>
               <reference ref="582656304"/>
               <reference ref="343947250"/>
-              <reference ref="444719578"/>
-              <reference ref="441341692"/>
               <reference ref="226124426"/>
               <reference ref="539311433"/>
               <reference ref="863482335"/>
@@ -4372,22 +4305,6 @@ YWlsZWQgcmVzdWx0cyBpbiA</string>
             <reference key="object" ref="343947250"/>
             <array class="NSMutableArray" key="children">
               <reference ref="963511227"/>
-            </array>
-            <reference key="parent" ref="518364945"/>
-          </object>
-          <object class="IBObjectRecord">
-            <int key="objectID">216</int>
-            <reference key="object" ref="444719578"/>
-            <array class="NSMutableArray" key="children">
-              <reference ref="774315070"/>
-            </array>
-            <reference key="parent" ref="518364945"/>
-          </object>
-          <object class="IBObjectRecord">
-            <int key="objectID">217</int>
-            <reference key="object" ref="441341692"/>
-            <array class="NSMutableArray" key="children">
-              <reference ref="255818690"/>
             </array>
             <reference key="parent" ref="518364945"/>
           </object>
@@ -4586,16 +4503,6 @@ YWlsZWQgcmVzdWx0cyBpbiA</string>
             <int key="objectID">460</int>
             <reference key="object" ref="963511227"/>
             <reference key="parent" ref="343947250"/>
-          </object>
-          <object class="IBObjectRecord">
-            <int key="objectID">461</int>
-            <reference key="object" ref="774315070"/>
-            <reference key="parent" ref="444719578"/>
-          </object>
-          <object class="IBObjectRecord">
-            <int key="objectID">462</int>
-            <reference key="object" ref="255818690"/>
-            <reference key="parent" ref="441341692"/>
           </object>
           <object class="IBObjectRecord">
             <int key="objectID">463</int>
@@ -5193,7 +5100,6 @@ YWlsZWQgcmVzdWx0cyBpbiA</string>
             <array class="NSMutableArray" key="children">
               <reference ref="255664257"/>
               <reference ref="158474143"/>
-              <reference ref="368451993"/>
               <reference ref="64079818"/>
             </array>
             <reference key="parent" ref="985561077"/>
@@ -5209,11 +5115,6 @@ YWlsZWQgcmVzdWx0cyBpbiA</string>
             <reference key="parent" ref="85715176"/>
           </object>
           <object class="IBObjectRecord">
-            <int key="objectID">101</int>
-            <reference key="object" ref="368451993"/>
-            <reference key="parent" ref="85715176"/>
-          </object>
-          <object class="IBObjectRecord">
             <int key="objectID">472</int>
             <reference key="object" ref="64079818"/>
             <reference key="parent" ref="85715176"/>
@@ -5225,11 +5126,13 @@ YWlsZWQgcmVzdWx0cyBpbiA</string>
         <string key="-2.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="-3.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="100.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
-        <string key="101.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="102.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="103.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="104.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="105.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+        <object class="NSAffineTransform" key="105.IBViewBoundsToFrameTransform">
+          <bytes key="NSTransformStruct">AUCAAABDZwAAA</bytes>
+        </object>
         <string key="107.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="108.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="112.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -5303,8 +5206,6 @@ YWlsZWQgcmVzdWx0cyBpbiA</string>
         <string key="213.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="214.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="215.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
-        <string key="216.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
-        <string key="217.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="218.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="219.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="22.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -5379,8 +5280,6 @@ YWlsZWQgcmVzdWx0cyBpbiA</string>
         <string key="458.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="459.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="460.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
-        <string key="461.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
-        <string key="462.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="463.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="464.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <string key="465.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -5439,6 +5338,9 @@ YWlsZWQgcmVzdWx0cyBpbiA</string>
         <string key="94.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
         <reference key="94.IBUserGuides" ref="0"/>
         <string key="96.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+        <object class="NSAffineTransform" key="96.IBViewBoundsToFrameTransform">
+          <bytes key="NSTransformStruct">P4AAAL+AAABBiAAAwugAAA</bytes>
+        </object>
         <string key="99.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
       </dictionary>
       <dictionary class="NSMutableDictionary" key="unlocalizedProperties"/>
