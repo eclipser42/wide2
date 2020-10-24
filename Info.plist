@@ -60,6 +60,8 @@
 	<string>WLDN</string>
 	<key>CFBundleVersion</key>
 	<string>2.0</string>
+	<key>CSFlags</key>
+	<string>runtime</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>NSMainNibFile</key>
