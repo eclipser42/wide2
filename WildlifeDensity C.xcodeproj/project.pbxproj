@@ -9,9 +9,10 @@
 /* Begin PBXBuildFile section */
 		1A12776D25446DF5007021B1 /* Aggregates_Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A12776C25446DF5007021B1 /* Aggregates_Tests.m */; };
 		1A12776F25447001007021B1 /* aggregates.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A12776E25447001007021B1 /* aggregates.c */; };
+		1A12777225453AD4007021B1 /* Run16070-auto a+c.graphData in Resources */ = {isa = PBXBuildFile; fileRef = 1A12777025453AD3007021B1 /* Run16070-auto a+c.graphData */; };
+		1A12777325453AD4007021B1 /* Run16070-manual a+c.graphData in Resources */ = {isa = PBXBuildFile; fileRef = 1A12777125453AD3007021B1 /* Run16070-manual a+c.graphData */; };
 		1A1341AA20B05F06005D3EBB /* Run16070.WDdata in Resources */ = {isa = PBXBuildFile; fileRef = 1A1341A920B05F06005D3EBB /* Run16070.WDdata */; };
 		1A1341AD20B07348005D3EBB /* Run16070-manual a+c.results in Resources */ = {isa = PBXBuildFile; fileRef = 1A1341AB20B07347005D3EBB /* Run16070-manual a+c.results */; };
-		1A1341AE20B07348005D3EBB /* Run16070.graphData in Resources */ = {isa = PBXBuildFile; fileRef = 1A1341AC20B07347005D3EBB /* Run16070.graphData */; };
 		1A1341B020B07738005D3EBB /* Run16070-auto a+c.results in Resources */ = {isa = PBXBuildFile; fileRef = 1A1341AF20B07738005D3EBB /* Run16070-auto a+c.results */; };
 		1A3C1B2E1089D4F9008BD5A5 /* DensityHelp.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3C1B2C1089D4F9008BD5A5 /* DensityHelp.m */; };
 		1A3C1B361089D60C008BD5A5 /* WildlifeDensity Manual.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 1A3C1B341089D60C008BD5A5 /* WildlifeDensity Manual.pdf */; };
@@ -59,9 +60,10 @@
 		1A12776B25446C21007021B1 /* aggregates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = aggregates.h; sourceTree = "<group>"; };
 		1A12776C25446DF5007021B1 /* Aggregates_Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Aggregates_Tests.m; sourceTree = "<group>"; };
 		1A12776E25447001007021B1 /* aggregates.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = aggregates.c; sourceTree = "<group>"; };
+		1A12777025453AD3007021B1 /* Run16070-auto a+c.graphData */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Run16070-auto a+c.graphData"; sourceTree = "<group>"; };
+		1A12777125453AD3007021B1 /* Run16070-manual a+c.graphData */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Run16070-manual a+c.graphData"; sourceTree = "<group>"; };
 		1A1341A920B05F06005D3EBB /* Run16070.WDdata */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Run16070.WDdata; sourceTree = "<group>"; };
 		1A1341AB20B07347005D3EBB /* Run16070-manual a+c.results */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Run16070-manual a+c.results"; sourceTree = "<group>"; };
-		1A1341AC20B07347005D3EBB /* Run16070.graphData */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Run16070.graphData; sourceTree = "<group>"; };
 		1A1341AF20B07738005D3EBB /* Run16070-auto a+c.results */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Run16070-auto a+c.results"; sourceTree = "<group>"; };
 		1A3C1B2C1089D4F9008BD5A5 /* DensityHelp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DensityHelp.m; sourceTree = "<group>"; };
 		1A3C1B2D1089D4F9008BD5A5 /* DensityHelp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DensityHelp.h; sourceTree = "<group>"; };
@@ -216,7 +218,8 @@
 		1AD5A8561EEC030F00E782AA /* Expectations */ = {
 			isa = PBXGroup;
 			children = (
-				1A1341AC20B07347005D3EBB /* Run16070.graphData */,
+				1A12777025453AD3007021B1 /* Run16070-auto a+c.graphData */,
+				1A12777125453AD3007021B1 /* Run16070-manual a+c.graphData */,
 				1A1341AF20B07738005D3EBB /* Run16070-auto a+c.results */,
 				1A1341AB20B07347005D3EBB /* Run16070-manual a+c.results */,
 				1A86DC441F0BD4C00040D614 /* Run05074.graphData */,
@@ -395,12 +398,13 @@
 			files = (
 				1A1341AD20B07348005D3EBB /* Run16070-manual a+c.results in Resources */,
 				1AD5A8721EEC030F00E782AA /* Run04096.results in Resources */,
+				1A12777325453AD4007021B1 /* Run16070-manual a+c.graphData in Resources */,
 				1A86DC461F0BD4C00040D614 /* Run05074.graphData in Resources */,
 				1AD5A86D1EEC030F00E782AA /* Run04038y.graphData in Resources */,
 				1AD5A86A1EEC030F00E782AA /* Run04096.WDdata in Resources */,
+				1A12777225453AD4007021B1 /* Run16070-auto a+c.graphData in Resources */,
 				1A86DC431F0BD4560040D614 /* Run05074.WDdata in Resources */,
 				1AD5A8711EEC030F00E782AA /* Run04096.graphData in Resources */,
-				1A1341AE20B07348005D3EBB /* Run16070.graphData in Resources */,
 				1A86DC471F0BD4C00040D614 /* Run05074.results in Resources */,
 				1AD5A86E1EEC030F00E782AA /* Run04038y.results in Resources */,
 				1AD5A8611EEC030F00E782AA /* Run04038y.WDdata in Resources */,

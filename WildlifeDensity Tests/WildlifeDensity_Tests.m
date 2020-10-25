@@ -92,23 +92,18 @@
     NSBundle *bundle = [NSBundle bundleForClass:[self class]];
     NSString *manualResults = [bundle pathForResource:[filename stringByAppendingString:@"-manual a+c"] ofType:@"results"];
     NSString *autoResults = [bundle pathForResource:[filename stringByAppendingString:@"-auto a+c"] ofType:@"results"];
-    NSString *graphData = [bundle pathForResource:filename ofType:@"graphData"];
+    NSString *manualGraphData = [bundle pathForResource:[filename stringByAppendingString:@"-manual a+c"] ofType:@"graphData"];
+    NSString *autoGraphData = [bundle pathForResource:[filename stringByAppendingString:@"-auto a+c"] ofType:@"graphData"];
 
     for (double step0 = 0 ; step0 <= 1; ++step0) {
         for (double step1 = 0 ; step1 <= 1; ++step1) {
             params->enteredStep[0] = step0;
             params->enteredStep[1] = step1;
             NSString * expectedResults = (step0 && step1) ? manualResults : autoResults;
-            [self oneDataset:dataset expectingResults:expectedResults andGraphData:graphData];
+            NSString * expectedGraphData = (step0 && step1) ? manualGraphData : autoGraphData;
+            [self oneDataset:dataset expectingResults:expectedResults andGraphData:expectedGraphData];
         }
     }
-}
-
-- (void)testPerformanceExample {
-    // This is an example of a performance test case.
-    [self measureBlock:^{
-        // Put the code you want to measure the time of here.
-    }];
 }
 
 @end

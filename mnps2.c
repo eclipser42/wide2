@@ -501,6 +501,7 @@
 #include <assert.h>
 
 #include "mnps2.h"
+#include "aggregates.h"
 
 FILE *output_results = NULL;
 
@@ -720,11 +721,10 @@ void select_search_parameters(calc_params *params, search_params *result)
      */
 
     if (params->enteredValue[3] == 0) {
-        int numgra = 0;
-        float rltot = 0, rlsum = 0;
         double t001 = 3.33256 + 33.0731/pow(params->nvals, 1.39337);
 
         if (params->iry < 2) {
+            aggregation log_r = {0};
 
             /*
              *     This option handles all situations with radial data supplied.
@@ -735,29 +735,16 @@ void select_search_parameters(calc_params *params, search_params *result)
 
             for (int ih=0; ih < params->nvals; ih++) {
                 if (params->r[ih] > 0) {
-                    rltot += log(params->r[ih]+1);
-                    numgra++;
+                    add(&log_r, log(params->r[ih]+1));
                 }
             }
-
-            float rlmean = rltot/numgra;
 
             /*
              *     A standard error of the logarithmic r (RLSD) is now calculated,
              *     followed by the estimated logarithmic maximum distance RLF4,
              *     which is then backtransformed to give an F[3] value.
              */
-
-            for (int ih=0; ih < params->nvals; ih++) {
-                if (params->r[ih] > 0) {
-                    float tmp = log(params->r[ih] + 1) - rlmean;
-                    float rdifsq = (tmp * tmp) / (numgra - 1);
-                    rlsum += rdifsq;
-                }
-            }
-
-            float rlsd = sqrt(rlsum);
-            float rlf4 = rlmean + t001*rlsd;
+            float rlf4 = mean(&log_r) + t001 * sample_sd(&log_r);
 
             result->f[3] = exp(rlf4) - 1;
         }
@@ -776,6 +763,7 @@ void select_search_parameters(calc_params *params, search_params *result)
              *   the result.
              */
 
+            float rlsum = 0;
             for (int ih=0; ih < params->nvals; ih++) {
                 rlsum += fabsf((float) params->r[ih]);
             }
