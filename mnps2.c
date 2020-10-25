@@ -1,7 +1,7 @@
 /*******************************************************************************
 *     PROGRAM WildlifeDensity
 *
-*     (File mnps2.c, Version 2.2)
+*     (File mnps2.c, Version 2.4b0)
 *
 *     This program is designed to return population density estimates
 *     from 'distance' data collected using either line transect or fixed
