@@ -197,6 +197,7 @@
 *            = 1  for auditory data or long distance (no vegn.) data;
 *            > 1  the maximum class interval boundary distance (in m)
 *                 when visual data are from a limited distance range.
+*                 The unit is still m even if KM is set.
 *
 *     KM - a parameter to modify the program if transect lengths and
 *          detection distances are measured in kilometres, viz:
@@ -279,7 +280,8 @@
 *          (say, < 30 detections), STEP[0] should also be set at 0.0 .
 *
 *     STT - the detection distance value (r or y) from which
-*          class intervals begin (usually zero).
+*          class intervals begin (usually zero). Entered in m even if
+*          KM is set.
 *
 *     THH - the vertical distance between observer eye level
 *          and the median horizontal plane occupied by
@@ -779,25 +781,6 @@ void select_search_parameters(calc_params *params, search_params *result)
         result->f[3] = params->enteredValue[3];
     }
 
-    /*
-     *     If a value of either the maximum detection distance F[3]
-     *     or the maximum of the selected interval KDT has been
-     *     entered as more than 80 times the class interval, CLINT is
-     *     reset at (F[3]-STT or KDT-STT)/80 to avoid computation problems.
-     */
-
-    result->stt = params->kdt > 1 ? params->stt : 0;
-    result->clint = params->clint;
-    if (params->kdt <= 1 || params->kdt > result->f[3]) {
-        if (result->f[3] > (MAX_INTERVALS * params->clint)) {
-            result->clint = (result->f[3] - result->stt) / MAX_INTERVALS;
-        }
-    } else {
-        if ((params->kdt - result->stt) > (MAX_INTERVALS * params->clint)) {
-            result->clint = (params->kdt - result->stt) / MAX_INTERVALS;
-        }
-    }
-
     for (int ih = 0; ih < params->nvals; ih++) {
         result->distance[ih] = params->r[ih];
     }
@@ -805,7 +788,7 @@ void select_search_parameters(calc_params *params, search_params *result)
         /* Transect lengths have been expressed in kilometres. Convert to metres */
 
         // dist *= 1000;
-        if ((params->km == 2) && (result->f[3] > 0)) {
+        if (params->km == 2) {
             result->f[3] *= 1000;
             /*
              *     If detection distances were entered in kilometres (km=2),
@@ -818,6 +801,24 @@ void select_search_parameters(calc_params *params, search_params *result)
         }
     }
     
+    double min_distance = params->kdt > 1 ? params->stt : 0;
+    double max_distance = params->kdt > 1 ? fmin(params->kdt, result->f[3]) : result->f[3];
+    double distance_range = max_distance - min_distance;
+    result->stt = min_distance;
+    
+    if (params->clint > 0) {
+        /*
+         *     If a value of either the maximum detection distance F[3]
+         *     or the maximum of the selected interval KDT has been
+         *     entered as more than 80 times the class interval, CLINT is
+         *     reset at (F[3]-STT or KDT-STT)/80 to avoid computation problems.
+         */
+        
+        result->clint = fmax(params->clint, distance_range / MAX_INTERVALS);
+    } else {
+        // To do: automatic CLINT values
+    }
+
     /*
      *     Case_150 treats the situation where calculations are to be based
      *     on perpendicular distances (y) from the transect line, and the
