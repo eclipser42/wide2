@@ -613,7 +613,43 @@ void randgen (double *result)
 
 /*******************************************************************************
  *
- *	FREQ_DISTRIB     Calculate frequencies of each class
+ *	 SELECT_CLINT     Select the width of the histogram bins
+ *
+ *       Inputs: IRY              - as described above
+ *               GROUP_DISTANCES  - summary statistics of the distances to observed
+ *                                  groups, where the group is ahead of the observer
+ *                                  (i.e. skipping overtakes)
+ *               ESTDMAX          - the initial estimate, supplied or computed, of F[3]
+ *
+ *       Outputs: CLINT  - as described above
+ *
+ *******************************************************************************/
+
+double select_clint(int iry, aggregation *group_distances, double estdmax)
+{
+    double numgra_cube_root = pow(count(group_distances), 1./3);
+    double clint;
+    switch (iry) {
+        case 0: // radial detection distances
+            clint = 1.75 * sample_sd(group_distances) / numgra_cube_root;
+            break;
+
+        case 1: // perpendicular detection distances, entered as radial with angle
+            clint = 3.5 * sample_sd(group_distances) / numgra_cube_root;
+            break;
+
+        default: // perpendicular detection distances, entered as perpendicular
+            clint = 0.084 * estdmax + 3.36;
+            break;
+    }
+    return round(clint * 10) / 10;
+}
+//      END SUBROUTINE select_clint
+
+
+/*******************************************************************************
+ *
+ *    FREQ_DISTRIB     Calculate frequencies of each class
  *
  *       Inputs: NCLASS, STT, CLINT, NVALS, KDT - as described above
  *               Y  - distance to observed groups, whether radial or perpendicular,
@@ -816,7 +852,12 @@ void select_search_parameters(calc_params *params, search_params *result)
         
         result->clint = fmax(params->clint, distance_range / MAX_INTERVALS);
     } else {
-        // To do: automatic CLINT values
+        aggregation group_distances = {0};
+        for (int ih = 0; ih < params->nvals; ih++) {
+            if (result->distance[ih] > min_distance && result->distance[ih] < max_distance)
+                add(&group_distances, result->distance[ih]);
+        }
+        result->clint = select_clint(params->iry, &group_distances, max_distance);
     }
 
     /*
