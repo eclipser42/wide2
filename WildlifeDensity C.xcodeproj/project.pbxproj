@@ -100,7 +100,7 @@
 		AC9DDA4A160B427100AB1A89 /* GRLineDataSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRLineDataSet.h; sourceTree = "<group>"; };
 		AC9DDA4B160B427100AB1A89 /* GRPieDataSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRPieDataSet.h; sourceTree = "<group>"; };
 		AC9DDA4C160B427100AB1A89 /* GRXYDataSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRXYDataSet.h; sourceTree = "<group>"; };
-		AC9DDA4D160B431900AB1A89 /* GraphKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GraphKit.framework; path = ../../../System/Library/PrivateFrameworks/GraphKit.framework; sourceTree = "<group>"; };
+		AC9DDA4D160B431900AB1A89 /* GraphKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GraphKit.framework; path = /System/Library/PrivateFrameworks/GraphKit.framework; sourceTree = "<absolute>"; };
 		AC9DDA4F160B435200AB1A89 /* GraphData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphData.h; sourceTree = "<group>"; };
 		AC9DDA50160B435200AB1A89 /* GraphData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GraphData.m; sourceTree = "<group>"; };
 		ACFF017D1609EA65009EDB79 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/GraphData.xib; sourceTree = "<group>"; };
@@ -351,7 +351,7 @@
 		2A37F4A9FDCFA73011CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0930;
+				LastUpgradeCheck = 1420;
 				TargetAttributes = {
 					1AD5A8391EEC023200E782AA = {
 						CreatedOnToolsVersion = 8.3;
@@ -549,6 +549,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "WildlifeDensity Tests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "au.edu.unimelb.WildlifeDensity-Tests";
@@ -672,6 +673,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "";
 				LIBRARY_STYLE = DYNAMIC;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_BUNDLE_IDENTIFIER = au.edu.unimelb.zoology.wildlifedensity;
 				PRODUCT_NAME = WildlifeDensity;
 				WRAPPER_EXTENSION = app;
@@ -721,6 +723,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "";
 				LIBRARY_STYLE = DYNAMIC;
+				MACOSX_DEPLOYMENT_TARGET = 12.5;
 				PRODUCT_BUNDLE_IDENTIFIER = au.edu.unimelb.zoology.wildlifedensity;
 				PRODUCT_NAME = WildlifeDensity;
 				WRAPPER_EXTENSION = app;
@@ -741,6 +744,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -800,6 +804,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				"GCC_VERSION[sdk=macosx10.5][arch=ppc]" = 4.0;

@@ -8,11 +8,11 @@ if [[ $# < 1 ]]; then
     exit 1
 fi
 revision=$1
-host=${2-old-fergbook.local}
-clone=/Users/james/wide-build
+host=${2-os10-8}
+clone=/Users/admin/wide-build
 
 # needs  ssh $host "cd $clone && git config --add receive.denyCurrentBranch ignore" 
-git push ssh://$host/$clone/.git $revision
+git push ssh://$host$clone/.git $revision
 # build on Xcode 3 into "build/Deployment"
 ssh -x "$host" cd $clone '&&' git checkout $revision '&&' xcodebuild -project "WildlifeDensity\ C.xcodeproj" -configuration Deployment
 [[ -d build ]] || mkdir build
