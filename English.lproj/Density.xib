@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="8.00">
 	<data>
-		<int key="IBDocument.SystemTarget">1060</int>
+		<int key="IBDocument.SystemTarget">1050</int>
 		<string key="IBDocument.SystemVersion">12F2560</string>
 		<string key="IBDocument.InterfaceBuilderVersion">3084</string>
 		<string key="IBDocument.AppKitVersion">1187.40</string>
@@ -140,6 +140,7 @@
 							<string key="NSFrame">{{14, 10}, {480, 569}}</string>
 							<reference key="NSSuperview" ref="329265643"/>
 							<reference key="NSWindow"/>
+							<reference key="NSNextKeyView" ref="26792012"/>
 							<array class="NSMutableArray" key="NSTabViewItems">
 								<object class="NSTabViewItem" id="806986993">
 									<object class="NSMutableString" key="NSIdentifier">
@@ -5674,7 +5675,7 @@ YWlsZWQgcmVzdWx0cyBpbiA</string>
 		<string key="IBDocument.TargetRuntimeIdentifier">IBCocoaFramework</string>
 		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDependencies">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin.macosx</string>
-			<real value="1060" key="NS.object.0"/>
+			<real value="1050" key="NS.object.0"/>
 		</object>
 		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDevelopmentDependencies">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin.InterfaceBuilder3</string>
