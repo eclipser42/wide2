@@ -1,7 +1,7 @@
 /*******************************************************************************
 *     PROGRAM WildlifeDensity
 *
-*     (File mnps2.c, Version 2.2)
+*     (File mnps2.c, Version 2.4b2)
 *
 *     This program is designed to return population density estimates
 *     from 'distance' data collected using either line transect or fixed
@@ -817,19 +817,42 @@ void select_search_parameters(calc_params *params, search_params *result)
     double max_distance = params->kdt > 1 ? fmin(params->kdt, result->f[3]) : result->f[3];
     double distance_range = max_distance - min_distance;
     result->stt = min_distance;
-    
+
+   /*
+    *      Compute the class interval.
+    */
+
     if (params->clint > 0) {
-        /*
-         *     If a value of either the maximum detection distance F[3]
-         *     or the maximum of the selected interval KDT has been
-         *     entered as more than 80 times the class interval, CLINT is
-         *     reset at (F[3]-STT or KDT-STT)/80 to avoid computation problems.
-         */
-        
-        result->clint = fmax(params->clint, distance_range / MAX_INTERVALS);
-    } else {
-        // To do: automatic CLINT values
+        // To do: manual CLINT values
     }
+
+    int ngroups = 0;
+    double nearest_observation = max_distance;
+    double furthest_observation = min_distance;
+    for (int ih = 0; ih < params->nvals; ih++) {
+        if (result->distance[ih] != 0.) {
+            ngroups++;
+            nearest_observation = fmin(nearest_observation, fabs(result->distance[ih]));
+            furthest_observation = fmax(furthest_observation, fabs(result->distance[ih]));
+        }
+    }
+    printf("select_clint: [%.1f - %.1f) => [%.1f - %.1f)\n", min_distance, max_distance, nearest_observation, furthest_observation);
+    if (furthest_observation < nearest_observation + 0.06) {
+        // nonsensical data
+        result->clint = 1;
+    } else {
+        double num_intervals = fmax(5, fmin(20, ngroups / 5.33));
+        result->clint = ceil((furthest_observation - nearest_observation + 0.1) / num_intervals);
+    }
+
+    /*
+     *     If a value of either the maximum detection distance F[3]
+     *     or the maximum of the selected interval KDT has been
+     *     entered as more than 80 times the class interval, CLINT is
+     *     reset at (F[3]-STT or KDT-STT)/80 to avoid computation problems.
+     */
+    
+    result->clint = fmax(result->clint, distance_range / MAX_INTERVALS);
 
     /*
      *     Case_150 treats the situation where calculations are to be based
