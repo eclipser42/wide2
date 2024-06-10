@@ -16,6 +16,7 @@ git push ssh://$host$clone/.git $revision
 # build on Xcode 3 into "build/Deployment"
 ssh -x "$host" cd $clone '&&' git checkout $revision '&&' xcodebuild -project "WildlifeDensity\ C.xcodeproj" -configuration Deployment
 [[ -d build ]] || mkdir build
+rm -fr build/Deployment
 rsync -a $host:$clone/build/Deployment build
 codesign -s "Developer ID Application: James Clough (YCBDS3WHN3)" build/Deployment/WildlifeDensity.app
 
@@ -23,4 +24,6 @@ codesign -s "Developer ID Application: James Clough (YCBDS3WHN3)" build/Deployme
 #-resultBundlePath WildlifeDensity$revision
 #rsync -a $host:$clone/WildlifeDensity$revision.app .
 
+cp 'DMG Resources/Directions for Gatekeeper.rtf' build/Deployment
+ln -s /Applications build/Deployment
 hdiutil create -layout NONE -ov -srcdir build/Deployment -volname WilDen -format UDBZ -fs HFS+ WiDe\ $revision.dmg
